@@ -1,0 +1,17 @@
+# dependências e build
+node_modules/
+dist/
+.output/
+.vercel/
+.vinxi/
+.tanstack/
+# ambiente
+.env
+.env.*
+!.env.example
+# sistema
+.DS_Store
+*.log
+# supabase local
+supabase/.temp/
+supabase/.branches/
