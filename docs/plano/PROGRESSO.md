@@ -50,6 +50,15 @@ _(vazio)_
 - [ ] `PEXELS_API_KEY` — busca de imagens para artigos
 - [ ] `PIXABAY_API_KEY` — fallback de imagens
 - [ ] `BRAPI_TOKEN` (opcional) — cotações de ações/índices no Mercado do pai; sem ele o painel usa só câmbio e BCB
+- [ ] **Turnstile** (Cloudflare): `TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET_KEY` — já na Fase 1 (`/api/newsletter` e `/contato`, doc 03 §4.6) e na Fase 5+ (cadastro, vagas, indicações, perguntas — docs 07 §4.4, 08 §7, 09 §4)
+- [ ] `CRON_SECRET` — gerar um valor único e configurar em Vercel (server), GitHub Actions (secret), Supabase Vault e grupovdp (secret `HUB_API_KEY_VOCACAODEPAI`, doc 10 §11.4). É o único segredo de crons/refresh/integrações: o doc 02 §8 unifica nele os nomes antigos `INTERNAL_FN_SECRET`, `SEO_SYNC_INTERNAL_SECRET` e `HUB_API_KEY`
+- [ ] Service account do Google (JSON) com leitura na propriedade GA4 e no Search Console do site → `GSC_SERVICE_ACCOUNT_JSON` (secret da edge function `seo-search-console`, doc 02 §8) e, no grupovdp, `GOOGLE_SA_JSON` (já existe) + secret `GA4_PROPERTY_VOCACAODEPAI` (id numérico da propriedade, doc 10 §11) — Fase 1 (Search Console/GA4) e Fase 8 (edge)
+- [ ] AdSense: id do publisher (`pub-…`) → constante `ADSENSE_PUB_ID` em `src/lib/site.ts` e linha de `public/ads.txt` (não é variável de ambiente, doc 02 §8); pedir revisão só com 40–60 artigos indexados (doc 11 §1) — Fase 8
+- [ ] Routine **"Vocação de Pai: rotina diária"** em claude.ai/code (doc 10 §2) com as variáveis do doc 10 §11.2: `LISIEUX_SUPABASE_URL`, `LISIEUX_SUPABASE_ANON_KEY`, `LISIEUX_STATUS_SECRET` (status no Painel Lisieux) — Fase 8
+- [ ] `GH_PAT_AUTOMERGE` — token com permissão de merge para `auto-merge.yml` (secret do GitHub Actions, doc 02 §8) — Fase 8
+- [ ] Caixas `contato@vocacaodepai.com.br` e `privacidade@vocacaodepai.com.br` (canal LGPD, docs 07 §9 e 08 §1.6) e domínio de envio `news.vocacaodepai.com.br` (SPF/DKIM/DMARC) verificado no Resend para a newsletter (doc 11 §5.1)
+- [ ] Inscrição no Amazon Associados BR só quando houver ≥ 20 artigos publicados (doc 11 §1); a tag recebida vai para `PUBLIC_AMAZON_TAG` (item acima)
+- [ ] Conta Mercado Pago (plano pago `pai-de-valor`: `MERCADOPAGO_ACCESS_TOKEN` e `MERCADOPAGO_WEBHOOK_SECRET`, fase futura — doc 07 §7) e conta Hotmart (produtos digitais, Fase 7 — doc 11 §1 e §4) — sem urgência
 - [ ] **Google OAuth** — `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` no Google Cloud Console, com redirect da Supabase Auth e da Vercel (Fase 5)
 - [ ] **GA4** — propriedade do Google Analytics 4 e `PUBLIC_GA4_ID`; adicionar o site no Search Console e no AdSense (Fase 8)
 - [ ] Textos finais de `/sobre` (história do casal fundador) e foto do dono para a página — o Sonnet publica um rascunho na Fase 1 e marca aqui para revisão
@@ -62,3 +71,4 @@ _(vazio)_
 | Data | Fase/etapas | PR | Resumo |
 |---|---|---|---|
 | 2026-10-24 | Planejamento | — | Plano escrito: `PLANO-MESTRE.md`, `CLAUDE.md`, `README.md`, `docs/plano/00…13`, `PROGRESSO.md` |
+| 2026-10-29 | Planejamento | #1 | Docs 09 (Irmandade e Formação) e 12 (backlog) escritos; revisão cruzada de coerência (59 ajustes em 16 arquivos); pesquisas em `docs/plano/anexos/` |

@@ -14,12 +14,12 @@
 |---|---|
 | Autenticação | Supabase Auth: e-mail+senha, magic link (OTP por e-mail) e Google OAuth. Sem Facebook/Apple nesta fase. |
 | Perfil | `profiles` criado automaticamente pelo trigger `on_auth_user_created` → `public.handle_new_user()`. |
-| Migration | `supabase/migrations/0004_membros.sql` (profiles, children, saved_items, newsletter_subscribers, plans, subscriptions, badges, user_badges + funções). |
+| Migration | `0004_membros.sql` = doc 02 §4.4 **literal** (já aplicada na F1; só reaplicar se `list_migrations` não a mostrar). Complemento aditivo da fase em `supabase/migrations/0008_area_do_pai.sql` (seção 2.2): colunas extras, funções, seeds. `profiles`/`children`/`newsletter_subscribers` vêm da `0001_core.sql`; `is_admin()` continua a do doc 02 (`role in ('admin','editor')`). |
 | Fases do filho | 8 fases calculadas por `public.child_phase(birth_date)`; conteúdo direcionado por **tags** `fase-<slug>`. |
 | Rotas novas | `/entrar`, `/cadastro`, `/recuperar-senha`, `/auth/callback`, `/area-do-pai`, `/area-do-pai/onboarding`, `/area-do-pai/filhos`, `/area-do-pai/salvos`, `/minha-conta`. |
 | Salvar | Componente `SaveButton` + server function `toggleSavedItemFn` (RLS garante o dono). |
 | E-mails | Resend via Edge Functions `send-welcome-email`, `newsletter-confirm`, `weekly-digest` (pg_cron domingo 08:00 BRT). |
-| Planos | `gratuito` ("Pai de Família") e `pai-de-valor` ("Pai de Valor", R$ 19,90/mês ou R$ 179,00/ano). Provedor: **Mercado Pago** (Pix + assinatura). `BILLING_ENABLED=false` por enquanto; gating via `usePlan()`. |
+| Planos | `gratuito` ("Pai de Família", ativo) e `pai-de-valor` ("Pai de Valor", R$ 19,90/mês ou R$ 179,00/ano; **nasce `active=false`** até o dono decidir — CLAUDE.md §11). Provedor: **Mercado Pago** (Pix + assinatura). `BILLING_ENABLED=false` por enquanto; gating via `usePlan()`. |
 | Segurança | RLS em tudo, rate limit em server functions, Cloudflare Turnstile no cadastro, e-mail verificado para publicar. |
 | LGPD | Consentimento registrado, `export_my_data()` (JSON) e `delete_my_account()`. |
 | Admin | `/admin/membros`: lista, busca, troca de role (somente admin), log em `moderation_log`. |
@@ -66,7 +66,7 @@ O que esta fase NÃO faz: cobrança real (webhooks ficam prontos mas desligados)
 6. **Authentication → Rate Limits**: Email sent 10/h, Token verifications 30/5min, Sign-ups 30/h por IP, Token refresh 150/5min.
 7. **Database → Extensions**: habilitar `pg_cron`, `pg_net`, `supabase_vault` (já vêm no projeto; só confirmar).
 8. **Project Settings → Vault**: criar segredos `RESEND_API_KEY`, `INTERNAL_FN_SECRET` (gerar com `openssl rand -hex 32`),
-   `TURNSTILE_SECRET_KEY`. A função `public.get_secret(name)` (criada em `0001_core.sql`; se não existir, a seção 2.3 cria) lê do Vault.
+   `TURNSTILE_SECRET_KEY`. A função `public.get_secret(secret_name)` (doc 02 §4.1, `0001_core.sql`) lê do Vault; não recriar (seção 2.4).
 
 ### 1.2 Google Cloud Console (OAuth)
 
@@ -168,120 +168,72 @@ config; `.env.example` atualizado e commitado (sem valores reais).
 
 ---
 
-## 2. Migration `supabase/migrations/0004_membros.sql`
+## 2. Banco de dados — `0004_membros.sql` (doc 02 §4.4, literal) + complemento da Fase 5
 
-Regras: idempotente (`if not exists` / `drop policy if exists`), tudo em `public`, funções com `set search_path = public`,
-nomes de colunas exatamente como COLUNAS-CHAVE. `profiles` pode já existir desde `0001_core.sql` — por isso usamos
-`create table if not exists` + `alter table ... add column if not exists`.
+Regras: `docs/plano/02-arquitetura-e-stack.md` é a fonte de verdade de tabelas, colunas e funções. Esta fase **não
+reescreve** nenhuma das sete migrations de schema (`0001_core` … `0007_ferramentas`, todas aplicadas na Fase 1 — doc 03
+§3, etapa 3). O que a Área do Pai precisa além do doc 02 entra numa migration **nova e aditiva** (seção 2.2).
 
-### 2.1 Conteúdo completo
+### 2.1 Schema da 0004: aplicar `docs/plano/02-arquitetura-e-stack.md` §4.4 literal
+
+A `supabase/migrations/0004_membros.sql` é **o bloco do doc 02 §4.4, literal** (`saved_items`, `badges`, `user_badges`,
+`plans`, `subscriptions`, funções `award_badge(uuid, text)` e `complete_onboarding()`, seed do plano `gratuito` e das 5
+insígnias). **Já aplicada na F1**; nesta fase:
+
+1. `mcp__Supabase__list_migrations` no projeto `<SUPABASE_PROJECT_REF>`: se `0004_membros` aparecer, **nada a aplicar**.
+   Só se não aparecer, aplicar o §4.4 do doc 02 literal com `mcp__Supabase__apply_migration` (`name: "0004_membros"`),
+   sem alterar uma linha.
+2. **Não recriar** `profiles`, `children` nem `newsletter_subscribers`: vivem na `0001_core.sql` (doc 02 §4.1), já com
+   trigger `on_auth_user_created` → `handle_new_user()`, guarda `guard_profile_role()`, `get_public_profile(uuid)`,
+   `get_secret(text)`, buckets (`avatars`) e RLS.
+3. **Não redefinir `public.is_admin()`.** No doc 02 §4.1 ela é `role in ('admin','editor')` (staff) e todas as policies
+   das Fases 1–4 dependem disso; redefini-la como `role = 'admin'` tiraria o acesso dos editores. Onde esta fase exige
+   "somente admin" (seção 10), a checagem é explícita no SQL:
+   `exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')`.
+4. **Sem `is_staff()`** (esse papel é o próprio `is_admin()`) e **sem `email_verified()`** aqui: ela nasce na
+   `0005_pai_indica_pai.sql` (doc 08 §2.3) e é reaproveitada pela `0006` (doc 09 §2).
+5. Nomes que valem (doc 02): `badges.rule text` (formato `'tipo'` ou `'tipo:min'`, ex.: `'saved_count:10'`),
+   `user_badges.awarded_at`, `plans.price_monthly numeric(10,2)` (não existem `price_cents` nem `interval`),
+   `subscriptions.provider_ref` com `provider in ('mercadopago','manual')` e
+   `status in ('active','past_due','canceled','trialing')`, `saved_items.item_id uuid`,
+   `children.sex not null check (sex in ('M','F'))`, `newsletter_subscribers.confirm_token` (já existe na 0001).
+
+### 2.2 Complemento da Fase 5: `supabase/migrations/0008_area_do_pai.sql` (aditivo)
+
+Migration **nova** (doc 02 §4: mudanças de schema só em `0008+`; se o número `0008` já estiver em uso no repositório
+quando esta fase rodar, usar o próximo livre e registrar em `PROGRESSO.md`). Só `add column if not exists`, funções,
+policies novas (com `drop policy if exists` antes) e seeds `on conflict`. Nenhum `create table`, nenhum `drop table`,
+nenhuma redefinição de função do doc 02.
 
 ```sql
 -- =====================================================================
--- 0004_membros.sql — Área do Pai: perfis, filhos, salvos, newsletter,
--- planos/assinaturas, badges, funções de autorização e LGPD.
--- Idempotente. Executar após 0001_core, 0002_blog, 0003_loja.
+-- 0008_area_do_pai.sql — Fase 5 (Área do Pai): complemento ADITIVO à
+-- 0001_core (profiles, children, newsletter_subscribers) e à 0004_membros
+-- (saved_items, badges, user_badges, plans, subscriptions) do doc 02.
+-- Não cria tabela, não redefine is_admin(), não faz drop (só de policy).
+-- Idempotente. Executar após 0001–0007.
 -- =====================================================================
 
-create extension if not exists pgcrypto;
 create extension if not exists pg_net;
 create extension if not exists pg_cron;
 
--- ---------- utilitário: updated_at ----------
-create or replace function public.touch_updated_at()
-returns trigger language plpgsql set search_path = public as $$
-begin
-  new.updated_at = now();
-  return new;
-end $$;
-revoke execute on function public.touch_updated_at() from public, anon, authenticated;
-
--- ---------- profiles ----------
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  display_name text,
-  avatar_url text,
-  role text not null default 'member' check (role in ('member','editor','admin')),
-  bio text,
-  city text,
-  uf char(2),
-  onboarding_done boolean not null default false,
-  newsletter_opt_in boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
--- colunas adicionais da Fase 5 (aditivas; não alteram COLUNAS-CHAVE)
+-- ---------- profiles: colunas da Fase 5 (aditivas) ----------
 alter table public.profiles add column if not exists interests text[] not null default '{}';
 alter table public.profiles add column if not exists consent_terms_at timestamptz;
 alter table public.profiles add column if not exists consent_privacy_at timestamptz;
 alter table public.profiles add column if not exists last_seen_at timestamptz;
 
-drop trigger if exists trg_profiles_updated_at on public.profiles;
-create trigger trg_profiles_updated_at before update on public.profiles
-  for each row execute function public.touch_updated_at();
-
--- ---------- autorização ----------
-create or replace function public.is_admin()
-returns boolean language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin');
-$$;
-grant execute on function public.is_admin() to anon, authenticated;
-
-create or replace function public.is_staff()
-returns boolean language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.profiles where id = auth.uid() and role in ('admin','editor'));
-$$;
-grant execute on function public.is_staff() to anon, authenticated;
-
--- e-mail confirmado? (usado nas RLS de publicação das Fases 6 e 7)
-create or replace function public.email_verified()
-returns boolean language sql stable security definer set search_path = public as $$
-  select coalesce((select email_confirmed_at is not null from auth.users where id = auth.uid()), false);
-$$;
-grant execute on function public.email_verified() to authenticated;
-
--- ---------- criação automática do perfil ----------
-create or replace function public.handle_new_user()
-returns trigger language plpgsql security definer set search_path = public as $$
-declare
-  v_name text;
-  v_avatar text;
-begin
-  v_name := coalesce(
-    new.raw_user_meta_data ->> 'display_name',
-    new.raw_user_meta_data ->> 'full_name',
-    new.raw_user_meta_data ->> 'name',
-    split_part(new.email, '@', 1)
-  );
-  v_avatar := coalesce(new.raw_user_meta_data ->> 'avatar_url', new.raw_user_meta_data ->> 'picture');
-  insert into public.profiles (id, display_name, avatar_url, role, newsletter_opt_in)
-  values (
-    new.id,
-    left(v_name, 80),
-    v_avatar,
-    'member',
-    coalesce((new.raw_user_meta_data ->> 'newsletter_opt_in')::boolean, false)
-  )
-  on conflict (id) do nothing;
-  return new;
-end $$;
-revoke execute on function public.handle_new_user() from public, anon, authenticated;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
--- impede escalada de privilégio: só admin muda role, e nunca o próprio
+-- Reforço (além de guard_profile_role da 0001): ninguém altera o PRÓPRIO role,
+-- e trocar o role de terceiro exige role = 'admin' (editor não basta) ou service_role.
 create or replace function public.protect_profile_role()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  if new.role is distinct from old.role then
-    if not public.is_admin() then
-      raise exception 'Somente administradores alteram papéis.' using errcode = '42501';
-    end if;
+  if new.role is distinct from old.role and auth.role() <> 'service_role' then
     if old.id = auth.uid() then
       raise exception 'Você não pode alterar o próprio papel.' using errcode = '42501';
+    end if;
+    if not exists (select 1 from public.profiles where id = auth.uid() and role = 'admin') then
+      raise exception 'Somente administradores alteram papéis.' using errcode = '42501';
     end if;
   end if;
   return new;
@@ -298,18 +250,8 @@ $$;
 revoke all on function public.get_my_profile() from public, anon;
 grant execute on function public.get_my_profile() to authenticated;
 
--- ---------- children ----------
-create table if not exists public.children (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.profiles(id) on delete cascade,
-  name text,
-  birth_date date not null,
-  sex text check (sex in ('m','f') or sex is null),
-  created_at timestamptz not null default now()
-);
-create index if not exists children_user_idx on public.children(user_id);
-
--- fase do filho a partir da data de nascimento (futura = gestação)
+-- ---------- fases do filho (children já existe na 0001: sex in ('M','F') obrigatório) ----------
+-- fase a partir da data de nascimento (futura = gestação)
 create or replace function public.child_phase(p_birth_date date)
 returns text language sql immutable as $$
   select case
@@ -333,78 +275,56 @@ returns setof text language sql stable security definer set search_path = public
 $$;
 grant execute on function public.my_child_phases() to authenticated;
 
--- ---------- saved_items ----------
-create table if not exists public.saved_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.profiles(id) on delete cascade,
-  item_type text not null check (item_type in ('post','product','tool','job','track')),
-  item_id text not null,
-  created_at timestamptz not null default now(),
-  unique (user_id, item_type, item_id)
-);
-create index if not exists saved_items_user_idx on public.saved_items(user_id, created_at desc);
+-- ---------- newsletter_subscribers: colunas da Fase 5 ----------
+-- A 0001 já tem: email, name, source, status (pending/confirmed/unsubscribed), confirm_token, confirmed_at.
+alter table public.newsletter_subscribers add column if not exists user_id uuid references public.profiles(id) on delete set null;
+alter table public.newsletter_subscribers add column if not exists segments jsonb not null default '[]'::jsonb;  -- ex.: ["fase:bebe","interesse:pai-de-valor","last_digest_at:..."]
+create index if not exists idx_newsletter_user on public.newsletter_subscribers(user_id);
+-- leitura do próprio registro (a 0001 só dá leitura ao staff)
+drop policy if exists "newsletter: own read" on public.newsletter_subscribers;
+create policy "newsletter: own read" on public.newsletter_subscribers
+  for select using ((select auth.uid()) = user_id);
 
--- ---------- newsletter_subscribers ----------
-create table if not exists public.newsletter_subscribers (
-  id uuid primary key default gen_random_uuid(),
-  email text not null unique,
-  user_id uuid references public.profiles(id) on delete set null,
-  status text not null default 'pending' check (status in ('pending','confirmed','unsubscribed')),
-  segments jsonb not null default '[]'::jsonb,   -- ex.: ["fase:bebe","tema:financas"]
-  confirm_token uuid not null default gen_random_uuid(),
-  confirmed_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-drop trigger if exists trg_newsletter_updated_at on public.newsletter_subscribers;
-create trigger trg_newsletter_updated_at before update on public.newsletter_subscribers
-  for each row execute function public.touch_updated_at();
+-- confirmação/descadastro passam por função (token), nunca por UPDATE direto do client
+create or replace function public.newsletter_confirm(p_token uuid)
+returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  update public.newsletter_subscribers set status = 'confirmed', confirmed_at = coalesce(confirmed_at, now())
+  where confirm_token = p_token and status <> 'unsubscribed';
+  return found;
+end $$;
+grant execute on function public.newsletter_confirm(uuid) to anon, authenticated;
 
--- ---------- plans / subscriptions ----------
-create table if not exists public.plans (
-  id uuid primary key default gen_random_uuid(),
-  slug text not null unique,
-  name text not null,
-  price_cents int not null default 0,
-  interval text not null default 'month' check (interval in ('month','year','lifetime')),
-  features jsonb not null default '[]'::jsonb,
-  active boolean not null default true,
-  created_at timestamptz not null default now()
-);
+create or replace function public.newsletter_unsubscribe(p_token uuid)
+returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  update public.newsletter_subscribers set status = 'unsubscribed' where confirm_token = p_token;
+  return found;
+end $$;
+grant execute on function public.newsletter_unsubscribe(uuid) to anon, authenticated;
 
-create table if not exists public.subscriptions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.profiles(id) on delete cascade,
-  plan_id uuid not null references public.plans(id),
-  provider text not null default 'manual' check (provider in ('manual','mercadopago','stripe')),
-  provider_id text,                       -- preapproval_id (MP) ou subscription id (Stripe)
-  status text not null default 'active' check (status in ('trialing','active','past_due','canceled','expired')),
-  current_period_end timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-create index if not exists subscriptions_user_idx on public.subscriptions(user_id, status);
-create unique index if not exists subscriptions_provider_uidx on public.subscriptions(provider, provider_id)
-  where provider_id is not null;
-drop trigger if exists trg_subscriptions_updated_at on public.subscriptions;
-create trigger trg_subscriptions_updated_at before update on public.subscriptions
-  for each row execute function public.touch_updated_at();
+-- ---------- plans: seed da Fase 5 (colunas do doc 02 §4.4: price_monthly numeric; sem interval) ----------
+-- gratuito: a 0004 já inseriu a linha; aqui ela recebe o nome e os benefícios da Área do Pai (continua ativa).
+insert into public.plans (slug, name, description, price_monthly, features, active) values
+  ('gratuito', 'Pai de Família', 'Acesso gratuito à Área do Pai.', 0,
+   '["Blog, Pai Indica, Loja e Ferramentas","Salvar conteúdos","Perfil dos filhos e conteúdo por fase","Trilhas básicas e desafios","Pai Indica Pai: vagas e indicações","Newsletter semanal"]'::jsonb,
+   true)
+on conflict (slug) do update set name = excluded.name, description = excluded.description, features = excluded.features, active = true;
 
-insert into public.plans (slug, name, price_cents, interval, features) values
-  ('gratuito', 'Pai de Família', 0, 'lifetime',
-   '["Blog, Pai Indica, Loja e Ferramentas","Salvar conteúdos","Perfil dos filhos e conteúdo por fase","Trilhas básicas e desafios","Pai Indica Pai: vagas e indicações","Newsletter semanal"]'::jsonb),
-  ('pai-de-valor-mensal', 'Pai de Valor (mensal)', 1990, 'month',
-   '["Tudo do plano gratuito","Trilhas avançadas e certificados","Grupos fechados da Irmandade","E-books e guias em PDF","Descontos de parceiros","Mentorias em grupo mensais","Sem anúncios"]'::jsonb),
-  ('pai-de-valor-anual', 'Pai de Valor (anual)', 17900, 'year',
-   '["Tudo do plano gratuito","Trilhas avançadas e certificados","Grupos fechados da Irmandade","E-books e guias em PDF","Descontos de parceiros","Mentorias em grupo mensais","Sem anúncios","2 meses grátis"]'::jsonb)
-on conflict (slug) do update set name = excluded.name, price_cents = excluded.price_cents, features = excluded.features;
+-- pago: nasce DESLIGADO (CLAUDE.md §11: active=false até o dono decidir preço e nome).
+-- Ligar é decisão do dono: update public.plans set active = true where slug = 'pai-de-valor';
+insert into public.plans (slug, name, description, price_monthly, features, active) values
+  ('pai-de-valor', 'Pai de Valor', 'Plano pago da Área do Pai (mensal; o anual é cobrado avulso no checkout).', 19.90,
+   '["Tudo do plano gratuito","Trilhas avançadas e certificados","Grupos fechados da Irmandade","E-books e guias em PDF","Descontos de parceiros","Mentorias em grupo mensais","Sem anúncios"]'::jsonb,
+   false)
+on conflict (slug) do nothing;
 
 -- plano efetivo do usuário logado
 create or replace function public.my_plan_slug()
 returns text language sql stable security definer set search_path = public as $$
   select coalesce(
     (select p.slug from public.subscriptions s join public.plans p on p.id = s.plan_id
-      where s.user_id = auth.uid() and s.status in ('trialing','active')
+      where s.user_id = auth.uid() and s.status in ('active','trialing')
         and (s.current_period_end is null or s.current_period_end > now())
       order by s.current_period_end desc nulls last limit 1),
     'gratuito');
@@ -413,65 +333,50 @@ grant execute on function public.my_plan_slug() to authenticated;
 
 create or replace function public.is_premium()
 returns boolean language sql stable security definer set search_path = public as $$
-  select public.my_plan_slug() like 'pai-de-valor%';
+  select public.my_plan_slug() = 'pai-de-valor';
 $$;
 grant execute on function public.is_premium() to authenticated;
 
--- ---------- badges ----------
-create table if not exists public.badges (
-  id uuid primary key default gen_random_uuid(),
-  slug text not null unique,
-  name text not null,
-  description text,
-  icon text,
-  rule jsonb not null default '{}'::jsonb,   -- {"type":"saved_count","min":10}
-  created_at timestamptz not null default now()
-);
-create table if not exists public.user_badges (
-  user_id uuid not null references public.profiles(id) on delete cascade,
-  badge_id uuid not null references public.badges(id) on delete cascade,
-  earned_at timestamptz not null default now(),
-  primary key (user_id, badge_id)
-);
-
+-- ---------- badges extras da Fase 5 (rule text; as 5 do doc 02 §4.4 já existem) ----------
 insert into public.badges (slug, name, description, icon, rule) values
-  ('primeiro-passo', 'Primeiro passo', 'Completou o onboarding da Área do Pai.', 'footprints', '{"type":"onboarding_done"}'),
-  ('pai-presente', 'Pai presente', 'Cadastrou o primeiro filho.', 'baby', '{"type":"children_count","min":1}'),
-  ('colecionador', 'Colecionador', 'Salvou 10 conteúdos.', 'bookmark', '{"type":"saved_count","min":10}'),
-  ('leitor-fiel', 'Leitor fiel', 'Confirmou a newsletter semanal.', 'mail-check', '{"type":"newsletter_confirmed"}'),
-  ('pai-de-valor', 'Pai de Valor', 'Assinante do plano Pai de Valor.', 'shield-check', '{"type":"premium"}')
+  ('primeiro-filho', 'Primeiro filho', 'Cadastrou o primeiro filho na Área do Pai.', 'baby', 'children_count:1'),
+  ('colecionador', 'Colecionador', 'Salvou 10 conteúdos.', 'bookmark', 'saved_count:10'),
+  ('leitor-fiel', 'Leitor fiel', 'Confirmou a newsletter semanal.', 'mail-check', 'newsletter_confirmed'),
+  ('pai-de-valor', 'Pai de Valor', 'Assinante do plano Pai de Valor.', 'shield-check', 'premium')
 on conflict (slug) do nothing;
 
--- concessão de badges (chamada pelo client após ações; idempotente)
+-- concessão das insígnias de regra automática (idempotente; usa award_badge da 0004). Devolve os slugs novos.
+-- Regras de outras fases ('challenge_completed:1', 'track_completed:1', 'job_approved:1', 'story_approved:1')
+-- são concedidas pelas funções das Fases 6 e 7 e aqui caem em 'else false'.
 create or replace function public.grant_badges_for_me()
 returns setof text language plpgsql security definer set search_path = public as $$
 declare
-  b record; ok boolean; v_saved int; v_children int; v_news boolean;
+  b record; ok boolean; v_type text; v_min int; v_saved int; v_children int; v_news boolean;
 begin
   if auth.uid() is null then return; end if;
   select count(*) into v_saved from public.saved_items where user_id = auth.uid();
   select count(*) into v_children from public.children where user_id = auth.uid();
-  select exists(select 1 from public.newsletter_subscribers n join auth.users u on u.email = n.email
-                where u.id = auth.uid() and n.status = 'confirmed') into v_news;
-  for b in select * from public.badges loop
-    ok := case b.rule->>'type'
+  select exists (select 1 from public.newsletter_subscribers n where n.user_id = auth.uid() and n.status = 'confirmed') into v_news;
+  for b in select * from public.badges where rule is not null loop
+    v_type := split_part(b.rule, ':', 1);
+    v_min := coalesce(nullif(split_part(b.rule, ':', 2), '')::int, 1);
+    ok := case v_type
       when 'onboarding_done' then (select onboarding_done from public.profiles where id = auth.uid())
-      when 'children_count' then v_children >= coalesce((b.rule->>'min')::int, 1)
-      when 'saved_count' then v_saved >= coalesce((b.rule->>'min')::int, 1)
+      when 'children_count' then v_children >= v_min
+      when 'saved_count' then v_saved >= v_min
       when 'newsletter_confirmed' then v_news
       when 'premium' then public.is_premium()
       else false end;
-    if ok then
-      insert into public.user_badges (user_id, badge_id) values (auth.uid(), b.id)
-      on conflict do nothing;
-      if found then return next b.slug; end if;
+    if ok and not exists (select 1 from public.user_badges ub where ub.user_id = auth.uid() and ub.badge_id = b.id) then
+      perform public.award_badge(auth.uid(), b.slug);
+      return next b.slug;
     end if;
   end loop;
 end $$;
 grant execute on function public.grant_badges_for_me() to authenticated;
 
 -- ---------- conteúdo por fase ----------
--- Convenção: tags.slug = 'fase-<slug_da_fase>' (fase-gestacao, fase-bebe, ...). Criadas aqui se não existirem.
+-- Convenção: tags.slug = 'fase-<slug_da_fase>' (fase-gestacao, fase-bebe, ...). tags vem da 0002 (doc 02 §4.2).
 insert into public.tags (slug, name) values
   ('fase-gestacao','Gestação'),('fase-recem-nascido','Recém-nascido (0-3 meses)'),('fase-bebe','Bebê (4-12 meses)'),
   ('fase-primeira-infancia','1 a 3 anos'),('fase-infancia','4 a 7 anos'),('fase-pre-adolescencia','8 a 12 anos'),
@@ -490,8 +395,7 @@ language sql stable security definer set search_path = public as $$
   join public.tags t on t.id = pt.tag_id
   where p.status = 'published' and (p.publish_at is null or p.publish_at <= now())
     and (replace(t.slug,'fase-','') in (select phase from phases) or t.slug = 'fase-todas')
-    and p.id not in (select item_id::uuid from public.saved_items
-                     where user_id = auth.uid() and item_type = 'post' and item_id ~ '^[0-9a-f-]{36}$')
+    and p.id not in (select item_id from public.saved_items where user_id = auth.uid() and item_type = 'post')
   order by p.id, p.publish_at desc
   limit greatest(1, least(p_limit, 50));
 $$;
@@ -509,7 +413,7 @@ returns jsonb language sql stable security definer set search_path = public as $
     'children', (select coalesce(jsonb_agg(to_jsonb(c)), '[]') from public.children c where c.user_id = auth.uid()),
     'saved_items', (select coalesce(jsonb_agg(to_jsonb(s)), '[]') from public.saved_items s where s.user_id = auth.uid()),
     'subscriptions', (select coalesce(jsonb_agg(to_jsonb(s)), '[]') from public.subscriptions s where s.user_id = auth.uid()),
-    'badges', (select coalesce(jsonb_agg(jsonb_build_object('badge', b.slug, 'earned_at', ub.earned_at)), '[]')
+    'badges', (select coalesce(jsonb_agg(jsonb_build_object('badge', b.slug, 'awarded_at', ub.awarded_at)), '[]')
                from public.user_badges ub join public.badges b on b.id = ub.badge_id where ub.user_id = auth.uid()),
     'newsletter', (select coalesce(jsonb_agg(to_jsonb(n) - 'confirm_token'), '[]')
                    from public.newsletter_subscribers n where n.user_id = auth.uid())
@@ -537,113 +441,7 @@ end $$;
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
 
--- ---------- RLS ----------
-alter table public.profiles enable row level security;
-alter table public.children enable row level security;
-alter table public.saved_items enable row level security;
-alter table public.newsletter_subscribers enable row level security;
-alter table public.plans enable row level security;
-alter table public.subscriptions enable row level security;
-alter table public.badges enable row level security;
-alter table public.user_badges enable row level security;
-
--- profiles: anon nada; usuário lê/edita o próprio; admin tudo; perfis de autores (editor/admin) são lidos via view
-drop policy if exists "profiles_select_own_or_admin" on public.profiles;
-create policy "profiles_select_own_or_admin" on public.profiles for select to authenticated
-  using ((select auth.uid()) = id or (select public.is_admin()));
-drop policy if exists "profiles_insert_own" on public.profiles;
-create policy "profiles_insert_own" on public.profiles for insert to authenticated
-  with check ((select auth.uid()) = id);
-drop policy if exists "profiles_update_own_or_admin" on public.profiles;
-create policy "profiles_update_own_or_admin" on public.profiles for update to authenticated
-  using ((select auth.uid()) = id or (select public.is_admin()))
-  with check ((select auth.uid()) = id or (select public.is_admin()));
-drop policy if exists "profiles_delete_admin" on public.profiles;
-create policy "profiles_delete_admin" on public.profiles for delete to authenticated
-  using ((select public.is_admin()));
-
--- view pública de autores (para bylines do blog) — só campos públicos
-create or replace view public.public_authors
-  with (security_invoker = off) as
-  select id, display_name, avatar_url, bio, role from public.profiles where role in ('admin','editor');
-grant select on public.public_authors to anon, authenticated;
-
--- children
-drop policy if exists "children_all_own" on public.children;
-create policy "children_all_own" on public.children for all to authenticated
-  using ((select auth.uid()) = user_id or (select public.is_admin()))
-  with check ((select auth.uid()) = user_id);
-
--- saved_items
-drop policy if exists "saved_items_all_own" on public.saved_items;
-create policy "saved_items_all_own" on public.saved_items for all to authenticated
-  using ((select auth.uid()) = user_id or (select public.is_admin()))
-  with check ((select auth.uid()) = user_id);
-
--- newsletter_subscribers: anon pode INSERIR (formulário público); leitura só do próprio (por user_id) ou admin;
--- confirmação/descadastro passam por funções (token), nunca por UPDATE direto.
-drop policy if exists "newsletter_insert_public" on public.newsletter_subscribers;
-create policy "newsletter_insert_public" on public.newsletter_subscribers for insert to anon, authenticated
-  with check (status = 'pending' and confirmed_at is null);
-drop policy if exists "newsletter_select_own_or_admin" on public.newsletter_subscribers;
-create policy "newsletter_select_own_or_admin" on public.newsletter_subscribers for select to authenticated
-  using ((select auth.uid()) = user_id or (select public.is_admin()));
-drop policy if exists "newsletter_update_admin" on public.newsletter_subscribers;
-create policy "newsletter_update_admin" on public.newsletter_subscribers for update to authenticated
-  using ((select public.is_admin()));
-drop policy if exists "newsletter_delete_admin" on public.newsletter_subscribers;
-create policy "newsletter_delete_admin" on public.newsletter_subscribers for delete to authenticated
-  using ((select public.is_admin()));
-
-create or replace function public.newsletter_confirm(p_token uuid)
-returns boolean language plpgsql security definer set search_path = public as $$
-begin
-  update public.newsletter_subscribers set status = 'confirmed', confirmed_at = coalesce(confirmed_at, now())
-  where confirm_token = p_token and status <> 'unsubscribed';
-  return found;
-end $$;
-grant execute on function public.newsletter_confirm(uuid) to anon, authenticated;
-
-create or replace function public.newsletter_unsubscribe(p_token uuid)
-returns boolean language plpgsql security definer set search_path = public as $$
-begin
-  update public.newsletter_subscribers set status = 'unsubscribed' where confirm_token = p_token;
-  return found;
-end $$;
-grant execute on function public.newsletter_unsubscribe(uuid) to anon, authenticated;
-
--- plans: leitura pública dos ativos; escrita admin
-drop policy if exists "plans_select_active" on public.plans;
-create policy "plans_select_active" on public.plans for select to anon, authenticated
-  using (active = true or (select public.is_admin()));
-drop policy if exists "plans_write_admin" on public.plans;
-create policy "plans_write_admin" on public.plans for all to authenticated
-  using ((select public.is_admin())) with check ((select public.is_admin()));
-
--- subscriptions: usuário lê a própria; escrita só admin/service_role (webhooks usam service_role e ignoram RLS)
-drop policy if exists "subscriptions_select_own_or_admin" on public.subscriptions;
-create policy "subscriptions_select_own_or_admin" on public.subscriptions for select to authenticated
-  using ((select auth.uid()) = user_id or (select public.is_admin()));
-drop policy if exists "subscriptions_write_admin" on public.subscriptions;
-create policy "subscriptions_write_admin" on public.subscriptions for all to authenticated
-  using ((select public.is_admin())) with check ((select public.is_admin()));
-
--- badges: leitura pública; escrita admin
-drop policy if exists "badges_select_public" on public.badges;
-create policy "badges_select_public" on public.badges for select to anon, authenticated using (true);
-drop policy if exists "badges_write_admin" on public.badges;
-create policy "badges_write_admin" on public.badges for all to authenticated
-  using ((select public.is_admin())) with check ((select public.is_admin()));
-
--- user_badges: leitura do próprio ou admin; escrita só via grant_badges_for_me()/admin
-drop policy if exists "user_badges_select_own_or_admin" on public.user_badges;
-create policy "user_badges_select_own_or_admin" on public.user_badges for select to authenticated
-  using ((select auth.uid()) = user_id or (select public.is_admin()));
-drop policy if exists "user_badges_write_admin" on public.user_badges;
-create policy "user_badges_write_admin" on public.user_badges for all to authenticated
-  using ((select public.is_admin())) with check ((select public.is_admin()));
-
--- ---------- admin: lista de membros ----------
+-- ---------- admin: lista de membros (somente role = 'admin'; editor não vê) ----------
 create or replace function public.admin_list_members(p_search text default null, p_limit int default 50, p_offset int default 0)
 returns table (id uuid, email text, display_name text, role text, city text, uf text, onboarding_done boolean,
                newsletter_opt_in boolean, plan_slug text, children_count bigint, created_at timestamptz, last_sign_in_at timestamptz)
@@ -654,7 +452,7 @@ language sql stable security definer set search_path = public as $$
          (select count(*) from public.children c where c.user_id = p.id),
          p.created_at, u.last_sign_in_at
   from public.profiles p join auth.users u on u.id = p.id
-  where public.is_admin()
+  where exists (select 1 from public.profiles a where a.id = auth.uid() and a.role = 'admin')
     and (p_search is null or u.email ilike '%'||p_search||'%' or p.display_name ilike '%'||p_search||'%')
   order by p.created_at desc
   limit least(greatest(p_limit,1),200) offset greatest(p_offset,0);
@@ -665,7 +463,9 @@ grant execute on function public.admin_list_members(text,int,int) to authenticat
 create or replace function public.admin_set_role(p_user uuid, p_role text)
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_admin() then raise exception 'Acesso restrito' using errcode = '42501'; end if;
+  if not exists (select 1 from public.profiles a where a.id = auth.uid() and a.role = 'admin') then
+    raise exception 'Acesso restrito a administradores' using errcode = '42501';
+  end if;
   if p_user = auth.uid() then raise exception 'Não altere o próprio papel' using errcode = '42501'; end if;
   if p_role not in ('member','editor','admin') then raise exception 'Papel inválido'; end if;
   update public.profiles set role = p_role where id = p_user;
@@ -674,37 +474,36 @@ begin
 end $$;
 revoke all on function public.admin_set_role(uuid,text) from public, anon;
 grant execute on function public.admin_set_role(uuid,text) to authenticated;
+
+-- O cron 'weekly-digest' (seção 6.6) entra no FIM deste arquivo.
 ```
 
-Observação: `protect_profile_role` roda como `security definer` e chama `is_admin()`; `admin_set_role` também é definer e
-faz o UPDATE — o trigger vê `auth.uid()` do admin, então passa. O service_role (webhooks/edge) não dispara erro porque
-`is_admin()` retorna false com `auth.uid()` nulo — por isso webhooks **não** alteram `role`, só `subscriptions`.
+Observação: `guard_profile_role` (doc 02 §4.1) continua ativo e aceita staff; `protect_profile_role` aperta para
+`role = 'admin'` e proíbe mexer no próprio papel. `admin_set_role` é `security definer` e faz o UPDATE — o trigger vê o
+`auth.uid()` do admin e passa. O service_role (webhooks/edge) não dispara erro, mas por isso webhooks **não** alteram
+`role`, só `subscriptions`. `onboarding_done` é marcado por `complete_onboarding()` (doc 02 §4.4), que também concede a
+insígnia `primeiro-passo`.
 
-### 2.2 Aplicar
+### 2.3 Aplicar
 
-```bash
-cd /home/user/vocacaodepai
-supabase db push            # produção (linkado em <SUPABASE_PROJECT_REF>)
-# ou local: supabase db reset
-supabase gen types typescript --linked > src/integrations/supabase/types.ts
-```
+1. Commitar `supabase/migrations/0008_area_do_pai.sql` e aplicar com `mcp__Supabase__apply_migration`
+   (`project_id: <SUPABASE_PROJECT_REF>`, `name: "0008_area_do_pai"`, `query: <conteúdo do arquivo>`). Só commitar não
+   muda o site (CLAUDE.md §4.2).
+2. `mcp__Supabase__generate_typescript_types` → `src/integrations/supabase/types.ts`.
+3. `mcp__Supabase__get_advisors` (security e performance): zerar avisos.
+4. Local (opcional): `supabase db reset` roda 0001–0008 em ordem.
 
-### 2.3 Se `get_secret` não existir (verificar com `grep -l get_secret supabase/migrations/*.sql`)
+### 2.4 `get_secret`
 
-Acrescentar ao final de `0004_membros.sql`:
+Já existe desde a `0001_core.sql` (doc 02 §4.1: `security definer`, `search_path = public, vault`, execução só para
+`service_role`). **Não recriar.** O cron da seção 6.6 e as edge functions da seção 6 a usam como está.
 
-```sql
-create or replace function public.get_secret(secret_name text)
-returns text language sql security definer set search_path = '' as $$
-  select decrypted_secret from vault.decrypted_secrets where name = secret_name limit 1;
-$$;
-revoke all on function public.get_secret(text) from public, anon, authenticated;
-grant execute on function public.get_secret(text) to service_role;
-```
-
-Critério de aceite 2: `supabase db push` sem erro; no SQL Editor, `select public.child_phase(current_date - 200)` →
-`bebe`; criar usuário de teste no painel Auth → linha aparece em `profiles` com `role='member'`;
-com JWT de membro, `select * from profiles` retorna só a própria linha; com anon, retorna 0 linhas.
+Critério de aceite 2: `mcp__Supabase__list_migrations` lista `0004_membros` e `0008_area_do_pai`;
+`select pg_get_functiondef('public.is_admin()'::regprocedure)` ainda contém `'editor'` (definição do doc 02);
+`select public.child_phase(current_date - 200)` → `bebe`; criar usuário de teste no painel Auth → linha aparece em
+`profiles` com `role='member'`; `select slug, active from public.plans order by slug` → `gratuito true`,
+`pai-de-valor false`; com JWT de membro, `select * from profiles` retorna a própria linha mais os perfis de
+editor/admin (policy do doc 02); com anon, `children`, `saved_items` e `subscriptions` retornam 0 linhas.
 
 ---
 
@@ -946,6 +745,9 @@ export const signUpFn = createServerFn({ method: "POST" })
   });
 ```
 
+`handle_new_user()` (doc 02 §4.1) lê dos metadados só `display_name`/`full_name`/`avatar_url`; `newsletter_opt_in` é gravado
+em `profiles` no onboarding (4.8).
+
 Instalar `zod` se ainda não estiver: `npm i zod`. Para o Turnstile no client, usar o script oficial
 `https://challenges.cloudflare.com/turnstile/v0/api.js` carregado em `src/components/auth/TurnstileWidget.tsx` (render
 explícito com `window.turnstile.render(el, { sitekey, callback })`). Criar o site no painel Cloudflare → Turnstile →
@@ -1068,35 +870,40 @@ useEffect(() => {
 ### 4.8 Onboarding em 3 passos (`/area-do-pai/onboarding`)
 
 1. **Passo 1 — Quem é você**: nome de exibição (pré-preenchido), cidade, UF (select 27), avatar opcional (upload para
-   bucket `avatars`, público, caminho `avatars/<uid>.webp`, reutilizar `compressToWebP` do vocacaodemae).
-2. **Passo 2 — Seus filhos**: lista dinâmica (nome opcional, data de nascimento obrigatória, sexo opcional m/f), botão
+   bucket `avatars`, público, caminho `<uid>/avatar.webp` (a policy `avatars: own write` do doc 02 §4.1 exige a pasta = `auth.uid()`), reutilizar `compressToWebP` do vocacaodemae).
+2. **Passo 2 — Seus filhos**: lista dinâmica (nome opcional, data de nascimento obrigatória, sexo obrigatório `M`/`F` —
+   `children.sex not null check (sex in ('M','F'))`, doc 02 §4.1), botão
    "Adicionar filho", opção "Estamos esperando um bebê" (define `birth_date` = data prevista do parto). Mostra a fase
    calculada ao lado de cada filho (`childPhase`). Pode pular ("Ainda não tenho filhos").
 3. **Passo 3 — Interesses**: chips multi-seleção gravados em `profiles.interests[]`:
    `paternidade`, `casamento`, `financas`, `carreira`, `fe`, `saude`, `esportes`, `churrasco-e-cozinha`,
    `ferramentas-e-reparos`, `carros`, `tecnologia`, `leitura`. Checkbox newsletter (pré-marcado se já opt-in).
-   Botão "Entrar na Área do Pai" → grava `onboarding_done = true`, `consent_terms_at = now()`, `consent_privacy_at = now()`,
-   insere/atualiza `newsletter_subscribers` (status pending + dispara e-mail de confirmação, seção 6), chama
-   `grant_badges_for_me()`, dispara `send-welcome-email` (seção 6) e navega para `/area-do-pai`.
+   Botão "Entrar na Área do Pai" → grava em `profiles` (UPDATE do próprio registro) `consent_terms_at = now()`,
+   `consent_privacy_at = now()`, `interests` e `newsletter_opt_in`; chama `complete_onboarding()` (doc 02 §4.4: marca
+   `onboarding_done` e concede a insígnia `primeiro-passo`); insere/atualiza `newsletter_subscribers` (status pending +
+   dispara e-mail de confirmação, seção 6); chama `grant_badges_for_me()`; dispara `send-welcome-email` (seção 6) e
+   navega para `/area-do-pai`.
 
 Persistência entre passos: estado local + `localStorage['vdp_onboarding_draft']` (try/catch).
 
 ### 4.9 Painel `/area-do-pai` (PainelPage) — blocos em ordem
 
 Server function `getPainelDataFn({ accessToken })` em `src/lib/area.functions.ts` que retorna tudo em uma chamada
-(usa `requireUser` e executa as consultas em `Promise.all`; tabelas de fases futuras são consultadas com `try/catch`
-e devolvem `[]` se não existirem):
+(usa `requireUser`). A base vem de `sb.rpc('get_member_dashboard')` (doc 02 §4.6; é o critério de pronto da F5 no doc 02
+§10): `profile`, `children`, `badges` (com `awarded_at`), `saved_count`, `tracks`, `challenges`, `jobs`. O resto
+(`recommended`, `savedRecent`, `myReferrals`, `myStories`, `newsletter`, `plan`, `market`) é consultado em `Promise.all`;
+tabelas de fases futuras com `try/catch`, devolvendo `[]` se não existirem:
 
 ```ts
 export interface PainelData {
   profile: Profile;
-  children: Array<{ id: string; name: string | null; birth_date: string; sex: string | null; phase: PhaseSlug }>;
+  children: Array<{ id: string; name: string | null; birth_date: string; sex: "M" | "F"; phase: PhaseSlug }>;
   recommended: Array<{ post_id: string; slug: string; title: string; excerpt: string | null; cover_image_url: string | null; kind: string; phase: string }>;
   savedCount: number;
   savedRecent: Array<{ item_type: string; item_id: string; created_at: string }>;
   tracksInProgress: Array<{ slug: string; title: string; done: number; total: number }>;   // Fase 7 (vazio até lá)
   activeChallenges: Array<{ slug: string; title: string; day: number; days: number }>;     // Fase 7
-  badges: Array<{ slug: string; name: string; icon: string | null; earned_at: string }>;
+  badges: Array<{ slug: string; name: string; icon: string | null; awarded_at: string }>;   // user_badges.awarded_at (doc 02 §4.4)
   myJobs: Array<{ slug: string; title: string; status: string }>;                          // Fase 6
   myReferrals: Array<{ id: string; title: string; status: string }>;                       // Fase 6
   myStories: Array<{ id: string; title: string; status: string }>;                         // Fase 7
@@ -1125,11 +932,13 @@ Blocos (componentes em `src/components/area/`):
 
 ### 4.10 `/area-do-pai/filhos` (FilhosPage)
 CRUD direto via `supabase.from('children')` (RLS). Validações: `birth_date` entre hoje−60 anos e hoje+10 meses;
-máximo 12 filhos. Exibe fase e "próxima fase em N meses". Após salvar: `grant_badges_for_me()`.
+máximo 12 filhos; `sex` obrigatório (`'M'`/`'F'`). Exibe fase e "próxima fase em N meses". Após salvar: `grant_badges_for_me()`
+(insígnia `primeiro-filho`).
 
 ### 4.11 `/area-do-pai/salvos` (SalvosPage)
 Filtros por `item_type` (Artigos, Produtos, Ferramentas, Vagas, Trilhas). Hidrata cada tipo com uma consulta
-(`posts` por ids, `products` por ids, ferramentas por slug de `src/lib/tools/registry.ts`, `jobs`/`tracks` se existirem).
+(`posts` por ids, `products` por ids, ferramentas casando `item_id` com `toolItemId(slug)` (seção 5.3) sobre `TOOLS` de
+`src/lib/tools/registry.ts`, `jobs`/`tracks` se existirem).
 Botão "Remover" chama `toggleSavedItemFn`.
 
 ### 4.12 `/minha-conta` (MinhaContaPage) — abas
@@ -1145,7 +954,7 @@ Botão "Remover" chama `toggleSavedItemFn`.
 
 ### 4.13 Header/menu
 Em `src/components/layout/Header.tsx`: quando `user` → avatar com dropdown (Área do Pai, Salvos, Minha conta, Admin se
-`is_staff`, Sair); quando não → botão "Entrar" (`/entrar`) e "Criar conta" (`/cadastro`). Mobile: itens no drawer.
+`profile.role in ('editor','admin')` — o mesmo critério de `is_admin()` do doc 02 §4.1 —, Sair); quando não → botão "Entrar" (`/entrar`) e "Criar conta" (`/cadastro`). Mobile: itens no drawer.
 
 Critério de aceite 4: fluxo completo manual — cadastro com Turnstile → e-mail de confirmação chega → callback → onboarding
 3 passos → painel com filho e conteúdo por fase → salvar um post → aparece em Salvos → trocar senha → exportar JSON →
@@ -1167,7 +976,7 @@ import { rateLimit } from "@/lib/rate-limit";
 const Input = z.object({
   accessToken: z.string().min(20),
   itemType: z.enum(["post", "product", "tool", "job", "track"]),
-  itemId: z.string().min(1).max(120),
+  itemId: z.string().uuid(),   // saved_items.item_id é uuid (doc 02 §4.4); ferramenta → toolItemId(slug), seção 5.3
 });
 
 export const toggleSavedItemFn = createServerFn({ method: "POST" })
@@ -1246,7 +1055,11 @@ export function SaveButton({ itemType, itemId, initialSaved = false, size = "md"
 ### 5.3 Onde inserir
 - Post (`/post/$slug`): ao lado do compartilhar, `itemType="post" itemId={post.id}`.
 - Produto (`/loja/$slug`): abaixo do botão "Comprar agora na Amazon", `itemType="product" itemId={product.id}`.
-- Ferramenta (`/ferramentas/$slug`): no cabeçalho, `itemType="tool" itemId={tool.slug}`.
+- Ferramenta (`/ferramentas/$slug`): no cabeçalho, `itemType="tool" itemId={toolItemId(tool.slug)}`. `saved_items.item_id` é
+  `uuid` (doc 02 §4.4) e o registro de ferramentas (doc 06 §1.1) não tem id: helper `src/lib/tools/saved-id.ts` com
+  `toolItemId(slug)` = SHA-256 de `'tool:' + slug` em hex, primeiros 32 caracteres no formato `8-4-4-4-12`
+  (`crypto.subtle.digest`, resultado cacheado em memória). O mesmo valor em SQL:
+  `substr(encode(sha256(('tool:'||slug)::bytea),'hex'),1,32)::uuid`.
 - Vaga e Trilha: Fases 6 e 7 reutilizam o componente (`job.id`, `track.id`).
 Listas (cards) usam `size="sm" label={false}`. Para marcar `initialSaved` em listas, a página chama `listMySavedIdsFn` uma vez.
 
@@ -1355,7 +1168,7 @@ Batch (`POST https://api.resend.com/emails/batch`, até 100 por chamada). Regist
 (`entity='newsletter'`, `action='weekly_digest'`, `note='enviados=N falhas=M'`). Idempotência: grava `last_digest_at`
 em `segments` (`{"last_digest_at": ...}`) e pula quem recebeu há < 6 dias.
 
-Cron (adicionar ao final de `0004_membros.sql`; `<SUPABASE_PROJECT_REF>` é substituído pelo executor):
+Cron (adicionar ao final de `0008_area_do_pai.sql`, seção 2.2; `<SUPABASE_PROJECT_REF>` é substituído pelo executor):
 
 ```sql
 select cron.unschedule('weekly-digest') where exists (select 1 from cron.job where jobname = 'weekly-digest');
@@ -1404,7 +1217,9 @@ para o próprio endereço; sem segredo → 403; `select * from cron.job` mostra 
 | Sem anúncios AdSense dentro da Área do Pai e nos posts | — | ✔ |
 | **Preço** | R$ 0 | **R$ 19,90/mês** ou **R$ 179,00/ano** (≈ R$ 14,92/mês, "2 meses grátis") |
 
-Nome alternativo se "Pai de Valor" não agradar: "Pai Provedor". Manter slug `pai-de-valor-*` no banco.
+Nome alternativo se "Pai de Valor" não agradar: "Pai Provedor". Manter o slug `pai-de-valor` no banco: **uma** linha em
+`plans` (`price_monthly = 19.90`; o anual é cobrado avulso no checkout, não é outro plano). A linha nasce `active=false`
+(CLAUDE.md §11) e só o dono liga: `update public.plans set active = true where slug = 'pai-de-valor';`.
 
 ### 7.2 Provedor: Mercado Pago (recomendado) vs. Stripe
 
@@ -1419,12 +1234,14 @@ Nome alternativo se "Pai de Valor" não agradar: "Pai Provedor". Manter slug `pa
 | Developer experience | Boa, SDK Node `mercadopago` | Excelente |
 
 **Decisão**: **Mercado Pago** para lançar — Pix é o meio de pagamento dominante no Brasil e o plano anual via Pix
-(R$ 179) converte melhor que cartão recorrente para esse público. A tabela `subscriptions` é agnóstica (`provider`
-em `'mercadopago'|'stripe'|'manual'`), então migrar para Stripe depois é só outro webhook.
+(R$ 179) converte melhor que cartão recorrente para esse público. A tabela `subscriptions` guarda o provedor
+(`provider in ('mercadopago','manual')` e `provider_ref`, doc 02 §4.4); migrar para Stripe depois é outro webhook mais
+uma migration nova ampliando o `check` de `provider`.
 
 ### 7.3 O que fica pronto agora (sem cobrar)
 
-1. `plans` e `subscriptions` criadas e populadas (seção 2).
+1. `plans` e `subscriptions` vêm da `0004_membros.sql` (doc 02 §4.4); o seed dos dois planos está na
+   `0008_area_do_pai.sql` (seção 2.2).
 2. `src/lib/billing/provider.ts` com interface:
    ```ts
    export interface BillingProvider {
@@ -1437,7 +1254,7 @@ em `'mercadopago'|'stripe'|'manual'`), então migrar para Stripe depois é só o
    (mensal) ou `POST /checkout/preferences` (anual avulso) com `external_reference = userId`;
    `handleWebhook` → valida assinatura `x-signature` (HMAC-SHA256 com `MERCADOPAGO_WEBHOOK_SECRET`, template
    `id:<data.id>;request-id:<x-request-id>;ts:<ts>;`), busca o recurso na API e faz upsert em `subscriptions`
-   (`status` mapeado: `authorized→active`, `paused→past_due`, `cancelled→canceled`; `current_period_end` =
+   (`provider = 'mercadopago'`, `provider_ref` = id do preapproval/pagamento, `plan_id` = o de `pai-de-valor`; `status` mapeado: `authorized→active`, `paused→past_due`, `cancelled→canceled`; `current_period_end` =
    `next_payment_date`), via `createServiceClient()`. Loga em `moderation_log` (`entity='subscriptions'`).
 3. Rota de webhook: `src/routes/api/webhooks/mercadopago.ts` (server route `POST`) que retorna 200 rápido.
    Enquanto `BILLING_ENABLED !== 'true'` responde `503 { disabled: true }`.
@@ -1453,7 +1270,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 
-export type PlanSlug = "gratuito" | "pai-de-valor-mensal" | "pai-de-valor-anual";
+export type PlanSlug = "gratuito" | "pai-de-valor";
 export function usePlan() {
   const { user, ready } = useAuth();
   const [slug, setSlug] = useState<PlanSlug>("gratuito");
@@ -1463,7 +1280,7 @@ export function usePlan() {
     if (!user) { setSlug("gratuito"); setLoading(false); return; }
     supabase.rpc("my_plan_slug").then(({ data }) => { setSlug(((data as PlanSlug) ?? "gratuito")); setLoading(false); });
   }, [user, ready]);
-  const premium = slug.startsWith("pai-de-valor");
+  const premium = slug === "pai-de-valor";
   return { slug, premium, loading, can: (feature: PremiumFeature) => premium || FREE_FEATURES.has(feature) };
 }
 export type PremiumFeature = "trilha-avancada" | "grupos" | "ebooks" | "descontos" | "mentoria" | "sem-anuncios" | "trilha-basica" | "desafios" | "salvos";
@@ -1475,22 +1292,26 @@ Server side, o gating real é RLS/funções que chamam `public.is_premium()` (ex
 só legível por premium ou staff). O `usePlan()` é UX; nunca a única barreira.
 
 Critério de aceite 7: `select public.my_plan_slug()` como membro → `gratuito`; inserir manualmente uma subscription
-ativa → `pai-de-valor-mensal` e `is_premium() = true`; `/area-do-pai/planos` renderiza; webhook responde 503 com flag
-desligada; testes unitários do mapeamento de status do Mercado Pago.
+ativa (`plan_id` de `pai-de-valor`, `provider = 'manual'`) → `pai-de-valor` e `is_premium() = true`; `select slug from
+public.plans` como anon devolve só `gratuito` (o pago está `active=false`); `/area-do-pai/planos` renderiza; webhook
+responde 503 com flag desligada; testes unitários do mapeamento de status do Mercado Pago.
 
 ---
 
 ## 8. Segurança — checklist desta fase
 
-1. **RLS** em todas as 8 tabelas (seção 2). Anon só enxerga `plans` ativos, `badges`, `public_authors` e pode inserir
-   `newsletter_subscribers` pending. Nunca `using (true)` em tabela com dado pessoal.
+1. **RLS** nas 8 tabelas já vem da `0001_core` e da `0004_membros` (doc 02 §4.1 e §4.4); a `0008` só acrescenta
+   `newsletter: own read`. Anon enxerga `plans` ativos, `badges` e `user_badges` (leitura pública no doc 02), os perfis
+   de `editor`/`admin` (bylines, policy `profiles: read own or staff or authors`) e pode inserir `newsletter_subscribers`
+   pending. Nunca `using (true)` novo em tabela com dado pessoal.
 2. **Funções**: todas `security definer` têm `set search_path = public` e `revoke … from public, anon` quando sensíveis.
    Rodar o Supabase Advisor (Database → Advisors) e zerar avisos "RLS disabled", "function search_path mutable",
    "security definer view".
 3. **Rate limit**: server functions `signUpFn` (5/h/IP), `toggleSavedItemFn` (60/min/usuário), `triggerEmailFn`
    (3/h/usuário/tipo), `subscribeNewsletterFn` (5/h/IP). Supabase Auth Rate Limits configurados (1.1.6).
 4. **Turnstile** no cadastro e na newsletter anônima; verificação **sempre no servidor**.
-5. **E-mail verificado para publicar**: `public.email_verified()` entra nas policies de INSERT de `jobs`,
+5. **E-mail verificado para publicar**: `public.email_verified()` é criada na `0005_pai_indica_pai.sql` (doc 08 §2.3) —
+   esta fase **não** a define — e entra nas policies de INSERT de `jobs`,
    `job_referrals`, `stories`, `questions`, `answers`, `comments` (Fases 6 e 7 devem usar
    `with check (auth.uid() = user_id and public.email_verified())`). No front, `RequireVerifiedEmail` mostra aviso
    "Confirme seu e-mail para publicar" com botão reenviar.
@@ -1500,7 +1321,8 @@ desligada; testes unitários do mapeamento de status do Mercado Pago.
 8. **Sessão**: PKCE, refresh token rotation ON, `signOut({ scope: 'global' })` disponível em Minha conta.
 9. **Headers**: em `vercel.json`, `Content-Security-Policy` permitindo `challenges.cloudflare.com`,
    `*.supabase.co`, `accounts.google.com`, `pagead2.googlesyndication.com`; `X-Frame-Options: DENY` nas rotas privadas.
-10. **Escalada de role** bloqueada pelo trigger `protect_profile_role` + `admin_set_role` com log.
+10. **Escalada de role** bloqueada por `guard_profile_role` (doc 02 §4.1) + `protect_profile_role` (seção 2.2: ninguém muda
+    o próprio role; só `role='admin'` muda o de terceiros) + `admin_set_role` com log.
 11. **Exclusão**: admin não consegue se excluir sem antes ser rebaixado (evita perder o último admin).
 
 ---
@@ -1530,15 +1352,16 @@ from profiles where id = <uid>` = 0 e `newsletter_subscribers.status = 'unsubscr
 
 ## 10. Admin — membros
 
-Rota `src/routes/admin/membros.tsx` → `src/admin/MembersPage.tsx` (protegida pelo guard admin existente da Fase 1;
-somente `role='admin'`, editor não vê).
+Rota `src/routes/admin/membros.tsx` → `src/admin/MembersPage.tsx` (protegida pelo guard admin existente da Fase 1, que
+aceita staff — `is_admin()` = editor ou admin; esta página acrescenta `profile.role === 'admin'` no front, e no banco
+`admin_list_members`/`admin_set_role` exigem `role = 'admin'`; editor não vê).
 
 - Tabela: e-mail, nome, papel (select member/editor/admin), plano, filhos, onboarding, newsletter, cadastro, último login.
 - Busca por e-mail/nome (`admin_list_members(p_search, 50, offset)`), paginação.
 - Trocar papel → `admin_set_role(uuid, role)` com confirmação; o próprio admin aparece com select desabilitado.
 - Ações: "Ver como" (abre `/area-do-pai`? não — só leitura dos dados via painel), "Copiar e-mail".
 - Métricas no topo: total de membros, novos em 7 dias, % onboarding concluído, assinantes confirmados da newsletter,
-  premium ativos (consultas simples com `is_admin()`).
+  premium ativos (consultas simples; o admin lê `profiles` pela policy `profiles: read own or staff or authors` do doc 02 §4.1).
 - Link no menu do admin: "Membros".
 
 Critério de aceite 10: como admin, lista carrega; mudar role de um membro de teste para `editor` reflete em
@@ -1551,7 +1374,9 @@ Critério de aceite 10: como admin, lista carrega; mudar role de um membro de te
 1. `git checkout -b claude/fase-5-area-do-pai` a partir de `main` atualizada.
 2. Painel Supabase + Google Cloud (seções 1.1, 1.2). Anotar Client ID. Criar segredos no Vault.
 3. `supabase/config.toml` + `supabase/templates/*.html` (1.3). `.env.example` (1.4). Vercel envs.
-4. Criar `supabase/migrations/0004_membros.sql` (2.1 + cron 6.6 + 2.3 se preciso). `supabase db push`. Gerar types.
+4. `mcp__Supabase__list_migrations`: confirmar `0004_membros` (doc 02 §4.4, aplicada na F1; se faltar, aplicar literal —
+   seção 2.1). Criar `supabase/migrations/0008_area_do_pai.sql` (seção 2.2 + cron da 6.6), aplicar com
+   `mcp__Supabase__apply_migration` e regenerar `types.ts` (seção 2.3).
 5. `src/lib/phases.ts` + teste Vitest (3.1).
 6. Auth: `client.ts` (4.1), `auth-context.ts`, `auth-provider.tsx` (4.2), `auth.ts` (4.3), `auth.functions.ts` (4.4),
    `rate-limit.ts` (4.5), `supabase-server.ts` (4.6). `npm i zod`.
@@ -1573,15 +1398,16 @@ Critério de aceite 10: como admin, lista carrega; mudar role de um membro de te
 ## 12. Critérios de aceite consolidados
 
 - [ ] CA-1 Auth configurado (Email confirm ON, Google ON, redirect URLs, SMTP Resend, templates PT-BR); `supabase start` OK.
-- [ ] CA-2 `0004_membros.sql` aplicada; trigger cria `profiles`; RLS: anon 0 linhas em profiles/children/saved_items/subscriptions;
-      membro vê só o próprio; admin vê tudo; `child_phase` correto nos 8 casos.
+- [ ] CA-2 `0004_membros` presente em `list_migrations` (doc 02 §4.4 literal) e `0008_area_do_pai.sql` aplicada; `is_admin()`
+      continua `role in ('admin','editor')`; trigger cria `profiles`; RLS: anon 0 linhas em children/saved_items/subscriptions
+      e só perfis de editor/admin em profiles; membro vê só o próprio; admin vê tudo; `child_phase` correto nos 8 casos.
 - [ ] CA-3 `phases.ts` espelha o SQL (teste Vitest verde); editor marca tags `fase-*`; `get_content_for_user` devolve posts por fase.
 - [ ] CA-4 Fluxo completo: cadastro (Turnstile) → confirmação → callback → onboarding 3 passos → painel → salvar → salvos →
       minha conta (senha, exportar JSON, excluir). Google login em prod e local. Magic link funciona.
 - [ ] CA-5 SaveButton em post/produto/ferramenta; deslogado redireciona para `/entrar?next=`; sem duplicatas; 429 após limite.
 - [ ] CA-6 E-mails: boas-vindas e confirmação chegam (Resend dashboard mostra `delivered`); cron `weekly-digest` agendado;
       disparo manual envia e loga em `moderation_log`; `/newsletter/sair` funciona.
-- [ ] CA-7 Planos listados; `my_plan_slug()`/`is_premium()` corretos; `usePlan()` + `PremiumGate`; webhook 503 com flag off.
+- [ ] CA-7 Planos listados (`pai-de-valor` com `active=false`); `my_plan_slug()`/`is_premium()` corretos; `usePlan()` + `PremiumGate`; webhook 503 com flag off.
 - [ ] CA-8 Supabase Advisor sem erros de segurança; CSP aplicada; `protect_profile_role` impede auto-promoção
       (`update profiles set role='admin' where id = auth.uid()` falha com 42501).
 - [ ] CA-9 LGPD: consentimentos gravados; export JSON completo; exclusão em cascata; política atualizada.
@@ -1599,9 +1425,11 @@ CLAUDE.md, docs/plano/02-arquitetura-e-stack.md, docs/plano/PROGRESSO.md e docs/
 Execute a FASE 5 (Área do Pai) seguindo EXATAMENTE a seção 11 "Ordem de execução" do documento 07, sem pular passos
 e sem mudar nomes de tabelas, colunas, rotas ou arquivos definidos lá. Regras:
 1. Crie a branch claude/fase-5-area-do-pai a partir de main.
-2. Escreva supabase/migrations/0004_membros.sql copiando o SQL da seção 2.1 (mais o cron da 6.6 e o get_secret da 2.3
-   se ele ainda não existir nas migrations). Aplique com `supabase db push` e regenere src/integrations/supabase/types.ts.
-   Se o push falhar, corrija a migration (não crie outra) e reaplique.
+2. NÃO reescreva supabase/migrations/0004_membros.sql: ela é o doc 02 §4.4 literal e já foi aplicada na Fase 1 (confira
+   com mcp__Supabase__list_migrations; se faltar, aplique o bloco literal). Escreva supabase/migrations/0008_area_do_pai.sql
+   copiando o SQL da seção 2.2 (mais o cron da 6.6), aplique com mcp__Supabase__apply_migration e regenere
+   src/integrations/supabase/types.ts (mcp__Supabase__generate_typescript_types). Não redefina is_admin(), não crie
+   is_staff() nem email_verified(). Se a aplicação falhar, corrija o arquivo (não crie outro) e reaplique.
 3. Implemente auth (seção 4.1–4.7), onboarding (4.8), painel (4.9), filhos (4.10), salvos (4.11), minha-conta (4.12),
    header (4.13), SaveButton (5), edge functions e e-mails (6), planos com BILLING_ENABLED=false e usePlan() (7),
    segurança (8), LGPD (9) e admin de membros (10). Tudo em PT-BR, tom direto e masculino, sem i18n.
@@ -1612,7 +1440,7 @@ e sem mudar nomes de tabelas, colunas, rotas ou arquivos definidos lá. Regras:
 6. Marque cada critério de aceite da seção 12 como feito/pendente em docs/plano/PROGRESSO.md, atualize CLAUDE.md com a
    seção "Área do Pai (Fase 5)" (regras de RLS, fases do filho, SaveButton, flags de billing) e abra o PR
    claude/fase-5-area-do-pai → main com o "Checklist de pronto" da seção 14 no corpo.
-7. Faça commits pequenos por passo da seção 11 (ex.: "fase5: migration 0004_membros", "fase5: rotas de auth").
+7. Faça commits pequenos por passo da seção 11 (ex.: "fase5: migration 0008_area_do_pai", "fase5: rotas de auth").
 Se algo do documento conflitar com o que já existe no repositório (ex.: nome de helper, estrutura de pastas), adapte ao
 que existe e registre a diferença em PROGRESSO.md. Não faça perguntas: tome a decisão mais simples compatível com o doc.
 ```
@@ -1624,10 +1452,10 @@ que existe e registre a diferença em PROGRESSO.md. Não faça perguntas: tome a
 ```markdown
 ## Fase 5 — Área do Pai — Checklist de pronto
 ### Banco
-- [ ] `supabase/migrations/0004_membros.sql` aplicada em <SUPABASE_PROJECT_REF> (profiles, children, saved_items, newsletter_subscribers, plans, subscriptions, badges, user_badges)
-- [ ] Funções: is_admin, is_staff, email_verified, handle_new_user (+ trigger on_auth_user_created), protect_profile_role, get_my_profile, child_phase, my_child_phases, get_content_for_user, my_plan_slug, is_premium, grant_badges_for_me, newsletter_confirm, newsletter_unsubscribe, export_my_data, delete_my_account, admin_list_members, admin_set_role
+- [ ] `0004_membros` (doc 02 §4.4 literal) presente em `list_migrations`; `0008_area_do_pai.sql` aplicada em <SUPABASE_PROJECT_REF> (colunas extras de profiles/newsletter_subscribers, funções, seeds)
+- [ ] Funções da 0008: protect_profile_role, get_my_profile, child_phase, my_child_phases, newsletter_confirm, newsletter_unsubscribe, my_plan_slug, is_premium, grant_badges_for_me, get_content_for_user, export_my_data, delete_my_account, admin_list_members, admin_set_role (is_admin, handle_new_user, guard_profile_role, award_badge, complete_onboarding e get_member_dashboard já vêm do doc 02; email_verified vem da 0005)
 - [ ] RLS ativa nas 8 tabelas; Supabase Advisor sem erros
-- [ ] Seeds: 3 planos, 5 badges, 9 tags fase-*
+- [ ] Seeds: 2 planos (`gratuito` ativo, `pai-de-valor` com `active=false`), 9 badges (5 do doc 02 + 4 da 0008), 9 tags fase-*
 - [ ] Cron `weekly-digest` agendado (domingo 11:00 UTC)
 - [ ] `src/integrations/supabase/types.ts` regenerado
 ### Auth
@@ -1667,7 +1495,7 @@ que existe e registre a diferença em PROGRESSO.md. Não faça perguntas: tome a
 | vocacaodemae | vocacaodepai (Fase 5) |
 |---|---|
 | `profiles.full_name`, `mother_signature` | `profiles.display_name`, sem assinatura; `interests[]`, `city`, `uf`, `onboarding_done` |
-| `is_staff()` apenas | `is_admin()` (admin) + `is_staff()` (admin/editor) + `email_verified()` |
+| `is_staff()` (admin/editor) | `is_admin()` (admin OU editor, doc 02 §4.1) — sem `is_staff()`; `email_verified()` só na 0005 (doc 08) |
 | Login em modal (`openLogin`) com i18n | Páginas `/entrar`, `/cadastro`; sem i18n |
 | `article_activity` (save/like) + `favorites` | Tabela única `saved_items` (post/product/tool/job/track) |
 | `subscribers` | `newsletter_subscribers` com double opt-in e `segments` |
@@ -1677,8 +1505,13 @@ que existe e registre a diferença em PROGRESSO.md. Não faça perguntas: tome a
 
 ### 15.2 Consultas de verificação (SQL Editor)
 ```sql
--- RLS como anon (deve retornar 0)
-set role anon; select count(*) from public.profiles; reset role;
+-- RLS como anon: profiles só mostra editor/admin (bylines, doc 02 §4.1); as outras devem dar 0
+set role anon;
+select (select count(*) from public.profiles where role = 'member') as membros,
+       (select count(*) from public.children) as filhos,
+       (select count(*) from public.saved_items) as salvos,
+       (select count(*) from public.subscriptions) as assinaturas;
+reset role;
 -- fases
 select d, public.child_phase(d) from (values (current_date + 30), (current_date - 100), (current_date - 300),
   (current_date - interval '2 years')::date, (current_date - interval '6 years')::date,

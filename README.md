@@ -74,16 +74,18 @@ Nunca commite o `.env`. O `.env.example` é a referência e fica versionado.
 
 ### Banco de dados
 
-As migrations ficam em `supabase/migrations/` e são aplicadas em ordem:
+As migrations ficam em `supabase/migrations/`, numeradas em ordem fixa. A Fase 1 aplica só `0001` e
+`0002`; as demais são escritas e aplicadas na fase correspondente, com o SQL do documento daquela fase
+(ver `PLANO-MESTRE.md` §2.3):
 
 ```
-0001_core.sql               profiles, children, saved_items, newsletter, plans, subscriptions, moderation_log, is_admin()
-0002_blog.sql               categories, tags, posts (kind, review, comparison, faq, quiz), comments, reactions, métricas
-0003_loja.sql               product_categories, products, product_price_checks
-0004_membros.sql            tracks, track_steps, track_progress, badges, user_badges, challenges, challenge_days, challenge_progress
-0005_pai_indica_pai.sql     jobs, job_referrals, professionals, mentorships
-0006_irmandade_formacao.sql stories, questions, answers, events, event_rsvps
-0007_ferramentas.sql        market_cache, tool_usage
+0001_core.sql               profiles, children, contact_messages, newsletter_subscribers, moderation_log, _tmp_post_staging, seo_search_stats, is_admin(), get_secret(), buckets   (Fase 1)
+0002_blog.sql               categories, tags, post_tags, posts (kind, review, comparison, faq, quiz), comments, reactions, post_view_events, search_posts   (Fase 1)
+0003_loja.sql               product_categories, products, product_price_checks   (Fase 3)
+0004_membros.sql            saved_items, plans, subscriptions, badges, user_badges   (Fase 5)
+0005_pai_indica_pai.sql     jobs, job_referrals, professionals, mentorships   (Fase 6)
+0006_irmandade_formacao.sql stories, questions, answers, events, event_rsvps, tracks, track_steps, track_progress, challenges, challenge_days, challenge_progress   (Fase 7)
+0007_ferramentas.sql        market_cache, tool_usage   (Fase 4)
 ```
 
 Com a CLI do Supabase: `supabase db push` (ou `supabase migration up` em ambiente local com

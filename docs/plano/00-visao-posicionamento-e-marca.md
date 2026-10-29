@@ -1077,8 +1077,8 @@ Observações:
 
 ### 10.3 Ritmo de produção que sustenta as metas
 
-- Rotina diária (Fase 8): 3 artigos Padrão A + 1 Pai Indica + 1 produto de loja com review longa + 1 Jogada do Dia por dia útil; aos sábados, a série da semana (Fim de semana de 940, Corte da semana, Virtude da semana).
-- Isso dá cerca de 85 artigos/mês e 22 produtos/mês, o que bate as metas da tabela com folga de 15 %.
+- Rotina diária (Fase 8, quantidades do doc 10 §2.2 — fonte única do volume; nenhum outro documento fixa número próprio): 3 artigos Padrão A novos + 2 reformas, 3 comparativos + 2 reviews Pai Indica, 1 notícia Mercado do pai, 1 Jogada do Dia, 5 produtos novos e 10 reviews longas, todos os dias (05:37 BRT); as séries semanais da seção 3.7 entram dentro dessas cotas, não somam a elas. Nas 2 primeiras semanas rodar com metade (teto de 5 posts/dia, risco 10 da seção 11) e subir após aprovação do dono.
+- Isso dá ≈ 250 posts/mês em regime pleno (10 posts novos por dia, descontadas as rodadas que o validador barra; as 2 reformas não contam como post novo) e ≈ 150 produtos/mês, de modo que as metas da §10.1 têm folga; na rampa das 2 primeiras semanas, metade disso.
 
 ---
 

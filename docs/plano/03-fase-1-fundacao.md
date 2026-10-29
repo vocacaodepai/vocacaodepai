@@ -11,7 +11,8 @@
 - Cada etapa (1 a 10) tem **passos numerados**, **comandos literais** e **critério de aceite**. Não pule etapas; não avance com aceite vermelho.
 - Caminhos são sempre absolutos. `VDM` = `/home/user/vocacaodemae` (referência). `VDP` = `/home/user/vocacaodepai` (alvo).
 - Tudo que é segredo (service role, tokens) **nunca** vai para o repositório nem para variável `VITE_*`. Só Supabase Vault ou GitHub Secret.
-- Faça commits pequenos por etapa, em branch `claude/fase-1-<etapa>`; abra PR; o `auto-merge.yml` faz merge quando a Vercel passar. Nunca `git push --force`.
+- Faça commits pequenos por etapa, em branch `claude/fase-1-<etapa>`; abra PR contra `main` com título `Fase 1 — <etapas>`; até a Fase 8 **o dono mescla** (auto-merge só é ligado em 8.5, doc 10 §10 — não copiar nem ligar o `auto-merge.yml` nesta fase). Nunca `git push --force`.
+- Antes de **todo** push: `npm run build && npm run lint && node scripts/validate-content.mjs` verdes (`CLAUDE.md` §4.1). O validador é criado na etapa 9.5; até lá, `npm run build && npm run lint`.
 - Ao concluir uma etapa, registre em `docs/plano/PROGRESSO.md` (uma linha: data, etapa, status, PR).
 - Placeholders a substituir no fim da Etapa 1: `<SUPABASE_PROJECT_REF>`, `<SUPABASE_URL>`, `<SUPABASE_PUBLISHABLE_KEY>`.
 
@@ -80,7 +81,7 @@ Arquivos onde o ref aparece: `CLAUDE.md`, `.mcp.json`, `supabase/config.toml`, `
 
 ### 1.5 GitHub
 
-- Repo `vocacaodepai/vocacaodepai` já existe (vazio). Branch padrão `main`. Settings → Actions → Workflow permissions: **Read and write** (necessário para o `auto-merge.yml`).
+- Repo `vocacaodepai/vocacaodepai` já existe (vazio). Branch padrão `main`. Settings → Actions → Workflow permissions: **Read and write** (será necessário na Fase 8 para o `auto-merge.yml`, doc 10 §10.1; pode ser configurado agora, mas o workflow **não** entra nesta fase).
 - Secrets do repo (Settings → Secrets → Actions): `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_URL`, `SUPABASE_PROJECT_REF` (usados só pela rotina da Fase 8; criar agora para não esquecer).
 
 **Aceite da Etapa 1:** `mcp__Supabase__get_project` retorna status `ACTIVE_HEALTHY` para o ref novo; projeto Vercel existe no time "Portal da AI" com as 4 env vars; domínio adicionado (pode ainda estar "pending" de DNS); `grep -r "<SUPABASE_PROJECT_REF>" /home/user/vocacaodepai --exclude-dir=node_modules` retorna vazio.
@@ -95,6 +96,7 @@ Arquivos onde o ref aparece: `CLAUDE.md`, `.mcp.json`, `supabase/config.toml`, `
 cd /home/user/vocacaodepai
 # copia tudo (inclusive dotfiles), exceto .git e node_modules
 rsync -a --exclude .git --exclude node_modules --exclude docs /home/user/vocacaodemae/ /home/user/vocacaodepai/
+rm -f .github/workflows/auto-merge.yml   # não copiar auto-merge.yml: entra só na Fase 8 (doc 10 §10.1); até lá o dono mescla os PRs
 git status --short | head
 ```
 
@@ -110,7 +112,8 @@ src/components/ui/*  src/components/layout/{SiteLayout,CookieConsent,ThemeToggle
 src/components/tools/{ToolShell,ToolGate}.tsx
 src/lib/*  src/integrations/supabase/*  src/admin/*  src/hooks/*  src/styles.css  src/router.tsx  src/server.ts  src/start.ts
 supabase/config.toml  supabase/functions/{stock-photos,seo-search-console,notify-contact-message}/index.ts
-.github/workflows/auto-merge.yml  .claude/settings.json  public/{ads.txt,robots.txt,manifest.webmanifest,placeholder.svg}
+.claude/settings.json  public/{ads.txt,robots.txt,manifest.webmanifest,placeholder.svg}
+(.github/workflows/auto-merge.yml NÃO deve existir — removido acima)
 ```
 
 ### 2.2 Apagar — Lovable e MCP
@@ -195,348 +198,41 @@ npx tsc --noEmit && npm run lint && npm run build
 
 ---
 
-## 3. Migrations `0001_core.sql` e `0002_blog.sql`
+## 3. Migrations `0001_core.sql` a `0007_ferramentas.sql`
 
-Criar os arquivos em `supabase/migrations/`. Antes, **apagar** as migrations copiadas do VDM:
+Criar os 7 arquivos em `supabase/migrations/`. Antes, **apagar** as migrations copiadas do VDM:
 
 ```bash
 cd /home/user/vocacaodepai && rm -f supabase/migrations/2026*.sql
 ```
 
+O SQL **não é escrito neste documento**: a fonte de verdade de nomes de tabelas, colunas, policies e assinaturas de função é `docs/plano/02-arquitetura-e-stack.md` §4 (regras gerais em §4, blocos em §4.1 a §4.7). Copiar literalmente; não "melhorar" nada.
+
 ### 3.1 `supabase/migrations/0001_core.sql`
 
-```sql
--- 0001_core.sql — Vocação de Pai: extensões, profiles, funções base, moderação, staging, buckets
-create extension if not exists pgcrypto;
-create extension if not exists unaccent;
-
--- updated_at automático
-create or replace function public.set_updated_at() returns trigger
-language plpgsql as $$ begin new.updated_at = now(); return new; end; $$;
-
--- Perfis (1:1 com auth.users)
-create table public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  display_name text,
-  avatar_url text,
-  role text not null default 'member' check (role in ('member','editor','admin')),
-  bio text,
-  city text,
-  uf char(2),
-  onboarding_done boolean not null default false,
-  newsletter_opt_in boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-create trigger trg_profiles_updated before update on public.profiles
-  for each row execute function public.set_updated_at();
-
--- cria o profile ao registrar
-create or replace function public.handle_new_user() returns trigger
-language plpgsql security definer set search_path = public as $$
-begin
-  insert into public.profiles (id, display_name, avatar_url)
-  values (new.id,
-          coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', split_part(new.email,'@',1)),
-          new.raw_user_meta_data->>'avatar_url')
-  on conflict (id) do nothing;
-  return new;
-end; $$;
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created after insert on auth.users
-  for each row execute function public.handle_new_user();
-
--- is_admin(): editor e admin podem editar conteúdo; só admin modera pessoas
-create or replace function public.is_admin() returns boolean
-language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('editor','admin'));
-$$;
-create or replace function public.is_superadmin() returns boolean
-language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin');
-$$;
-revoke all on function public.is_admin() from public;
-grant execute on function public.is_admin() to anon, authenticated;
-revoke all on function public.is_superadmin() from public;
-grant execute on function public.is_superadmin() to authenticated;
-
--- impede escalada de privilégio: role só muda por admin
-create or replace function public.guard_profile_role() returns trigger
-language plpgsql as $$
-begin
-  if new.role <> old.role and not public.is_superadmin() then
-    raise exception 'apenas admin altera role';
-  end if;
-  return new;
-end; $$;
-create trigger trg_profiles_role_guard before update on public.profiles
-  for each row execute function public.guard_profile_role();
-
--- Log de moderação (usado por todas as fases)
-create table public.moderation_log (
-  id uuid primary key default gen_random_uuid(),
-  actor_id uuid references public.profiles(id) on delete set null,
-  entity text not null,
-  entity_id text not null,
-  action text not null,
-  note text,
-  created_at timestamptz not null default now()
-);
-create index moderation_log_entity_idx on public.moderation_log(entity, entity_id);
-
--- Staging da rotina automática (Fase 8)
-create table public._tmp_post_staging (k text primary key, data text);
-
--- RLS
-alter table public.profiles enable row level security;
-alter table public.moderation_log enable row level security;
-alter table public._tmp_post_staging enable row level security;
-
-create policy "profiles: leitura pública de campos de autor" on public.profiles
-  for select using (true);
-create policy "profiles: dono edita o próprio" on public.profiles
-  for update using (auth.uid() = id) with check (auth.uid() = id);
-create policy "profiles: admin edita todos" on public.profiles
-  for update using (public.is_superadmin()) with check (public.is_superadmin());
-
-create policy "moderation_log: admin lê" on public.moderation_log for select using (public.is_admin());
-create policy "moderation_log: admin insere" on public.moderation_log for insert with check (public.is_admin());
--- _tmp_post_staging: sem policies = só service_role
-
--- Buckets
-insert into storage.buckets (id, name, public) values ('covers','covers',true) on conflict do nothing;
-insert into storage.buckets (id, name, public) values ('avatars','avatars',true) on conflict do nothing;
-create policy "covers: leitura pública" on storage.objects for select using (bucket_id = 'covers');
-create policy "covers: admin escreve" on storage.objects for insert with check (bucket_id = 'covers' and public.is_admin());
-create policy "covers: admin atualiza" on storage.objects for update using (bucket_id = 'covers' and public.is_admin());
-create policy "covers: admin apaga" on storage.objects for delete using (bucket_id = 'covers' and public.is_admin());
-create policy "avatars: leitura pública" on storage.objects for select using (bucket_id = 'avatars');
-create policy "avatars: dono escreve" on storage.objects for insert
-  with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
-create policy "avatars: dono atualiza" on storage.objects for update
-  using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
-```
-
-Observação: a view pública de `profiles` expõe `display_name`, `avatar_url`, `bio`, `role`. Não há e-mail em `profiles` — fica em `auth.users`.
+Copiar **literalmente** o bloco SQL de `docs/plano/02-arquitetura-e-stack.md` §4.1 para `supabase/migrations/0001_core.sql`. Não alterar nomes de tabelas, colunas, policies nem assinaturas de função. O que esse arquivo cria (conferir depois com `list_tables`): `profiles` (`role in ('member','author','editor','admin')`), `children`, `contact_messages`, `newsletter_subscribers` (com `status`, `confirm_token`, `confirmed_at` — **usada já na Fase 1** pela newsletter com double opt-in, ver §4.6), `moderation_log` (`entity_type, entity_id, action, moderator_id, reason`), `_tmp_post_staging`, `seo_search_stats`; funções `set_updated_at`, `is_admin`, `guard_profile_role`, `handle_new_user`, `get_public_profile`, `get_secret`; configuração de busca `pt_unaccent`; buckets `covers`, `products`, `avatars` com policies. Tudo com `create table if not exists` e RLS ligada.
 
 ### 3.2 `supabase/migrations/0002_blog.sql`
 
-```sql
--- 0002_blog.sql — categorias, tags, posts, comentários, reações, métricas, busca
-create table public.categories (
-  id uuid primary key default gen_random_uuid(),
-  slug text not null unique,
-  name text not null,
-  description text,
-  color text not null default '#14505C',
-  sort_order int not null default 100,
-  created_at timestamptz not null default now()
-);
+Copiar **literalmente** o bloco SQL do doc 02 §4.2 para `supabase/migrations/0002_blog.sql`. Não alterar nomes de colunas nem assinaturas de função. O que esse arquivo cria: `categories` (`id, slug, name, description, icon, sort_order` — **não existe coluna `color`**; o chip usa o ícone `lucide-react` de `icon` e cores derivadas da paleta), `tags`, `posts` (todas as COLUNAS-CHAVE + `subtitle`, `cover_image_alt`, `view_count`, `like_count`), `post_tags`, `comments`, `reactions`, `post_view_events`; funções `tiptap_text`, `posts_search_content` (trigger que preenche `search_content` e `reading_time`), `toggle_reaction(p_post_id, p_type, p_user_key)`, `increment_post_views(p_post_id, p_user_key)` e `search_posts(p_query, p_limit, p_offset)`; e o seed inicial de categorias (`on conflict (slug) do nothing`). O front (etapas 5 e 6) chama **exatamente** esses nomes: `supabase.rpc("increment_post_views", { p_post_id, p_user_key })` e `supabase.rpc("search_posts", { p_query, p_limit, p_offset })`.
 
-create table public.tags (
-  id uuid primary key default gen_random_uuid(),
-  slug text not null unique,
-  name text not null
-);
+### 3.3 `0003_loja.sql` a `0007_ferramentas.sql`
 
-create table public.posts (
-  id uuid primary key default gen_random_uuid(),
-  slug text not null unique,
-  title text not null,
-  excerpt text,
-  body jsonb not null default '{"type":"doc","content":[]}'::jsonb,
-  cover_image_url text,
-  category_id uuid references public.categories(id) on delete set null,
-  author_id uuid references public.profiles(id) on delete set null,
-  kind text not null default 'artigo' check (kind in ('artigo','noticia','review','comparativo','lista')),
-  review jsonb,
-  comparison jsonb,
-  product_category text,
-  product_subcategory text,
-  product_score numeric(3,1),
-  faq jsonb,
-  quiz jsonb,
-  status text not null default 'draft' check (status in ('draft','published','archived')),
-  publish_at timestamptz,
-  reading_time int,
-  view_count int not null default 0,
-  like_count int not null default 0,
-  search_content tsvector,
-  seo_title text,
-  seo_description text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-create index posts_status_publish_idx on public.posts(status, publish_at desc);
-create index posts_category_idx on public.posts(category_id);
-create index posts_author_idx on public.posts(author_id);
-create index posts_kind_idx on public.posts(kind);
-create index posts_search_idx on public.posts using gin(search_content);
-create trigger trg_posts_updated before update on public.posts
-  for each row execute function public.set_updated_at();
+Copiar literalmente os blocos do doc 02 §4.3 a §4.7 para `0003_loja.sql`, `0004_membros.sql`, `0005_pai_indica_pai.sql`, `0006_irmandade_formacao.sql` e `0007_ferramentas.sql`. A Fase 1 aplica o **schema inteiro** (tabelas vazias, RLS ativa): é o que a checklist 1.10 do doc 13 pede e o que os docs 04 e 05 assumem ao começar (`products`/`product_categories` já existentes). As fases seguintes só acrescentam dados, funções de fase e código.
 
-create table public.post_tags (
-  post_id uuid not null references public.posts(id) on delete cascade,
-  tag_id uuid not null references public.tags(id) on delete cascade,
-  primary key (post_id, tag_id)
-);
+### 3.4 Aplicar e gerar tipos
 
--- extrai texto do JSON do Tiptap (para busca e tempo de leitura)
-create or replace function public.tiptap_text(doc jsonb) returns text
-language sql immutable as $$
-  select coalesce(string_agg(t, ' '), '')
-  from jsonb_path_query(doc, 'strict $.**.text') as x(v), lateral (select v #>> '{}' as t) s;
-$$;
-
-create or replace function public.posts_before_write() returns trigger
-language plpgsql as $$
-declare body_text text;
-begin
-  body_text := public.tiptap_text(new.body);
-  new.search_content :=
-    setweight(to_tsvector('portuguese', unaccent(coalesce(new.title,''))), 'A') ||
-    setweight(to_tsvector('portuguese', unaccent(coalesce(new.excerpt,''))), 'B') ||
-    setweight(to_tsvector('portuguese', unaccent(body_text)), 'C');
-  if new.reading_time is null or new.reading_time = 0 then
-    new.reading_time := greatest(1, ceil(array_length(regexp_split_to_array(body_text, '\s+'), 1) / 200.0))::int;
-  end if;
-  if new.status = 'published' and new.publish_at is null then new.publish_at := now(); end if;
-  return new;
-end; $$;
-create trigger trg_posts_before_write before insert or update on public.posts
-  for each row execute function public.posts_before_write();
-
-create table public.comments (
-  id uuid primary key default gen_random_uuid(),
-  post_id uuid not null references public.posts(id) on delete cascade,
-  user_id uuid references public.profiles(id) on delete set null,
-  parent_id uuid references public.comments(id) on delete cascade,
-  body text not null check (char_length(body) between 2 and 3000),
-  status text not null default 'approved' check (status in ('pending','approved','rejected')),
-  created_at timestamptz not null default now()
-);
-create index comments_post_idx on public.comments(post_id, created_at);
-
-create table public.reactions (
-  id uuid primary key default gen_random_uuid(),
-  post_id uuid not null references public.posts(id) on delete cascade,
-  user_id uuid references public.profiles(id) on delete cascade,
-  anon_id text,
-  kind text not null default 'like' check (kind in ('like','util','salvei')),
-  created_at timestamptz not null default now(),
-  constraint reactions_owner check (user_id is not null or anon_id is not null)
-);
-create unique index reactions_user_unique on public.reactions(post_id, kind, user_id) where user_id is not null;
-create unique index reactions_anon_unique on public.reactions(post_id, kind, anon_id) where anon_id is not null;
-
-create table public.post_view_events (
-  id bigint generated always as identity primary key,
-  post_id uuid not null references public.posts(id) on delete cascade,
-  anon_id text,
-  user_id uuid,
-  referrer text,
-  created_at timestamptz not null default now()
-);
-create index post_view_events_post_idx on public.post_view_events(post_id, created_at);
-
-create table public.seo_search_stats (
-  id bigint generated always as identity primary key,
-  day date not null,
-  page text not null,
-  query text,
-  clicks int not null default 0,
-  impressions int not null default 0,
-  ctr numeric(6,4),
-  position numeric(6,2),
-  fetched_at timestamptz not null default now(),
-  unique (day, page, query)
-);
-
--- Registro de visita com dedupe (1 por anon/post a cada 6h) e incremento do contador
-create or replace function public.register_post_view(p_post_id uuid, p_anon_id text, p_referrer text default null)
-returns void language plpgsql security definer set search_path = public as $$
-begin
-  if exists (select 1 from public.post_view_events
-             where post_id = p_post_id and anon_id = p_anon_id and created_at > now() - interval '6 hours') then
-    return;
-  end if;
-  insert into public.post_view_events(post_id, anon_id, user_id, referrer)
-  values (p_post_id, p_anon_id, auth.uid(), left(p_referrer, 500));
-  update public.posts set view_count = view_count + 1 where id = p_post_id;
-end; $$;
-grant execute on function public.register_post_view(uuid, text, text) to anon, authenticated;
-
--- Busca full-text com ranking
-create or replace function public.search_posts(q text, lim int default 20, off int default 0)
-returns table (id uuid, slug text, title text, excerpt text, cover_image_url text, category_id uuid,
-               publish_at timestamptz, reading_time int, kind text, rank real)
-language sql stable security definer set search_path = public as $$
-  with tsq as (select websearch_to_tsquery('portuguese', unaccent(q)) as query)
-  select p.id, p.slug, p.title, p.excerpt, p.cover_image_url, p.category_id, p.publish_at, p.reading_time, p.kind,
-         ts_rank_cd(p.search_content, tsq.query) as rank
-  from public.posts p, tsq
-  where p.status = 'published' and p.publish_at <= now() and p.search_content @@ tsq.query
-  order by rank desc, p.publish_at desc
-  limit lim offset off;
-$$;
-grant execute on function public.search_posts(text, int, int) to anon, authenticated;
-
--- RLS
-alter table public.categories enable row level security;
-alter table public.tags enable row level security;
-alter table public.posts enable row level security;
-alter table public.post_tags enable row level security;
-alter table public.comments enable row level security;
-alter table public.reactions enable row level security;
-alter table public.post_view_events enable row level security;
-alter table public.seo_search_stats enable row level security;
-
-create policy "categories: público lê" on public.categories for select using (true);
-create policy "categories: admin tudo" on public.categories for all using (public.is_admin()) with check (public.is_admin());
-create policy "tags: público lê" on public.tags for select using (true);
-create policy "tags: admin tudo" on public.tags for all using (public.is_admin()) with check (public.is_admin());
-
-create policy "posts: público lê publicados" on public.posts for select
-  using (status = 'published' and publish_at <= now());
-create policy "posts: admin lê tudo" on public.posts for select using (public.is_admin());
-create policy "posts: admin escreve" on public.posts for insert with check (public.is_admin());
-create policy "posts: admin atualiza" on public.posts for update using (public.is_admin()) with check (public.is_admin());
-create policy "posts: admin apaga" on public.posts for delete using (public.is_admin());
-
-create policy "post_tags: público lê" on public.post_tags for select using (true);
-create policy "post_tags: admin tudo" on public.post_tags for all using (public.is_admin()) with check (public.is_admin());
-
-create policy "comments: público lê aprovados" on public.comments for select using (status = 'approved' or public.is_admin());
-create policy "comments: logado comenta" on public.comments for insert with check (auth.uid() = user_id);
-create policy "comments: dono edita" on public.comments for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "comments: dono ou admin apaga" on public.comments for delete using (auth.uid() = user_id or public.is_admin());
-
-create policy "reactions: público lê" on public.reactions for select using (true);
-create policy "reactions: qualquer um insere" on public.reactions for insert
-  with check ((user_id is null and auth.uid() is null) or user_id = auth.uid());
-create policy "reactions: dono apaga" on public.reactions for delete
-  using (user_id = auth.uid() or (user_id is null and anon_id is not null));
-
--- post_view_events: só via função register_post_view; admin lê
-create policy "views: admin lê" on public.post_view_events for select using (public.is_admin());
-create policy "seo: admin lê" on public.seo_search_stats for select using (public.is_admin());
--- seo_search_stats é escrito pela edge function com service_role (sem policy de insert)
-```
-
-### 3.3 Aplicar e gerar tipos
-
-1. `mcp__Supabase__apply_migration` com `project_id: <ref>`, `name: "0001_core"`, `query: <conteúdo do arquivo>`.
-2. `mcp__Supabase__apply_migration` com `name: "0002_blog"`.
-3. `mcp__Supabase__list_migrations` → ambas listadas. `mcp__Supabase__list_tables` → 13 tabelas em `public`.
-4. `mcp__Supabase__get_advisors` (`type: "security"`) → zero erros (avisos de "function search_path" aceitáveis se já houver `set search_path`).
-5. Tipos: `mcp__Supabase__generate_typescript_types` → salvar a saída inteira em `src/integrations/supabase/types.ts` (substitui o arquivo do VDM). Alternativa CLI: `npx supabase gen types typescript --project-id <ref> > src/integrations/supabase/types.ts`.
-6. Promover o dono a admin após o primeiro login (`mcp__Supabase__execute_sql`):
+1. Aplicar **0001 a 0007, nesta ordem**, via `mcp__Supabase__apply_migration` com `project_id: <ref>`, `name` igual ao nome do arquivo sem extensão (`0001_core`, `0002_blog`, `0003_loja`, `0004_membros`, `0005_pai_indica_pai`, `0006_irmandade_formacao`, `0007_ferramentas`) e `query: <conteúdo do arquivo>`. Se uma falhar, corrigir o arquivo e reaplicar — todas são idempotentes (`if not exists`; policies com `drop policy if exists` antes).
+2. `mcp__Supabase__list_migrations` → as 7 listadas. `mcp__Supabase__list_tables` (`schemas: ["public"]`) → **39 tabelas**: as 38 do `CLAUDE.md` §8 + `contact_messages` (doc 02 §4.1).
+3. `mcp__Supabase__get_advisors` (`type: "security"` e `"performance"`) → zero erros (avisos de "function search_path" aceitáveis se já houver `set search_path`).
+4. Tipos: `mcp__Supabase__generate_typescript_types` → salvar a saída inteira em `src/integrations/supabase/types.ts` (substitui o arquivo do VDM). Alternativa CLI: `npx supabase gen types typescript --project-id <ref> > src/integrations/supabase/types.ts`.
+5. Promover o dono a admin após o primeiro login (`mcp__Supabase__execute_sql`; roda como service_role, então passa pelo `guard_profile_role`):
 
 ```sql
 update public.profiles set role = 'admin' where id = (select id from auth.users where email = 'EMAIL_DO_DONO');
 ```
 
-**Aceite da Etapa 3:** 13 tabelas (`profiles, moderation_log, _tmp_post_staging, categories, tags, posts, post_tags, comments, reactions, post_view_events, seo_search_stats` + 2 buckets); `select public.is_admin()` roda sem erro; `select * from public.search_posts('pai')` retorna vazio sem erro; `types.ts` compila.
+**Aceite da Etapa 3:** 7 migrations listadas e 39 tabelas em `public` (item 2) + 3 buckets (`covers`, `products`, `avatars`); RLS ativa em todas (`select tablename from pg_tables where schemaname = 'public' and not rowsecurity` retorna vazio); `select public.is_admin()` roda sem erro; `select * from public.search_posts('pai')` retorna vazio sem erro; `types.ts` compila.
 
 ---
 
@@ -673,13 +369,39 @@ const NAV_END = [
 
 ### 4.4 Footer
 
-No mesmo `SiteLayout.tsx`, 4 colunas: (1) logo + `SITE_TAGLINE` + redes; (2) "Seções": as 7 de `NAV_MAIN`; (3) "Institucional": Sobre, Contato, Política de Privacidade, Termos de Uso, Política de Afiliados; (4) Newsletter (`NewsletterSignup`). Linha final: "© {ano} Vocação de Pai · Um site do Grupo VDP · Participante do Programa de Associados da Amazon". Manter `CookieConsent`.
+No mesmo `SiteLayout.tsx`, 4 colunas: (1) logo + `SITE_TAGLINE` + redes + bloco fixo **"Para a sua esposa: Vocação de Mãe"** com logo e link `https://vocacaodemae.com.br` (`rel="noopener"`, **sem** `nofollow` — casal de sites, doc 00 §9.1 item 1); (2) "Seções": as 7 de `NAV_MAIN`; (3) "Institucional": Sobre, Contato, Política de Privacidade, Termos de Uso, Política de Afiliados e o link permanente "Gerenciar cookies" (reabre o `CookieConsent`, §4.6); (4) Newsletter (`NewsletterSignup`, com double opt-in e a caixa opcional "Minha esposa também quer receber o Vocação de Mãe" — §4.6). Linha final: "© {ano} Vocação de Pai · Um site do Grupo VDP · Participante do Programa de Associados da Amazon". `CookieConsent` é o da §4.6 (Consent Mode v2), não o herdado sem alteração.
 
 ### 4.5 Callout do semáforo — `src/components/blog/Callout.tsx`
 
 Manter os 3 `tone` (`ok|warn|bad`), mas: cores `ok` → `--success`, `warn` → `--warning`, `bad` → `--danger`; ícones `lucide-react`: `ShieldCheck`, `AlertTriangle`, `OctagonAlert`; rótulos padrão do componente: "Sinal verde", "Sinal de atenção", "Sinal de alerta". No `tiptap-html.ts`, conferir que o nó `callout` renderiza `data-tone`.
 
-**Aceite da Etapa 4:** home em `npm run dev` já aparece com fundo areia, títulos Barlow Condensed, header com as 7 seções + Sobre/Contato, menu mobile abre e fecha, dark mode troca para `#14181C`; `npm run build` ok.
+### 4.6 Conformidade da base (LGPD, avisos, newsletter e antispam)
+
+Itens que o doc 11 §12 atribui à Fase 1 e que o doc 00 §4.4 exige. Entram nesta etapa para o site nascer em conformidade (AdSense, LGPD, Amazon Associados), não como melhoria futura.
+
+1. **`src/components/layout/CookieConsent.tsx`** (adaptar do VDM; padrão ANPD, doc 11 §2.7): 1º nível com três botões de mesmo destaque, "Aceitar", **"Rejeitar não necessários"** e "Gerenciar"; 2º nível com Necessários (sempre ativos) / Analíticos / Publicidade desmarcados por padrão. No `__root.tsx`, **antes** de qualquer script do GA4 (`src/lib/ga4.ts`):
+
+```js
+gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
+```
+
+   e `gtag('consent', 'update', { ... })` com o que o visitante escolher. Escolha gravada em `localStorage` (`vdp-consent`, com versão do banner e timestamp); o link "Gerenciar cookies" do rodapé reabre o banner. GA4 só carrega após `analytics_storage: 'granted'`.
+
+2. **`src/components/blog/ContentNotice.tsx`**: componente com a tabela do doc 00 §4.4 (5 avisos fixos: saúde/192, direitos/advogado, dinheiro/"não é recomendação", afiliado/Amazon, CVV 188). Recebe `category` (slug), `kind`, `tags` e `hasAffiliate` e renderiza o(s) aviso(s) que casarem, no topo do corpo, em `/post/$slug` (Fase 1), `/pai-indica/$slug` e `/loja/$slug` (Fases 2 e 3) e nas ferramentas de dinheiro (Fase 4). Sem aviso casando, não renderiza nada.
+
+3. **Newsletter com double opt-in** (doc 11 §5.2, obrigatório):
+   - `NewsletterSignup` → `POST /api/newsletter` (`src/routes/api/newsletter.ts`, doc 02 §3): valida o e-mail, `upsert` em `newsletter_subscribers` com `status='pending'` (o `confirm_token` vem do default da tabela, doc 02 §4.1), envia o e-mail de confirmação via Resend (`RESEND_API_KEY`; remetente `Vocação de Pai <contato@vocacaodepai.com.br>`) e responde sempre "Verifique seu e-mail" (não revela se já existia).
+   - `GET /newsletter/confirmar?token=` (`src/routes/_site/newsletter/confirmar.tsx`; `noindex`, sem anúncio): marca `status='confirmed'`, `confirmed_at = now()` e mostra "Inscrição confirmada". Rota nova em relação ao doc 02 §1.3: registrar no doc 02 e em `PROGRESSO.md`.
+   - Caixa opcional no formulário: **"Minha esposa também quer receber o Vocação de Mãe"** (campo e-mail dela; `POST` na API da newsletter do VDM com segmento `indicado-pelo-marido` — doc 00 §9.1 item 8). Se a API do VDM ainda não aceitar esse POST, registrar em `PROGRESSO.md` → "Pendências do dono" e deixar a caixa escondida.
+   - A Fase 5 liga `profiles.newsletter_opt_in` a esta mesma tabela; a Fase 8 faz o envio semanal.
+
+4. **Antispam em `/api/newsletter` e no formulário de `/contato`** (`src/routes/api/contact.ts`): Cloudflare Turnstile (`TURNSTILE_SITE_KEY` no cliente, `TURNSTILE_SECRET_KEY` só no servidor — acrescentar as duas ao `.env.example`) + rate limit por IP (10 requisições/hora por rota, em memória no servidor) + honeypot. Chave ausente → registrar em `PROGRESSO.md` → "Pendências do dono" e cair para honeypot + rate limit, sem bloquear o build.
+
+5. **`src/lib/ads/no-ads-routes.ts`**: constante com a lista do doc 11 §2.5 (`/busca`, `/404`, `/entrar`, `/cadastro`, `/minha-conta`, `/area-do-pai/*`, `/admin/*`, `/newsletter/confirmar`, `/newsletter/obrigado`, `/sobre`, `/contato`, `/politica-*`, `/termos-de-uso`, `/anuncie`, `/pai-indica-pai/vagas/nova`, `/historias/nova`, `/loja/ofertas`) e função `isNoAdsRoute(pathname)`; `AdSlot` renderiza `null` nessas rotas.
+
+**Aceite da §4.6:** o banner aparece na 1ª visita com "Rejeitar não necessários" visível; sem aceite, nenhuma requisição a `googletagmanager.com`; inscrever um e-mail cria linha `pending` e o link do e-mail a torna `confirmed`; o 11º POST seguido em `/api/newsletter` do mesmo IP responde 429; `/post/<slug>` da categoria de saúde mostra o aviso do 192.
+
+**Aceite da Etapa 4:** home em `npm run dev` já aparece com fundo areia, títulos Barlow Condensed, header com as 7 seções + Sobre/Contato, menu mobile abre e fecha, dark mode troca para `#14181C`; rodapé com o bloco "Para a sua esposa: Vocação de Mãe" e "Gerenciar cookies"; aceite da §4.6 verde; `npm run build` ok.
 
 ---
 
@@ -716,9 +438,9 @@ Em `src/lib/queries.ts`, adicionar `kinds?: string[]` em `PublishedPostsOpts` (`
 2. **Últimos artigos** — grid 1/2/3 colunas com `PostCard` para `latest` (7: o primeiro em destaque largo). Link "Ver todos" → `/blog`.
 3. **Pai Indica em destaque** — `paiIndica` com `ReviewBadge` (nota `product_score`) quando houver; se vazio, cartão: "O Pai Indica está chegando: reviews honestas, comparativos e listas do que vale o seu dinheiro." → `/pai-indica`.
 4. **Caixa de Ferramentas** — reaproveitar `src/components/home/ToolsTeaser.tsx` com 4 cartões estáticos: Conversor de Moedas (`/ferramentas/conversor-de-moedas`), Mercado Financeiro (`/ferramentas/mercado-financeiro`), Orçamento da Família, Calculadora de Churrasco — os 2 últimos com selo "Em breve". Links apontam para `/ferramentas` até a Fase 4.
-5. **Categorias** — `CategoryCard` para as 14 categorias (cor de `categories.color`).
+5. **Categorias** — `CategoryCard` para as 14 categorias (ícone `lucide-react` de `categories.icon`; cor do chip derivada da primária/destaque com opacidade — **não existe `categories.color`** no doc 02 §4.2).
 6. **CTA Área do Pai** — faixa `bg-secondary`: "Trilhas de formação, desafios de 30 dias, conteúdos salvos e a Irmandade. Grátis." Botão "Criar minha conta" → `/cadastro` (Fase 5; na Fase 1 leva a `/area-do-pai` placeholder).
-7. **Newsletter** — `NewsletterSignup` (grava em `newsletter_subscribers`? **Não** — essa tabela é da Fase 5. Na Fase 1 o formulário chama a edge function `notify-contact-message` com `kind: "newsletter"`; Fase 5 migra para a tabela).
+7. **Newsletter** — `NewsletterSignup` (grava em `newsletter_subscribers`, criada em `0001_core.sql` pelo doc 02 §4.1, com double opt-in e a caixa da esposa — §4.6).
 8. **Loja do Pai** — faixa com slogan **"O pai também quer desconto"** e 4 cartões estáticos de categorias futuras (Churrasco, Ferramentas, Esporte, Pai e Bebê) → `/loja` placeholder.
 9. **Mais lidos** — lista compacta de `popular`.
 
@@ -752,16 +474,17 @@ Arquivos já herdados: `src/routes/_site/blog.tsx` + `src/pages/BlogPage.tsx`; `
 - Título: "Blog do Vocação de Pai" + descrição por categoria.
 
 ### 6.2 `/post/$slug`
-- `PostPage.tsx`: capa, categoria (chip com cor), título, autor (`display_name`), data, tempo de leitura, `ReadingProgress`, `TableOfContents`, corpo via `tiptap-html.ts`, `Callout` do semáforo, tabela, `taskList` (checklist), `QuizWidget`, FAQ (accordion), `ShareButtons`, `Comments`, reações, `AdSlot` (2: após o 2º H2 e no fim), "Continue lendo" (3 posts da mesma categoria), `Breadcrumbs`.
-- Registrar visita: `supabase.rpc("register_post_view", { p_post_id, p_anon_id: getAnonId(), p_referrer: document.referrer })` em `useEffect`.
+- `PostPage.tsx`: capa, categoria (chip com ícone `categories.icon`), título, autor (`display_name`), data, tempo de leitura, `ContentNotice` (§4.6) no topo do corpo, `ReadingProgress`, `TableOfContents`, corpo via `tiptap-html.ts`, `Callout` do semáforo, tabela, `taskList` (checklist), `QuizWidget`, FAQ (accordion), `ShareButtons`, `Comments`, reações, `AdSlot` (2: após o 2º H2 e no fim), "Continue lendo" (3 posts da mesma categoria), `Breadcrumbs`.
+- Registrar visita: `supabase.rpc("increment_post_views", { p_post_id, p_user_key: getAnonId() })` em `useEffect` (assinatura do doc 02 §4.2; 1 contagem por `user_key` por dia).
+- Componente `ParaAEsposa` (`src/components/blog/ParaAEsposa.tsx`): callout "Para a sua esposa: no Vocação de Mãe, <título>" renderizado antes do "Continue lendo" quando `posts.body` tiver o nó `paraAEsposa {slug, title}` (preenchido pela rotina na Fase 8 via API pública do VDM — doc 00 §9.1 item 2); sem o nó, não renderiza. Registrar o nó em `tiptap-html.ts` já nesta fase para o render não quebrar.
 - `head()`: `title` = `seo_title ?? title` + " | Vocação de Pai"; `description` = `seo_description ?? excerpt`; canonical; OG/Twitter com `cover_image_url`.
 - Se `kind` ≠ `artigo`/`noticia`, renderizar também `ReviewBadge` (Fase 2 detalha).
 
 ### 6.3 `/categoria/$slug`
-- Reutiliza `queryPostsByCategorySlug`. Cabeçalho com `name`, `description`, cor. 404 se slug inexistente.
+- Reutiliza `queryPostsByCategorySlug`. Cabeçalho com `name`, `description` e ícone (`icon`). 404 se slug inexistente.
 
 ### 6.4 `/busca`
-- `SearchPage.tsx` passa a chamar `supabase.rpc("search_posts", { q, lim: 20, off })` (substitui o `.ilike`/`textSearch` do VDM se houver). Estado vazio: "Nada encontrado para '…'. Tente outra palavra." + 6 sugestões de categorias.
+- `SearchPage.tsx` passa a chamar `supabase.rpc("search_posts", { p_query: q, p_limit: 20, p_offset: off })` (assinatura do doc 02 §4.2; a função devolve também `category_slug`, `category_name` e `product_score`; substitui o `.ilike`/`textSearch` do VDM se houver). Estado vazio: "Nada encontrado para '…'. Tente outra palavra." + 6 sugestões de categorias.
 
 ### 6.5 RSS — novo `src/routes/rss[.]xml.ts`
 
@@ -833,27 +556,37 @@ Passos:
 ### 9.1 Categorias — `supabase/seed/0001_categories.sql` (aplicar via `mcp__Supabase__execute_sql`)
 
 ```sql
-insert into public.categories (slug, name, description, color, sort_order) values
-('paternidade',               'Paternidade',                'Ser pai no dia a dia: presença, rotina, vínculo e exemplo.',                        '#14505C', 10),
-('gravidez-e-recem-nascido',  'Gravidez e Recém-nascido',   'O pai na gestação, no parto e nos primeiros meses do bebê.',                        '#2A7F8F', 20),
-('educacao-dos-filhos',       'Educação dos Filhos',        'Limites, virtudes, escola, telas e disciplina com firmeza e amor.',                '#3D6B4F', 30),
-('casamento-e-familia',       'Casamento e Família',        'Marido presente, comunicação, liderança servidora e vida a dois com filhos.',       '#8C3B5A', 40),
-('fe-e-virtudes',             'Fé e Virtudes',              'Formação espiritual do homem, oração em família, santos pais, caráter.',           '#5B4A8A', 50),
-('dinheiro-e-provisao',       'Dinheiro e Provisão',        'Orçamento, dívidas, reserva, investimentos e a missão de prover.',                 '#2F7D4F', 60),
-('carreira-e-trabalho',       'Carreira e Trabalho',        'Crescer na profissão sem perder a família; vagas, negociação, propósito.',         '#4A5A6A', 70),
-('saude-do-homem',            'Saúde do Homem',             'Exames, prevenção, sono, saúde mental e longevidade para cuidar de quem depende.',  '#B23A3A', 80),
-('forca-e-esporte',           'Força e Esporte',            'Treino, disposição, esporte com os filhos e corpo a serviço da família.',          '#C2561E', 90),
-('churrasco-e-cozinha',       'Churrasco e Cozinha',        'Cortes de carne, fogo, receitas de pai e a mesa como lugar de encontro.',          '#8B4513', 100),
-('casa-carro-e-ferramentas',  'Casa, Carro e Ferramentas',  'Consertos, manutenção, segurança da casa e do carro, faça-você-mesmo.',            '#6B6B3A', 110),
-('estilo-e-cuidados',         'Estilo e Cuidados',          'Vestir bem, barba, higiene e postura: a aparência que respeita quem está ao lado.', '#1F2429', 120),
-('lazer-e-aventura',          'Lazer e Aventura',           'Acampar, pescar, viajar, brincar: tempo de qualidade com os filhos.',              '#1E7A6D', 130),
-('pai-indica',                'Pai Indica',                 'Reviews, comparativos e listas do que vale o dinheiro do pai.',                    '#D9822B', 140)
-on conflict (slug) do update set name = excluded.name, description = excluded.description, color = excluded.color, sort_order = excluded.sort_order;
+insert into public.categories (slug, name, description, icon, sort_order) values
+('paternidade',               'Paternidade',                'Ser pai no dia a dia: presença, rotina, vínculo e exemplo.',                        'baby',            10),
+('gravidez-e-recem-nascido',  'Gravidez e Recém-nascido',   'O pai na gestação, no parto e nos primeiros meses do bebê.',                        'heart',           20),
+('educacao-dos-filhos',       'Educação dos Filhos',        'Limites, virtudes, escola, telas e disciplina com firmeza e amor.',                'graduation-cap',  30),
+('casamento-e-familia',       'Casamento e Família',        'Marido presente, comunicação, liderança servidora e vida a dois com filhos.',       'heart-handshake', 40),
+('fe-e-virtudes',             'Fé e Virtudes',              'Formação espiritual do homem, oração em família, santos pais, caráter.',           'church',          50),
+('dinheiro-e-provisao',       'Dinheiro e Provisão',        'Orçamento, dívidas, reserva, investimentos e a missão de prover.',                 'wallet',          60),
+('carreira-e-trabalho',       'Carreira e Trabalho',        'Crescer na profissão sem perder a família; vagas, negociação, propósito.',         'briefcase',       70),
+('saude-do-homem',            'Saúde do Homem',             'Exames, prevenção, sono, saúde mental e longevidade para cuidar de quem depende.',  'heart-pulse',     80),
+('forca-e-esporte',           'Força e Esporte',            'Treino, disposição, esporte com os filhos e corpo a serviço da família.',          'dumbbell',        90),
+('churrasco-e-cozinha',       'Churrasco e Cozinha',        'Cortes de carne, fogo, receitas de pai e a mesa como lugar de encontro.',          'flame',           100),
+('casa-carro-e-ferramentas',  'Casa, Carro e Ferramentas',  'Consertos, manutenção, segurança da casa e do carro, faça-você-mesmo.',            'wrench',          110),
+('estilo-e-cuidados',         'Estilo e Cuidados',          'Vestir bem, barba, higiene e postura: a aparência que respeita quem está ao lado.', 'shirt',           120),
+('lazer-e-aventura',          'Lazer e Aventura',           'Acampar, pescar, viajar, brincar: tempo de qualidade com os filhos.',              'tent',            130),
+('pai-indica',                'Pai Indica',                 'Reviews, comparativos e listas do que vale o dinheiro do pai.',                    'badge-check',     140)
+on conflict (slug) do update set name = excluded.name, description = excluded.description, icon = excluded.icon, sort_order = excluded.sort_order;
 ```
+
+A coluna é `icon` (nome de ícone `lucide-react`), **não** `color` — `categories` do doc 02 §4.2 não tem cor; o chip deriva a cor da paleta. Observação: o `0002_blog.sql` do doc 02 já insere 10 categorias com `on conflict (slug) do nothing`; este seed atualiza as que coincidem e acrescenta as demais. As que só existem no 0002 (`financas-da-familia`, `noticias`) permanecem (`noticias` recebe os posts `kind='noticia'`); o seed nunca apaga nada (`CLAUDE.md` §4.2).
 
 ### 9.2 Os 10 posts iniciais
 
-Todos `kind = 'artigo'`, `status = 'published'`, `publish_at` escalonado (1 por dia a partir da data do deploy, para o feed não nascer "tudo no mesmo dia"), `author_id` = id do dono. Capas: Pexels/Pixabay via `stock-photos` (homem/pai/família tradicional; nunca casal do mesmo sexo), 1200×630, salvas em `covers/`.
+Antes de inserir, criar o autor **"Equipe Vocação de Pai"** (o mesmo que a rotina da Fase 8 usa — doc 10 §3 item 8 e doc 12 §0.1 dizem "criado na Fase 1"): no Supabase Auth (Dashboard › Authentication › Users › Add user) criar o usuário `contato@vocacaodepai.com.br` com senha forte guardada pelo dono e "Auto Confirm User" marcado; o trigger `handle_new_user` cria a linha em `profiles`. Depois, via `mcp__Supabase__execute_sql`:
+
+```sql
+update public.profiles set display_name = 'Equipe Vocação de Pai', role = 'editor'
+where id = (select id from auth.users where email = 'contato@vocacaodepai.com.br');
+select id as author_uuid from auth.users where email = 'contato@vocacaodepai.com.br';  -- <AUTHOR_UUID>
+```
+
+Registrar o `<AUTHOR_UUID>` em `docs/plano/PROGRESSO.md` → "Decisões tomadas durante a execução" (a Fase 8 lê de lá). Todos os 10 posts: `kind = 'artigo'`, `status = 'published'`, `publish_at` escalonado (1 por dia a partir da data do deploy, para o feed não nascer "tudo no mesmo dia"), **`author_id = <AUTHOR_UUID>`** (o dono pode assinar artigos próprios com o id dele, mas o seed usa a equipe). Capas: Pexels/Pixabay via `stock-photos` (homem/pai/família tradicional; nunca casal do mesmo sexo), 1200×630, salvas em `covers/`.
 
 | # | Título | Slug | Categoria | Resumo (excerpt) |
 |---|---|---|---|---|
@@ -870,24 +603,20 @@ Todos `kind = 'artigo'`, `status = 'published'`, `publish_at` escalonado (1 por 
 
 ### 9.3 "Padrão A do Pai" — estrutura obrigatória do `body` (Tiptap JSON)
 
-Adaptado do Padrão A do Vocação de Mãe (`/home/user/vocacaodemae/CLAUDE.md`, seção "Estrutura padrão obrigatória do Padrão A"). Ordem dos blocos:
+A estrutura é a do **`CLAUDE.md` §6, item por item** — é a regra obrigatória do projeto, e o `scripts/validate-content.mjs` (§9.5) reprova o que fugir dela. Resumo operacional, na ordem dos blocos:
 
-1. **Abertura** — 2 parágrafos sem heading. O 1º situa o homem na situação concreta ("Você acabou de saber que…"). O 2º diz o que o artigo entrega e já tem 1 link interno.
-2. **Seções `heading` nível 2** em frase ou pergunta ("O que muda no corpo dela e na sua rotina", "Quanto custa, de verdade?"). Cada seção: 1-2 parágrafos curtos ou `bulletList` + 1 parágrafo com link. Tom direto, segunda pessoa ("você"), sem rodeio.
-3. **Semáforo do pai** (obrigatório quando há risco, sintoma, decisão financeira ou de segurança): `heading` nível 2 "Semáforo do pai: <tema>" + **exatamente 3** nós `callout`, nesta ordem, com os prefixos literais:
-   - `tone: "ok"` → texto começa com `"Sinal verde: "`
-   - `tone: "warn"` → `"Sinal de atenção: "`
-   - `tone: "bad"` → `"Sinal de alerta: "` e termina dizendo o que fazer/quem procurar.
-   Sem links dentro dos callouts; sem 4º callout.
-4. **Tabela** (`table` com `tableHeader` na 1ª linha; 3-6 linhas): comparação, custo, cronograma ou dose. Obrigatória em todo artigo do Padrão A do Pai.
-5. **Checklist** (`taskList` com `taskItem`, 5-10 itens, `checked: false`): o que o pai faz hoje. Obrigatória.
-6. **Links internos — mínimo 10 por artigo**, tecidos nas frases: `marks: [{type:"link", attrs:{href:"/post/<slug>", class:null, rel:null, target:null}}]`. Só slugs existentes (os 10 desta lista e os próximos). Até 3 dos 10 podem apontar para `/ferramentas`, `/loja`, `/pai-indica`, `/area-do-pai`; os demais para `/post/…`.
-7. **Imagem inline opcional** — nunca repetir a capa. Se usar, `image` com `alt` descritivo e legenda.
-8. **Fechamento "Continue lendo"** — `heading` nível 2 "Continue lendo" + `bulletList` com 3 links para outros posts (contam para os 10).
-9. **`faq`** (coluna, não no body): mínimo 4 perguntas/respostas, linguagem do pai ("Posso…?", "E se…?").
-10. **`quiz`** (coluna, opcional): 3-5 perguntas de múltipla escolha com explicação.
-11. Tamanho: 1.100 a 1.800 palavras (6-8 min). `excerpt` em 2 linhas (≤ 220 caracteres). `seo_title` ≤ 60 caracteres, `seo_description` 140-160.
-12. Linha editorial: família tradicional (pai e mãe), fé respeitada, nada de vulgaridade nem de machismo tóxico; o homem como pai, marido, provedor e líder que serve. Sem conselho médico/financeiro prescritivo: sempre "converse com seu médico / contador".
+1. **Abertura** — 1-2 parágrafos sem heading: a dor/dúvida do pai ("Você acabou de saber que…") + o que o artigo resolve; o 2º já traz 1 link interno.
+2. **Seções `heading` nível 2** em frase ou pergunta ("O que muda no corpo dela e na sua rotina", "Quanto custa, de verdade?"); cada uma com 1-2 parágrafos curtos ou `bulletList` + 1 parágrafo com link. Tom direto, segunda pessoa ("você"), sem rodeio.
+3. **Semáforo do pai** (obrigatório quando há risco, sintoma, decisão ou "quando procurar ajuda"; recomendado sempre): `heading` nível 2 "Semáforo do pai: <tema>" + **exatamente 3** nós `callout`, nesta ordem e com os prefixos literais: `tone: "ok"` → `"Sinal verde: "`; `tone: "warn"` → `"Sinal de atenção: "`; `tone: "bad"` → `"Sinal de alerta: "`, terminando com a orientação de procurar ajuda profissional (médico, padre, advogado, contador…). Sem link dentro dos callouts; sem 4º callout.
+4. **Links internos contextuais — mínimo 10 por artigo**, tecidos nas frases: `marks: [{type:"link", attrs:{href:"/post/<slug>", class:null, rel:null, target:null}}]`, apontando para `/post/<slug>` (ou `/pai-indica/<slug>`, `/loja/<slug>`, `/ferramentas/<slug>`) que **existem no banco** — na Fase 1, só os 10 slugs da tabela §9.2 (conferir com `select slug from posts where status='published'`); nunca inventar. Os links do "Continue lendo" contam, mas sozinhos não bastam.
+5. **Tabela** (`table`/`tableRow`/`tableHeader`/`tableCell`, 3-6 linhas) com colunas próprias do tema (comparação, custo, cronograma), sob heading nível 2. Obrigatória.
+6. **Checklist** (`taskList`/`taskItem`, `checked: false`) sob heading "Checklist do pai: <tema>", **5-6 itens** curtos sem ponto final; o último é "Ficar atento aos sinais do semáforo acima". Obrigatória.
+7. **Imagem inline opcional** (0, 1 ou mais): `image` com `attrs: {src, alt, title: null}`, nunca a capa (comparar a URL sem query string), sempre coerente com a seção, com `alt` descritivo em PT-BR.
+8. **Fechamento** — 1 parágrafo firme e encorajador **sem links**; depois **1 parágrafo** que começa com `"Continue lendo: "` e traz **4-10 links** (texto de cada link = título do post, separados por `", "`, o último com `" e "`, terminando em `"."`). **Não** é heading nem `bulletList`.
+9. **`faq`** (coluna, não no body): **3-6** itens `{question, answer}` na linguagem do pai ("Posso…?", "E se…?"); **e/ou `quiz`** (coluna): 3-5 itens `{question, options[], correct, explanation}`. Pelo menos um dos dois; nos 10 posts seed, os dois.
+10. **Metadados**: `excerpt` ≤ 160 caracteres; `seo_title` ≤ 60; `seo_description` 120-155; `reading_time` = palavras/200 (o trigger `posts_search_content` calcula se vier nulo); `category_id` válido; `cover_image_url`; `search_content` (preenchido pelo trigger).
+11. **Tamanho: 1.200-2.200 palavras** (6-11 min de leitura).
+12. Linha editorial (`CLAUDE.md` §3): família tradicional (pai e mãe), fé com naturalidade, nada de vulgaridade nem de machismo tóxico; o homem como pai, marido, provedor e líder que serve. Sem conselho médico/jurídico/financeiro prescritivo: o "Sinal de alerta" manda procurar o profissional.
 
 Esqueleto mínimo de `body`:
 
@@ -900,13 +629,24 @@ Esqueleto mínimo de `body`:
  {"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Semáforo do pai: quando agir"}]},
  {"type":"callout","attrs":{"tone":"ok"},"content":[{"type":"paragraph","content":[{"type":"text","text":"Sinal verde: …"}]}]},
  {"type":"callout","attrs":{"tone":"warn"},"content":[{"type":"paragraph","content":[{"type":"text","text":"Sinal de atenção: …"}]}]},
- {"type":"callout","attrs":{"tone":"bad"},"content":[{"type":"paragraph","content":[{"type":"text","text":"Sinal de alerta: … Procure …"}]}]},
+ {"type":"callout","attrs":{"tone":"bad"},"content":[{"type":"paragraph","content":[{"type":"text","text":"Sinal de alerta: … Procure o pediatra / o médico / um advogado."}]}]},
  {"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Quanto custa, de verdade?"}]},
  {"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"Item"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"Faixa de preço"}]}]}]}]},
- {"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Checklist do pai para esta semana"}]},
- {"type":"taskList","content":[{"type":"taskItem","attrs":{"checked":false},"content":[{"type":"paragraph","content":[{"type":"text","text":"…"}]}]}]},
- {"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Continue lendo"}]},
- {"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","marks":[{"type":"link","attrs":{"href":"/post/…","class":null,"rel":null,"target":null}}],"text":"…"}]}]}]}
+ {"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Checklist do pai: primeiras semanas"}]},
+ {"type":"taskList","content":[
+   {"type":"taskItem","attrs":{"checked":false},"content":[{"type":"paragraph","content":[{"type":"text","text":"…"}]}]},
+   {"type":"taskItem","attrs":{"checked":false},"content":[{"type":"paragraph","content":[{"type":"text","text":"Ficar atento aos sinais do semáforo acima"}]}]}
+ ]},
+ {"type":"paragraph","content":[{"type":"text","text":"…fechamento firme e encorajador, sem links…"}]},
+ {"type":"paragraph","content":[
+   {"type":"text","text":"Continue lendo: "},
+   {"type":"text","marks":[{"type":"link","attrs":{"href":"/post/<slug-a>","class":null,"rel":null,"target":null}}],"text":"Título do post A"},
+   {"type":"text","text":", "},
+   {"type":"text","marks":[{"type":"link","attrs":{"href":"/post/<slug-b>","class":null,"rel":null,"target":null}}],"text":"Título do post B"},
+   {"type":"text","text":" e "},
+   {"type":"text","marks":[{"type":"link","attrs":{"href":"/post/<slug-c>","class":null,"rel":null,"target":null}}],"text":"Título do post C"},
+   {"type":"text","text":"."}
+ ]}
 ]}
 ```
 
@@ -923,20 +663,44 @@ select slug,
   (select count(*) from jsonb_path_query(body, '$.content[*] ? (@.type == "callout")')) as callouts,
   (select count(*) from jsonb_path_query(body, '$.content[*] ? (@.type == "table")')) as tabelas,
   (select count(*) from jsonb_path_query(body, '$.content[*] ? (@.type == "taskList")')) as checklists,
-  jsonb_array_length(coalesce(faq,'[]'::jsonb)) as faq, reading_time
+  jsonb_array_length(coalesce(faq,'[]'::jsonb)) as faq,
+  jsonb_array_length(coalesce(quiz,'[]'::jsonb)) as quiz,
+  reading_time, author_id
 from public.posts order by publish_at;
--- aceite: links >= 10, callouts = 3 (quando houver semáforo), tabelas >= 1, checklists >= 1, faq >= 4, reading_time entre 6 e 9
+-- aceite (CLAUDE.md §6): links >= 10, callouts = 3 (quando houver semáforo), tabelas >= 1, checklists >= 1,
+-- faq entre 3 e 6 (ou quiz entre 3 e 5), reading_time entre 6 e 11 (1.200-2.200 palavras), author_id = <AUTHOR_UUID>
 ```
 
-**Aceite da Etapa 9:** 14 categorias; 10 posts publicados passando no validador; todos os `href` internos resolvem (sem 404) — checar com `grep -o '"/post/[^"]*"' supabase/seed/posts/*.json | sort -u` contra os slugs.
+Depois do SQL, rodar `node scripts/validate-content.mjs --all` (§9.5): deve sair com código 0.
+
+### 9.5 `scripts/validate-content.mjs` (checklist 1.18 do doc 13)
+
+O `CLAUDE.md` §4.1 exige `node scripts/validate-content.mjs` verde antes de **todo** push desde a Fase 1; por isso o arquivo nasce aqui. A Fase 2 (doc 04 §11) e a Fase 8 (doc 10 §5) **estendem este mesmo arquivo** com as regras de Pai Indica e de produtos — não criam outro.
+
+- Node 22, sem dependências (só `fetch` e `node:fs`). Lê os posts publicados pela REST anon do Supabase: `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (nomes do `CLAUDE.md` §13; aceitar também `VITE_SUPABASE_PUBLISHABLE_KEY`, nome usado no doc 02 §8), com fallback para a URL e a chave lidas de `src/integrations/supabase/client.ts`.
+- Uso: `node scripts/validate-content.mjs [--all | --since 7d | --slug a,b]` (default `--since 7d`). Sai com código 1 se qualquer regra falhar, imprimindo `slug: regra` por falha; 0 se tudo passar.
+- Regras da Fase 1 (`CLAUDE.md` §4.3 e §6), para `kind='artigo'` e `kind='noticia'`:
+  1. `artigo`: se houver `callout`, exatamente 3, na ordem `ok`/`warn`/`bad`, com os prefixos "Sinal verde: ", "Sinal de atenção: ", "Sinal de alerta: " e sem `link` dentro; `noticia`: callout proibido.
+  2. Links internos distintos (`href` começando com `/`): ≥ 10 em `artigo`, ≥ 5 em `noticia`; todo `/post/<slug>` existe como post publicado; `/pai-indica/`, `/loja/`, `/ferramentas/`, `/formacao/` são aceitos na Fase 1 só pelo prefixo (as Fases 2-4 trocam por checagem real quando as tabelas tiverem dados).
+  3. `cover_image_url` obrigatória, única entre os posts publicados e diferente de toda `image` inline (comparar sem query string).
+  4. Termos proibidos ausentes em `title`, `excerpt`, texto do `body` e `faq`: lista única em `scripts/rotina/proibidos.json` (criar a pasta e o arquivo agora com a lista do doc 10 §5.3; a Fase 8 reaproveita).
+  5. `artigo`: ≥ 1 `table`; ≥ 1 `taskList` com 5-6 itens cujo último é "Ficar atento aos sinais do semáforo acima"; último parágrafo começa com "Continue lendo: " e tem 4-10 links; 1.200-2.200 palavras. `noticia`: dispensa tabela, checklist e semáforo.
+  6. `faq` com 3-6 `{question, answer}` não vazios **ou** `quiz` com 3-5 itens; `excerpt` ≤ 160; `seo_title` ≤ 60; `seo_description` 120-155; `reading_time > 0`; `status='published'` com `publish_at ≤ now()`.
+  7. Nenhum "R$" seguido de dígito em `body`, `excerpt` e `faq` (preço exato é proibido; faixas são escritas pelos componentes a partir de `price_min`/`price_max`).
+- Esqueleto: partir do doc 10 §5.2 (funções `walk`, `textOf`, `linksOf`, `base`, `exists`), deixando as regras de `review`/`comparativo`/`lista` e `--products` para as Fases 2 e 8.
+- `package.json`: `"validate:content": "node scripts/validate-content.mjs"`. O `README.md` cita o comando.
+
+**Aceite da §9.5:** `node scripts/validate-content.mjs --all` sai com 0 nos 10 posts seed; publicar de propósito um post de teste com 2 callouts ou com `/post/slug-inexistente` faz o script sair com 1 apontando o slug e a regra (depois marcar o post de teste como `archived` pelo admin — nunca `DELETE`).
+
+**Aceite da Etapa 9:** 14 categorias; autor "Equipe Vocação de Pai" criado e `<AUTHOR_UUID>` registrado em `PROGRESSO.md`; 10 posts publicados com esse `author_id`, passando no SQL de validação e em `node scripts/validate-content.mjs --all` (código 0); todos os `href` internos resolvem (sem 404) — checar com `grep -o '"/post/[^"]*"' supabase/seed/posts/*.json | sort -u` contra os slugs.
 
 ---
 
 ## 10. Deploy e medição
 
-1. **Deploy**: push para `main` → Vercel faz build. Conferir `mcp__Vercel__list_deployments` (estado `READY`) e abrir `https://vocacaodepai.com.br`. Em erro, `mcp__Vercel__get_deployment` + `list_deployment_events`.
+1. **Deploy**: o dono mescla o PR `Fase 1 — Fundação` em `main` (item 7) → Vercel faz build. Conferir `mcp__Vercel__list_deployments` (estado `READY`) e abrir `https://vocacaodepai.com.br`. Em erro, `mcp__Vercel__get_deployment` + `list_deployment_events`.
 2. **Vercel Analytics**: dashboard → Analytics → Enable. Adicionar `@vercel/analytics` (`npm i @vercel/analytics`) e `<Analytics />` no `__root.tsx`.
-3. **GA4**: criar propriedade "Vocação de Pai" (fluxo web `vocacaodepai.com.br`); colocar o `G-XXXX` em `src/lib/ga4.ts` (`GA_MEASUREMENT_ID`). Consentimento via `CookieConsent` já herdado.
+3. **GA4**: criar propriedade "Vocação de Pai" (fluxo web `vocacaodepai.com.br`); colocar o `G-XXXX` em `src/lib/ga4.ts` (`GA_MEASUREMENT_ID`). Consentimento via `CookieConsent` com Consent Mode v2 (§4.6): GA4 só carrega após aceite analítico.
 4. **Search Console**: adicionar propriedade de domínio `vocacaodepai.com.br` (registro TXT no DNS); enviar `https://vocacaodepai.com.br/sitemap.xml`. Dar permissão de leitura à conta de serviço do Painel Lisieux (mesma usada em `GOOGLE_SA_JSON` do grupovdp) e à usada pela edge `seo-search-console`.
 5. **AdSense**: `public/ads.txt` com `google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0` (publisher do grupo; se o site ainda não foi aprovado, deixar o arquivo com o pub id do grupo mesmo assim — é o placeholder). `src/lib/adsense.ts`: `ADSENSE_PUBLISHER_ID` = pub do grupo; `AdSlot` renderiza só quando houver `data-ad-slot` configurado. Pedir revisão do AdSense só depois dos 10 posts + páginas institucionais no ar.
 6. **Painel Lisieux** (`/home/user/grupovdp/scripts/refresh-sites.mjs`): adicionar ao array `SITES`:
@@ -946,7 +710,7 @@ from public.posts order by publish_at;
 ```
 
    e criar o secret `GA4_PROPERTY_VOCACAODEPAI` (id numérico da propriedade GA4) no repositório do grupovdp. Abrir PR no grupovdp (branch `claude/add-vocacaodepai`).
-7. **Auto-merge**: confirmar que o workflow `.github/workflows/auto-merge.yml` rodou num PR `claude/*` e fez merge após o status `Vercel` = success.
+7. **PR da fase**: rodar `npm run build && npm run lint && node scripts/validate-content.mjs` (os três verdes), abrir o PR `Fase 1 — Fundação` contra `main` (corpo curto: feito / como validar / pendências) e **avisar o dono, que mescla**. Até a Fase 8 não existe auto-merge (`auto-merge.yml` entra no doc 10 §10.1); conferir que o arquivo **não** está em `.github/workflows/`.
 
 **Aceite da Etapa 10:** site responde em `https://vocacaodepai.com.br` com HTTPS; Search Console mostra sitemap "Sucesso"; GA4 em tempo real registra uma visita; `curl -s https://vocacaodepai.com.br/ads.txt` retorna a linha do pub; PR no grupovdp aberto com o site na lista.
 
@@ -954,16 +718,19 @@ from public.posts order by publish_at;
 
 ## 11. Critérios de aceite da Fase 1 (consolidado)
 
-- [ ] `npm run build` e `npm run lint` sem erros; `npx tsc --noEmit` limpo.
+- [ ] `npm run build` e `npm run lint` sem erros; `npx tsc --noEmit` limpo; `node scripts/validate-content.mjs --all` com código 0.
 - [ ] Nenhum vestígio: `grep -rn "lovable\|i18next\|vocacaodemae\|<REF_SUPABASE_DO_VOCACAODEMAE>\|Vocação de Mãe" src public` vazio (exceto o wrapper `@lovable.dev/vite-tanstack-config`).
-- [ ] Supabase `vocacaodepai` (sa-east-1) com migrations `0001_core`, `0002_blog`; `get_advisors security` sem erro; RLS ativa em todas as tabelas.
+- [ ] Supabase `vocacaodepai` (sa-east-1) com as 7 migrations `0001_core` a `0007_ferramentas` copiadas do doc 02 §4 (39 tabelas); `get_advisors security` sem erro; RLS ativa em todas as tabelas.
 - [ ] Tokens aplicados (areia/petróleo/âmbar; Barlow Condensed + Inter; dark `#14181C`/`#1F2429`).
 - [ ] Header com Blog, Pai Indica, Loja do Pai, Ferramentas, Pai Indica Pai, Irmandade, Formação, Sobre, Contato; busca; conta; menu mobile.
 - [ ] Home com as 9 seções; placeholders `noindex` para seções futuras.
 - [ ] Blog completo: `/blog`, `/post/$slug`, `/categoria/$slug`, `/busca`, `/rss.xml`, `/sitemap.xml`, JSON-LD Article + BreadcrumbList (+ FAQPage), OG por post e `og-default.jpg`.
 - [ ] 5 páginas institucionais, contato enviando e-mail.
 - [ ] Admin com login, guarda `is_admin()`, editor Tiptap com semáforo/tabela/checklist/FAQ/quiz, upload de capa.
-- [ ] 14 categorias + 10 posts "Padrão A do Pai" validados (≥10 links, 3 callouts, tabela, checklist, FAQ ≥4).
+- [ ] 14 categorias + 10 posts "Padrão A do Pai" validados (≥10 links, 3 callouts, tabela, checklist 5-6 itens, "Continue lendo: " em parágrafo com 4-10 links, FAQ 3-6, 1.200-2.200 palavras), autor "Equipe Vocação de Pai" (`<AUTHOR_UUID>` em `PROGRESSO.md`).
+- [ ] Conformidade da base (§4.6): `CookieConsent` com Consent Mode v2 e "Rejeitar não necessários", `ContentNotice`, newsletter com double opt-in, Turnstile + rate limit em `/api/newsletter` e `/contato`, `src/lib/ads/no-ads-routes.ts`.
+- [ ] Casal de sites: bloco "Para a sua esposa: Vocação de Mãe" no rodapé, componente `ParaAEsposa` em `/post/$slug`, caixa da esposa no `NewsletterSignup`.
+- [ ] PR `Fase 1 — Fundação` aberto contra `main` e mesclado **pelo dono** (sem `auto-merge.yml`).
 - [ ] Deploy na Vercel (time "Portal da AI") em `vocacaodepai.com.br`; GA4, Vercel Analytics, Search Console, `ads.txt`; site no `SITES` do Painel Lisieux.
 - [ ] `CLAUDE.md` com o ref real; `docs/plano/PROGRESSO.md` atualizado.
 - [ ] Lighthouse mobile na home e num post: Performance ≥ 85, A11y 100, SEO 100.
@@ -984,7 +751,8 @@ Você vai executar a FASE 1 (Fundação) do projeto Vocação de Pai. Leia, nest
 Regras desta sessão:
 - Siga o documento 03 etapa por etapa (1 → 10). Não pule etapas, não "melhore" o escopo, não rediscuta decisões marcadas como fixas.
 - Antes de citar ou copiar um arquivo do /home/user/vocacaodemae, confira que ele existe com ls. Se um caminho do plano não existir, procure o equivalente com grep e registre a diferença em docs/plano/PROGRESSO.md.
-- Trabalhe em branches claude/fase-1-<etapa>, commits pequenos, PR por etapa. Nunca git push --force, nunca commitar segredos (.env, service role).
+- Trabalhe em branches claude/fase-1-<etapa>, commits pequenos, PR por etapa com título "Fase 1 — <etapas>". Até a Fase 8 o dono mescla: não copie nem ligue o auto-merge.yml. Antes de todo push: npm run build && npm run lint && node scripts/validate-content.mjs (o validador nasce na etapa 9.5). Nunca git push --force, nunca commitar segredos (.env, service role).
+- Migrations: copie o SQL literalmente do doc 02 §4.1 a §4.7 (0001 a 0007) e aplique as sete nesta fase; não escreva SQL próprio. O front chama increment_post_views(p_post_id, p_user_key) e search_posts(p_query, p_limit, p_offset), e categories tem icon, não color.
 - Segredos: service role só em GitHub Secret ou Supabase Vault. No código cliente só a URL e a publishable key do projeto novo.
 - Use as ferramentas MCP do Supabase (apply_migration, execute_sql, generate_typescript_types, get_advisors, deploy_edge_function) e da Vercel quando o plano indicar. Se precisar de uma ação que só o dono pode fazer (criar conta, DNS, OAuth), pare, descreva exatamente o que ele deve fazer e continue pelo que não depende disso.
 - Ao terminar cada etapa, rode o critério de aceite da etapa e escreva uma linha em docs/plano/PROGRESSO.md: data, etapa, status (ok/pendente/bloqueado), PR.
@@ -1003,15 +771,16 @@ Comece agora pela Etapa 1 (Preparação). Antes de começar a Etapa 2, me mostre
 [ ] 1. Vercel no time "Portal da AI" com SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SITE_URL, RESEND_API_KEY; domínio vocacaodepai.com.br
 [ ] 1. GitHub: Actions read/write; secrets SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL, SUPABASE_PROJECT_REF
 [ ] 2. Código copiado do VDM; Lovable/MCP, i18n e maternidade removidos; build verde
-[ ] 3. 0001_core.sql e 0002_blog.sql aplicadas; types.ts gerado; dono promovido a admin
-[ ] 4. Tokens (cores/fontes), Header 7 seções + Sobre/Contato, Footer 4 colunas, menu mobile, dark mode
+[ ] 3. 0001_core.sql a 0007_ferramentas.sql (cópia literal do doc 02 §4) aplicadas, 39 tabelas em public; types.ts gerado; dono promovido a admin
+[ ] 4. Tokens (cores/fontes), Header 7 seções + Sobre/Contato, Footer 4 colunas (com "Para a sua esposa: Vocação de Mãe" e "Gerenciar cookies"), menu mobile, dark mode
+[ ] 4. §4.6: CookieConsent + Consent Mode v2 ("Rejeitar não necessários"), ContentNotice, newsletter double opt-in (+ caixa da esposa), Turnstile + rate limit em /api/newsletter e /contato, src/lib/ads/no-ads-routes.ts
 [ ] 5. Home: hero, últimos (mix de categorias), Pai Indica, Caixa de Ferramentas, categorias, CTA Área do Pai, newsletter, Loja do Pai, mais lidos
 [ ] 5. Placeholders noindex: /pai-indica /loja /ferramentas /area-do-pai /pai-indica-pai /irmandade /formacao; /entrar → /admin/login
-[ ] 6. /blog /post/$slug /categoria/$slug /busca (search_posts) /rss.xml /sitemap.xml; JSON-LD Article+BreadcrumbList(+FAQPage); og-default.jpg
+[ ] 6. /blog /post/$slug (increment_post_views, ContentNotice, ParaAEsposa) /categoria/$slug /busca (search_posts p_query/p_limit/p_offset) /rss.xml /sitemap.xml; JSON-LD Article+BreadcrumbList(+FAQPage); og-default.jpg
 [ ] 7. /sobre (manifesto) /contato (Resend) /politica-de-privacidade /termos-de-uso /politica-de-afiliados
 [ ] 8. /admin/login; guarda is_admin(); editor Tiptap com semáforo, tabela, checklist, FAQ, quiz, capa; edge functions deployadas
-[ ] 9. 14 categorias; 10 posts Padrão A do Pai validados pelo SQL de aceite; capas sem repetição no texto
-[ ] 10. Deploy READY em vocacaodepai.com.br; GA4; Vercel Analytics; Search Console com sitemap; ads.txt; PR no grupovdp (SITES)
+[ ] 9. 14 categorias (coluna icon); autor "Equipe Vocação de Pai" (<AUTHOR_UUID> em PROGRESSO.md); 10 posts Padrão A do Pai (CLAUDE.md §6) validados pelo SQL de aceite e por scripts/validate-content.mjs --all; capas sem repetição no texto
+[ ] 10. PR "Fase 1 — Fundação" aberto e mesclado pelo dono (sem auto-merge.yml); deploy READY em vocacaodepai.com.br; GA4; Vercel Analytics; Search Console com sitemap; ads.txt; PR no grupovdp (SITES)
 [ ] 11. Lighthouse mobile home e post: Perf ≥ 85, A11y 100, SEO 100
 [ ] 11. docs/plano/PROGRESSO.md atualizado; próxima fase: docs/plano/04-fase-2-pai-indica-reviews.md
 ```
@@ -1038,7 +807,8 @@ Comece agora pela Etapa 1 (Preparação). Antes de começar a Etapa 2, me mostre
 
 ```bash
 cd /home/user/vocacaodepai
-npx tsc --noEmit && npm run lint && npm run build
+npx tsc --noEmit && npm run lint && npm run build && node scripts/validate-content.mjs --all
+ls .github/workflows   # NÃO deve listar auto-merge.yml antes da Fase 8
 grep -rn "lovable\|i18next\|vocacaodemae\|<REF_SUPABASE_DO_VOCACAODEMAE>\|Vocação de Mãe\|Sinal tranquilizador" src public | grep -v vite-tanstack-config
 ls src/routes/_site   # deve conter: index blog busca contato sobre politica-de-privacidade termos-de-uso politica-de-afiliados post categoria pai-indica loja ferramentas area-do-pai pai-indica-pai irmandade formacao entrar
 curl -s -o /dev/null -w "%{http_code}\n" https://vocacaodepai.com.br/sitemap.xml

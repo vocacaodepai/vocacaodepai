@@ -12,7 +12,7 @@
 3. Amazon Associados Brasil
 4. Outras redes de afiliados (Mercado Livre, Shopee, Magalu, Hotmart)
 5. Newsletter (Resend)
-6. Plano pago futuro ("Irmandade Premium")
+6. Plano pago futuro ("Pai de Valor")
 7. Produtos digitais do pai
 8. SEO (15 clusters, links internos automáticos, E-E-A-T)
 9. Redes sociais (YouTube / Instagram / TikTok)
@@ -31,7 +31,7 @@
 | 3 | Google AdSense | Pedir revisão só com ≥ 40–60 artigos indexados e todas as institucionais no ar (PR §5.11) | `AdSenseLoader`, `AdSlot`, `ads.txt`, CMP/banner LGPD | Fase 8 |
 | 4 | Outras redes (Mercado Livre, Shopee, Magalu) | Após 3 vendas Amazon confirmadas (não dispersar antes) | `products.marketplace_urls` jsonb, adapter de link | Fase 3 (schema) / Fase 8 (uso) |
 | 5 | Produtos digitais (e-book, planilha, checklist) | Mês 3–4 | Hotmart (checkout externo) ou Mercado Pago + entrega por e-mail (Resend) | Fase 7 |
-| 6 | Plano pago "Irmandade Premium" | Mês 6–9, após ≥ 1.000 membros gratuitos | `plans`, `subscriptions`, webhook Mercado Pago | Fase 7 (schema) / pós-plano |
+| 6 | Plano pago "Pai de Valor" (`plans.slug = 'pai-de-valor'`, `active=false` até o dono liberar) | Mês 6–9, após ≥ 1.000 membros gratuitos | `plans`, `subscriptions`, webhook Mercado Pago | Fase 7 (schema) / pós-plano |
 | 7 | Patrocínio de seção/newsletter (mídia kit `/anuncie`) | Mês 9+ | Página `/anuncie` com números reais do painel | Fase 8 |
 
 Regra de ouro (PR §5.2 e §4.2): **conteúdo editorial > publicidade em toda página**. O AdSense e a Amazon reprovam/derrubam sites "afiliados finos". Cada artigo precisa de **um dado próprio** (tabela consolidada, medição, foto própria, cálculo) — ver §8.3.
@@ -378,12 +378,12 @@ Taxa de confirmação ≥ 60%; abertura ≥ 40% (semanal) / ≥ 45% (Jogada do D
 
 ---
 
-## 6. Plano pago futuro — "Irmandade Premium"
+## 6. Plano pago futuro — "Pai de Valor"
 
 ### 6.1 Nome e posicionamento
 
-- Plano gratuito: **"Irmão"** (`plans.slug = 'irmao'`, `price_cents = 0`): conta, salvar itens, perguntas, histórias, 2 e-books da Biblioteca do Pai, trilhas básicas, vagas.
-- Plano pago: **"Irmandade Premium"** (`plans.slug = 'irmandade-premium'`). Promessa: *"Tudo o que o site tem, sem anúncio, com os grupos fechados e a Biblioteca completa — e se não ajudar você a ser um pai melhor em 30 dias, devolvemos o dinheiro."* (modelo "Apostolate Promise" do Exodus 90).
+- Plano gratuito: **"Pai de Família"** (`plans.slug = 'gratuito'`, `price_cents = 0`): conta, salvar itens, perguntas, histórias, 2 e-books da Biblioteca do Pai, trilhas básicas, vagas.
+- Plano pago: **"Pai de Valor"** (`plans.slug = 'pai-de-valor'`, doc 07 §7; nasce `active=false` até o dono liberar — CLAUDE.md §11). "Promessa do Pai" (garantia, doc 01 §3.5): *"Tudo o que o site tem, sem anúncio, com os grupos fechados e a Biblioteca completa — e se não ajudar você a ser um pai melhor em 30 dias, devolvemos o dinheiro."* (modelo "Apostolate Promise" do Exodus 90).
 
 ### 6.2 O que vender (features jsonb)
 
@@ -405,8 +405,8 @@ Taxa de confirmação ≥ 60%; abertura ≥ 40% (semanal) / ≥ 45% (Jogada do D
 | Intervalo | Preço | Observação |
 |---|---|---|
 | Mensal | **R$ 19,90** | `plans.interval='month'`, `price_cents=1990` |
-| Anual | **R$ 149,00** (≈ R$ 12,40/mês, 2 meses grátis) | `interval='year'`, `price_cents=14900`; padrão destacado |
-| Bolsa | R$ 0 sob pedido (formulário "Preciso de ajuda para pagar") | `subscriptions.provider='bolsa'`, aprovado em `/admin` |
+| Anual | **R$ 179,00** (≈ R$ 14,92/mês, 2 meses grátis) | cobrado avulso no checkout (Mercado Pago); **não é outra linha em `plans`** — uma única linha `pai-de-valor` mensal (doc 07 §7.1, doc 02 §4.4); padrão destacado |
+| Bolsa | R$ 0 sob pedido (formulário "Preciso de ajuda para pagar") | `subscriptions.provider='manual'` (único valor do `check` além de `mercadopago`, doc 02 §4.4), aprovado em `/admin` |
 
 Trial: 14 dias sem cobrança (cartão exigido) no anual; garantia de 30 dias (reembolso manual).
 
@@ -761,7 +761,7 @@ Premissas: lançamento público ao fim da Fase 3 (≈ 8 semanas após o início)
 | Receita afiliados (R$/mês) | 150 | 800 | 2.500 | 5.000 |
 | AdSense | Pedir revisão (mês 2–3) | Aprovado; RPM ≥ R$ 8 | R$ 600/mês | R$ 1.500/mês |
 | Produtos digitais (vendas acumuladas) | — | 100 | 300 | 600 |
-| Irmandade Premium (assinantes) | — | — | lançamento; 80 | 250 |
+| Pai de Valor (assinantes, `plans.slug = 'pai-de-valor'`) | — | — | lançamento; 80 | 250 |
 | Vagas aprovadas (`jobs`) | 20 | 80 | 200 | 400 |
 | Perguntas respondidas (`questions` com `best_answer_id`) | 50 | 300 | 800 | 1.500 |
 | Trilhas concluídas (`track_progress` 100%) | 50 | 300 | 900 | 2.000 |
@@ -785,6 +785,6 @@ Premissas: lançamento público ao fim da Fase 3 (≈ 8 semanas após o início)
 - **Fase 2**: `<AmazonButton>` com texto fixo e `rel="sponsored nofollow noopener"`; aviso acima do 1º link; `scripts/check-affiliate.ts`; validador de preço/estrelas na rotina; "Como avaliamos" (`/politica-editorial`) e página de autor; JSON-LD de review; tracking IDs por canal.
 - **Fase 3**: faixa de preço (`price_min/max`, `product_price_checks`) e texto "faixa consultada na internet"; `marketplace_urls`; página `/loja/presentes` (cluster 15) e `/loja/ofertas` sem AdSense.
 - **Fase 4**: texto "Como usar" ≥ 300 palavras por ferramenta; `AdSlot` só abaixo do resultado; `tool_usage`.
-- **Fase 5**: `plans` com `irmao` e `irmandade-premium` (inativo), `subscriptions` com provider `mercadopago`; flag "sem anúncios" para assinante.
+- **Fase 5**: `plans` com `gratuito` e `pai-de-valor` (inativo), `subscriptions` com provider `mercadopago`; flag "sem anúncios" para assinante.
 - **Fase 7**: Biblioteca do Pai (bucket privado), 3 produtos digitais cadastrados (§7) com checkout Hotmart.
 - **Fase 8**: `AdSenseLoader`/`AdSlot` por template (§2.4); cron de newsletter (§5.2 passo 5) com os 4 e-mails (§5.5); `internal-links.ts` com as 14 regras (§8.2); `link_audit.py`; métricas no Painel Lisieux (§11); pedido de revisão do AdSense só após o checklist §2.1.

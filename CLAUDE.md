@@ -196,13 +196,19 @@ mas mantém ≥5 links internos e fechamento.
 - Todo post Pai Indica tem `product_category`, `product_subcategory` (slugs do catálogo em
   `src/lib/product-taxonomy.ts`) e `product_score` (0-10, uma casa decimal). Sem os três, some do
   filtro de `/pai-indica`.
-- **Review individual**: `posts.review` JSON com `product_name`, `asin`, `affiliate_url`,
-  `price_min`, `price_max`, `price_checked_at`, `score`, `criteria` (exatamente 5: Qualidade de
-  construção, Custo-benefício, Facilidade de uso, Durabilidade, Pós-venda — cada um com nota),
-  `pros[]`, `cons[]`, `verdict`, `best_for`. `product_score = review.score`.
-- **Comparativo / lista**: `posts.comparison` JSON com `winner_slug`, `products[]` (slug, name,
-  asin, affiliate_url, image_url, price_min, price_max, score, specs{}, pros[], cons[], best_for),
-  `spec_columns[]`, `method`. `product_score` = nota do vencedor.
+- **Review individual**: `posts.review` segue o doc 02 §5.3 (formato único): `product_slug` existente
+  em `products` (ativo, com faixa de preço e review longa), `score`, `criteria` (exatamente 5 itens
+  `{name, weight, score, comment}` com os nomes e pesos da categoria em
+  `src/lib/pai-indica/criterios.ts`; soma dos `weight` = 100; `score` = média ponderada com 1 casa),
+  `pros[]`, `cons[]` (3-6 cada), `ideal_for`, `not_ideal_for`, `verdict`, `how_we_evaluated` (sem
+  teste físico), `sources[]`, `other_buyers{}`. ASIN, foto, `affiliate_url` e faixa de preço vêm de
+  `products`; nunca "R$" em campo algum. `product_score = review.score`. Chaves só em inglês (`nota`,
+  `criterios`, `ideal_para` não são aceitas).
+- **Comparativo / lista**: `posts.comparison` segue o doc 02 §5.4 (formato único):
+  `criteria[]{name, weight}`, `products[]{product_slug, name, role, score, criteria_scores[], one_liner}`,
+  `table{columns, rows}` (obrigatória em comparativo; `{FAIXA:slug}` só nas células), `winner_slug` ∈
+  `products[].product_slug`, `verdict_by_profile[]{profile, pick_slug, reason}`, `how_we_evaluated`.
+  `product_score` = `score` do vencedor. Chaves só em inglês (`produtos`, `vencedor` não são aceitas).
 - Estrutura do body do comparativo: abertura (2 parágrafos) → "Em 3 pontos" → fotos oficiais lado a
   lado (nó `fotosModelos`) → "Os N modelos que comparamos" + tabela de especificações (com faixa de
   preço e nota de compradores) → uma seção por produto (foto oficial, botão "Comprar <produto> agora
@@ -226,11 +232,17 @@ jobs, job_referrals, professionals, mentorships, stories, questions, answers, ev
 plans, subscriptions, market_cache, tool_usage, seo_search_stats, post_view_events,
 _tmp_post_staging, moderation_log`.
 
-- `posts`: `id uuid pk, slug unique, title, excerpt, body jsonb, cover_image_url, category_id,
-  author_id, kind check in ('artigo','noticia','review','comparativo','lista'), review jsonb,
-  comparison jsonb, product_category, product_subcategory, product_score numeric(3,1), faq jsonb,
-  quiz jsonb, status check in ('draft','published','archived'), publish_at, reading_time,
-  search_content tsvector, seo_title, seo_description, created_at, updated_at`.
+Tabelas e views auxiliares definidas no SQL do doc da fase também são oficiais: `contact_messages`
+(doc 02 §4.1), `story_likes`, `answer_votes`, `challenge_enrollments` e a view `irmandade_members`
+(doc 09 §2). Tabela nova fora disso exige registrar em `PROGRESSO.md` → "Decisões tomadas durante a
+execução".
+
+- `posts`: `id uuid pk, slug unique, title, subtitle text, excerpt, body jsonb, cover_image_url,
+  category_id, author_id, kind check in ('artigo','noticia','review','comparativo','lista'),
+  review jsonb, comparison jsonb, product_category, product_subcategory, product_score numeric(3,1),
+  faq jsonb, quiz jsonb, status check in ('draft','scheduled','published','archived'), publish_at,
+  reading_time, search_content tsvector, seo_title, seo_description, created_at, updated_at`
+  (colunas conforme doc 02 §4.2).
 - `profiles`: `id = auth.users.id, display_name, avatar_url, role check in ('member','editor','admin')
   default 'member', bio, city, uf, onboarding_done, newsletter_opt_in`. `children`: `user_id, name,
   birth_date, sex`.
@@ -284,11 +296,24 @@ Régua de nota · Badge de pai presente · Rotina · Painel Lisieux. Glossário 
 
 ## 13. Variáveis de ambiente
 
-`.env.example` (commitado) lista: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
-`SUPABASE_SERVICE_ROLE_KEY` (só servidor), `PUBLIC_SITE_URL`, `PUBLIC_AMAZON_TAG`, `RESEND_API_KEY`,
-`PEXELS_API_KEY`, `PIXABAY_API_KEY`, `BRAPI_TOKEN` (opcional), `GOOGLE_CLIENT_ID`,
-`GOOGLE_CLIENT_SECRET`, `PUBLIC_GA4_ID`. Nunca commitar `.env`. Chave ausente → registrar em
-`PROGRESSO.md` → "Pendências do dono" e usar fallback.
+`.env.example` (commitado) segue **exatamente** a tabela do doc 02 §8 (lista fechada; nenhum outro
+nome de variável pode aparecer em código, workflows ou docs): `VITE_SUPABASE_URL`,
+`VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (só servidor), `PUBLIC_SITE_URL`,
+`PUBLIC_AMAZON_TAG`, `RESEND_API_KEY`, `PEXELS_API_KEY`, `PIXABAY_API_KEY`, `BRAPI_TOKEN` (opcional),
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `PUBLIC_GA4_ID`, `CRON_SECRET` (único segredo de
+cron/refresh/integrações: `/api/market/refresh`, `/api/cron/expire-jobs`, `/api/cron/vagas-digest`,
+`/api/newsletter/weekly`, `/api/hub/metrics`, crons de `0008_cron.sql`), `TURNSTILE_SITE_KEY`,
+`TURNSTILE_SECRET_KEY`. Nomes antigos **não existem** e devem ser trocados pela equivalência do doc 02 §8:
+`VITE_SUPABASE_PUBLISHABLE_KEY` → `VITE_SUPABASE_ANON_KEY`; `VITE_SITE_URL` → `PUBLIC_SITE_URL`;
+`VITE_AMAZON_TAG`/`AMAZON_ASSOCIATE_TAG` → `PUBLIC_AMAZON_TAG`; `VITE_GA4_ID` → `PUBLIC_GA4_ID`;
+`MARKET_REFRESH_SECRET`/`MARKET_REFRESH_TOKEN`/`NEWSLETTER_CRON_SECRET`/`JOBS_CRON_SECRET`/
+`INTERNAL_FN_SECRET`/`HUB_API_KEY` → `CRON_SECRET`; `AWESOMEAPI_TOKEN` → não existe (AwesomeAPI sem
+chave); `VITE_ADSENSE_PUB_ID`, `RESEND_FROM`, `CONTACT_TO_EMAIL` → constantes em `src/lib/site.ts` /
+`src/lib/adsense.ts`; `BILLING_ENABLED` → `plans.active`. Segredos que não são variáveis do app
+(`GSC_SERVICE_ACCOUNT_JSON`, `MERCADOPAGO_ACCESS_TOKEN`/`MERCADOPAGO_WEBHOOK_SECRET`,
+`SUPABASE_ACCESS_TOKEN`, `GH_PAT_AUTOMERGE`) ficam só onde o doc 02 §8 indica, fora do `.env.example`.
+Nunca commitar `.env`. Chave ausente → registrar em `PROGRESSO.md` → "Pendências do dono" e usar
+fallback.
 
 ## 14. Como reportar ao dono
 

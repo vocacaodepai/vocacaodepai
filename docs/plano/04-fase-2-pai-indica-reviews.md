@@ -20,7 +20,7 @@
 2. Modelo de dados (posts com `kind`, `review`, `comparison`, taxonomia e nota)
 3. Taxonomia de produtos do pai (`src/lib/pai-indica/taxonomia.ts`)
 4. Componentes (esqueletos TSX)
-5. Páginas `/pai-indica` e `/pai-indica/$slug`
+5. Páginas `/pai-indica`, `/pai-indica/$slug`, `/politica-editorial` e `/autor/$slug`
 6. Capa composta (`scripts/rotina/cover_cmp.py`)
 7. JSON-LD (Review, Product, ItemList, FAQPage, BreadcrumbList)
 8. Regras editoriais obrigatórias
@@ -661,6 +661,7 @@ export function ReviewBadge({ score, size = "sm", showLabel = false }: { score: 
 
 ```tsx
 // src/components/pai-indica/ScoreScaleNote.tsx
+import { Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { SCORE_BANDS } from "@/lib/pai-indica/score";
 
@@ -692,6 +693,11 @@ export function ScoreScaleNote({ className = "" }: { className?: string }) {
             </div>
           ))}
         </div>
+        <p className="mt-4 text-xs">
+          <Link to="/politica-editorial" className="font-semibold text-primary underline-offset-2 hover:underline">
+            Como avaliamos: critérios, pesos e independência →
+          </Link>
+        </p>
       </div>
     </details>
   );
@@ -798,11 +804,11 @@ export function PaiIndicaFilter({ data, rootId, className = "" }: { data: PaiInd
 // src/components/pai-indica/AffiliateButton.tsx
 import { ShoppingBag } from "lucide-react";
 
-/** Texto SEMPRE "Comprar agora na Amazon" (sem preço, sem nome de produto). rel sponsored. */
+/** Texto SEMPRE "Comprar agora na Amazon" (sem preço, sem nome de produto). rel="sponsored nofollow noopener" (CLAUDE.md §5.1). */
 export function AffiliateButton({ href, className = "", size = "md" }: { href: string; className?: string; size?: "md" | "lg" }) {
   if (!href) return null;
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer sponsored nofollow"
+    <a href={href} target="_blank" rel="sponsored nofollow noopener"
       className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-accent font-bold text-white shadow-md transition-transform hover:scale-[1.02] ${
         size === "lg" ? "min-h-14 px-8 py-4 text-base" : "min-h-12 px-6 py-3 text-sm"} ${className}`}>
       <ShoppingBag className="h-4 w-4" aria-hidden />
@@ -816,6 +822,7 @@ export function AffiliateButton({ href, className = "", size = "md" }: { href: s
 
 ```tsx
 // src/components/pai-indica/CriteriaScores.tsx
+import { Link } from "@tanstack/react-router";
 import type { Criterion } from "@/lib/pai-indica/types";
 import { formatScore } from "@/lib/pai-indica/score";
 
@@ -840,7 +847,10 @@ export function CriteriaScores({ criteria, total }: { criteria: Criterion[]; tot
           </li>
         ))}
       </ul>
-      <p className="mt-4 text-xs text-muted">Nota final = média ponderada dos 5 critérios. Não é a estrela da Amazon.</p>
+      <p className="mt-4 text-xs text-muted">
+        Nota final = média ponderada dos 5 critérios. Não é a estrela da Amazon.{" "}
+        <Link to="/politica-editorial" className="font-semibold text-primary underline-offset-2 hover:underline">Como avaliamos</Link>
+      </p>
     </section>
   );
 }
@@ -1029,10 +1039,10 @@ export const Route = createFileRoute("/_site/pai-indica/")({
 
 ```tsx
 // src/pages/PaiIndicaListPage.tsx (estrutura)
-// 1. Hero curto: "Pai Indica" + frase da promessa + <ScoreScaleNote />.
+// 1. Hero curto: "Pai Indica" + frase da promessa + <ScoreScaleNote /> (que já linka "Como avaliamos" → /politica-editorial, seção 5.4).
 // 2. <PaiIndicaFilter data={filterData} rootId="pai-indica-grid" />
 // 3. <div id="pai-indica-grid" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{posts.map(p => <PaiIndicaCard />)}</div>
-// 4. Rodapé da seção: link para /loja ("O pai também quer desconto") e /politica-de-afiliados.
+// 4. Rodapé da seção: links para /loja ("O pai também quer desconto"), /politica-editorial ("Como avaliamos") e /politica-de-afiliados.
 // filterData: para cada kind (e "todos"), categories = únicas em posts filtrados, subcategories idem, na ordem de taxonomia.ts.
 ```
 
@@ -1054,7 +1064,7 @@ Loader: `getPostFull({slug})` (Fase 1) + `getProductsBySlugs(slugs)` para os pro
 **Layout do review individual (ordem obrigatória):**
 
 1. Cabeçalho: categoria/subcategoria (links para `/pai-indica` com filtro por hash `#cat=…`), título, subtítulo,
-   `ReviewBadge size="lg" showLabel`, autor, data, tempo de leitura.
+   `ReviewBadge size="lg" showLabel`, autor (`AuthorByline` linkando `/autor/<slug>`, seção 5.5), data, tempo de leitura.
 2. Capa composta (`cover_image_url`, 16:9, `object-fit: contain` sobre fundo areia).
 3. Abertura: os 2 primeiros parágrafos do `body`.
 4. "Em 3 pontos" (do `body`).
@@ -1132,9 +1142,146 @@ export const Route = createFileRoute("/_site/pai-indica/$slug")({
 - Home: seção "Pai Indica" com 6 cards mais recentes + `ScoreScaleNote` (fechada). A vitrine "Últimos artigos" não
   pode ficar só de Pai Indica: `getHomeData` escolhe 1 por categoria antes de completar por data (regra herdada).
 - `src/routes/sitemap[.]xml.ts`: incluir `/pai-indica` e `/pai-indica/<slug>` para todos os posts dos 3 kinds;
-  excluir `/post/<slug>` desses mesmos posts.
+  excluir `/post/<slug>` desses mesmos posts. Incluir também `/politica-editorial` (estática) e `/autor/<slug>` para
+  cada linha da view `public_authors` com `posts_count > 0` (seções 5.4 e 5.5; a linha "Sitemap" do doc 02 §7 deve
+  listar essas duas rotas).
+- Rodapé (`SiteLayout.tsx`, bloco institucional): link "Como avaliamos" → `/politica-editorial` ao lado de
+  `/politica-de-afiliados`.
 - `/categoria/pai-indica` → redirect 301 para `/pai-indica`.
 - `/busca`: resultados de Pai Indica linkam `/pai-indica/<slug>`.
+
+### 5.4 `/politica-editorial` — "Como avaliamos" (E-E-A-T)
+
+Arquivo: `src/routes/_site/politica-editorial.tsx` (rota já prevista no doc 02 §1.3 e §3; texto fixo no próprio
+arquivo da rota, como as demais institucionais da Fase 1). Página pública, indexável, sem AdSense (institucional),
+linkada no rodapé (ao lado de `/politica-de-afiliados`), no `ScoreScaleNote` (seção 4.3) e no rodapé do
+`CriteriaScores` (seção 4.6) — ou seja, em **todo** Pai Indica. `head`: title "Como avaliamos | Vocação de Pai",
+description ≤ 155 caracteres, canonical `${SITE_URL}/politica-editorial`, JSON-LD `WebPage` + `BreadcrumbList`
+(Início → Como avaliamos). Exigida pelo doc 11 §8.3 e §12 (Fase 2).
+
+Seções obrigatórias (H2, nesta ordem; PT-BR, sem "R$", sem menção a IA na produção):
+
+1. **O que é o Pai Indica** — a promessa da seção 1 em 1 parágrafo; a frase "não fazemos teste físico".
+2. **A régua de nota** — a tabela da seção 1.1 renderizada a partir de `SCORE_BANDS` (`src/lib/pai-indica/score.ts`),
+   nunca digitada à mão; explica a casa decimal e que a nota não é a estrela da Amazon.
+3. **Os 5 critérios e os pesos por categoria** — tabela gerada de `criteriaByCategory`
+   (`src/lib/pai-indica/criterios.ts`), uma linha por categoria da taxonomia (seção 3), com os pesos; frase "o nome do
+   critério pode ser especializado no texto, o peso não".
+4. **Como avaliamos** — os 5 elementos da seção 1.3 (fontes; "não fizemos teste físico"; critérios e pesos; nota
+   editorial, não a estrela da Amazon; faixa de preço pesquisada em ≥ 2 lojas, nunca preço exato) e a seção "O que
+   dizem outros compradores" (seção 8, item 10).
+5. **Como escolhemos o que avaliar** — produto vendido na Amazon Brasil, com assistência no país e relevante para o
+   pai; temas em alta só com fonte datada (seção 9.1).
+6. **Independência** — ninguém paga por nota; link de afiliado não muda nota nem ordem; marca não revisa texto;
+   produto cedido por marca (se um dia acontecer) é declarado no próprio texto; reproduz o texto do
+   `AffiliateDisclosure` (doc 02 §6.3) e linka `/politica-de-afiliados`.
+7. **Correções e atualizações** — erro apontado é corrigido e datado (`updated_at` visível no post); canal:
+   `/contato?assunto=correcao` (o formulário de `/contato` da Fase 1 pré-seleciona o assunto "Correção" quando o
+   parâmetro `assunto` vier na URL — ajuste de 1 linha); prazo-alvo de resposta: 5 dias úteis.
+8. **Quem assina** — lista dos autores da view `public_authors` (seção 5.5), cada um linkando `/autor/<slug>`.
+
+Critério de aceite: `/politica-editorial` responde 200 em produção, está no sitemap e no rodapé; os links "Como
+avaliamos" do `ScoreScaleNote` e do `CriteriaScores` apontam para ela; nenhum número da régua ou dos pesos é digitado
+à mão (vêm de `score.ts` e `criterios.ts`).
+
+### 5.5 `/autor/$slug` — página de autor real (E-E-A-T)
+
+Arquivo: `src/routes/_site/autor/$slug.tsx` (rota já prevista no doc 02 §1.3 e §3) + `src/pages/AuthorPage.tsx`.
+Nunca "Redação" nem byline genérica (doc 01 §3.2, doc 11 §8.3): todo post publicado tem `author_id` apontando para um
+`profiles` com `role in ('editor','admin')`.
+
+**Fonte de dados — view `public_authors`.** `profiles` não tem coluna de slug (doc 02 §4.1) e o anônimo não deve ler
+a tabela inteira; a página lê a view abaixo (só staff, só colunas públicas, slug derivado de `display_name`). Gravar
+em `supabase/migrations/0009_public_authors.sql` (próximo número livre depois de `0008_cron.sql` do doc 02 §4.8;
+confirmar com `ls supabase/migrations/` e usar o seguinte se já estiver ocupado), aplicar com
+`mcp__Supabase__apply_migration` no projeto `<SUPABASE_PROJECT_REF>` e registrar a view em `docs/plano/PROGRESSO.md` →
+"Decisões tomadas durante a execução" (CLAUDE.md §8: objeto fora da lista oficial de tabelas e views).
+
+```sql
+-- 0009_public_authors.sql — autores públicos (staff) para /autor/$slug, bylines e JSON-LD Person (idempotente)
+create or replace view public.public_authors
+with (security_invoker = true) as
+select
+  p.id,
+  trim(both '-' from regexp_replace(lower(unaccent(p.display_name)), '[^a-z0-9]+', '-', 'g')) as slug,
+  p.display_name,
+  p.avatar_url,
+  p.role,
+  p.bio,
+  p.city,
+  p.uf,
+  (select count(*) from public.posts x
+     where x.author_id = p.id and x.status = 'published' and x.publish_at <= now()) as posts_count,
+  p.created_at
+from public.profiles p
+where p.role in ('editor','admin');
+grant select on public.public_authors to anon, authenticated;
+
+-- Conferência: slug único por autor (se repetir, ajustar display_name no admin)
+select slug, count(*) from public.public_authors group by 1 having count(*) > 1;
+```
+
+A policy `"profiles: read own or staff or authors"` da `0001_core.sql` (doc 02 §4.1) já libera ao anônimo a leitura
+das linhas com `role in ('editor','admin')`; por isso a view roda com `security_invoker = true` e não precisa de
+`security definer`. `unaccent` é criada na `0001_core.sql`. O perfil "Equipe Vocação de Pai" (`<AUTHOR_UUID>`,
+doc 03 §9, `role='editor'`) aparece na view com slug `equipe-vocacao-de-pai`; o dono (`role='admin'`) com
+`bruno-danello`.
+
+**Credenciais e `sameAs`.** Não entram no banco: ficam na constante `AUTHORS` de `src/lib/site.ts` (doc 02 §3 lista
+`site.ts` com "autor"; o doc 03 já define ali `DEFAULT_AUTHOR = "Bruno Danello"`), indexada pelo slug da view:
+
+```ts
+// src/lib/site.ts (acrescentar)
+export const AUTHORS: Record<string, { jobTitle: string; credentials: string[]; sameAs: string[] }> = {
+  "bruno-danello": {
+    jobTitle: "Editor e fundador",
+    credentials: ["Pai de família", "Fundador do grupo VDP (Vocação de Mãe, Portal da AI, Review Produtos)"],
+    // preencher com os links reais do dono; enquanto faltarem, registrar em PROGRESSO.md → "Pendências do dono"
+    sameAs: ["https://www.instagram.com/<perfil>", "https://www.youtube.com/@<canal>"],
+  },
+  "equipe-vocacao-de-pai": {
+    jobTitle: "Equipe editorial",
+    credentials: ["Conteúdo revisado por Bruno Danello antes de publicar"],
+    sameAs: [],
+  },
+};
+```
+
+**Loader e página.** Em `src/lib/pai-indica.functions.ts` (ou `src/lib/blog.functions.ts`, se a Fase 1 criou):
+`getAuthorBySlug({ slug })` lê `public_authors` (`.eq("slug", slug).maybeSingle()`; `notFound()` se vazio) e
+`getPostsByAuthor({ authorId, limit: 60 })` lê `posts` publicados de todos os `kind`, ordem `publish_at desc`. Cada
+card linka `/pai-indica/<slug>` quando `kind in ('review','comparativo','lista')` e `/post/<slug>` nos demais.
+Layout de `AuthorPage`: foto (`avatar_url`, 160 px, `alt` = nome), nome (H1), `jobTitle`, bio, lista de credenciais,
+cidade/UF se houver, links sociais (`sameAs`, `rel="me noopener"`, `target="_blank"`), "N artigos publicados", grade
+de posts com `PaiIndicaCard`/`PostCard`, link para `/politica-editorial`. `head`: title "<nome> | Autor | Vocação de
+Pai", canonical `${SITE_URL}/autor/<slug>`, `noindex` quando `posts_count = 0`.
+
+JSON-LD da página (função `personJsonLd` em `src/lib/seo.ts`):
+
+```json
+{ "@context": "https://schema.org", "@type": "Person", "name": "Bruno Danello",
+  "url": "https://vocacaodepai.com.br/autor/bruno-danello", "image": "<avatar_url>",
+  "jobTitle": "Editor e fundador", "description": "<bio>",
+  "worksFor": { "@type": "Organization", "name": "Vocação de Pai", "url": "https://vocacaodepai.com.br" },
+  "sameAs": ["https://www.instagram.com/<perfil>"] }
+```
+
+**Byline e "Revisado por".** `AuthorByline` (`src/components/blog/AuthorByline.tsx`, doc 02 §3) passa a receber
+`{ author: { slug, display_name, avatar_url }, publishAt, updatedAt }` e linka o nome para `/autor/<slug>`. Quando
+`author.slug === "equipe-vocacao-de-pai"` (conteúdo gerado pela rotina, `author_id = <AUTHOR_UUID>`, doc 10 §3
+item 8), a byline mostra "Equipe Vocação de Pai · Revisado por Bruno Danello em <dd/mm/aaaa>" (nome =
+`DEFAULT_AUTHOR`, linkado a `/autor/bruno-danello`; data = `posts.updated_at`); nos demais posts, "Por
+<display_name> · <data>". A mesma byline é usada em `/post/$slug` e em `/pai-indica/$slug` (item 1 dos layouts da
+seção 5.2).
+
+**JSON-LD dos posts.** `articleJsonLd` (blog) e `paiIndicaJsonLd` (seção 7) emitem
+`"author": { "@type": "Person", "name": "<display_name>", "url": "<SITE_URL>/autor/<slug>" }` — nunca
+`Organization` como autor; nos posts da rotina, `author` é o revisor humano, igual à byline.
+
+Critério de aceite: `/autor/bruno-danello` e `/autor/equipe-vocacao-de-pai` respondem 200 com foto, bio, lista de
+posts e JSON-LD `Person` válido no Rich Results Test; todo `Article`/`Review` publicado tem `author.url` apontando
+para `/autor/<slug>`; a byline de um post da rotina mostra "Revisado por"; as duas rotas estão no sitemap; a view
+`public_authors` está aplicada e registrada em `PROGRESSO.md`.
 
 ---
 
@@ -1178,6 +1325,14 @@ from posts where kind in ('review','comparativo','lista') group by 1 having coun
 commitado no PR junto com o conteúdo. Verificação visual: abrir o arquivo com `Read` depois de gerar. Também copiar
 `backfill_covers.py` (ajustando a consulta para `kind in (...)`) para refazer capas antigas quando necessário.
 
+Esta é a única exceção à regra geral de capa do `CLAUDE.md` §5.3 item 2 (capa de artigo = URL da CDN da própria fonte,
+sem baixar para o repositório): no Pai Indica (`kind in ('review','comparativo','lista')`) a capa é **composta** por
+`scripts/rotina/cover_cmp.py` a partir das fotos oficiais da Amazon e commitada em `public/images/covers/<slug>.jpg`,
+com `cover_image_url = /images/covers/<slug>.jpg` (mesma regra do doc 10 §4.5). A cascata Pexels → Pixabay → Unsplash →
+Wikimedia continua valendo só para `kind in ('artigo','noticia')`. A exceção precisa constar no `CLAUDE.md` §5.3 (item
+"Capa de Pai Indica"); se ainda não constar quando esta fase for executada, acrescentá-la no mesmo PR (critério 14 da
+seção 12).
+
 ---
 
 ## 7. JSON-LD
@@ -1197,7 +1352,7 @@ com estrelas da Amazon; `Review.reviewRating` é a nossa nota (bestRating 10). P
   "url": "https://vocacaodepai.com.br/pai-indica/philips-oneblade-qp2724-vale-a-pena",
   "datePublished": "2026-11-03",
   "dateModified": "2026-11-03",
-  "author": { "@type": "Person", "name": "Bruno Danello" },
+  "author": { "@type": "Person", "name": "Bruno Danello", "url": "https://vocacaodepai.com.br/autor/bruno-danello" },
   "publisher": { "@type": "Organization", "name": "Vocação de Pai", "logo": { "@type": "ImageObject", "url": "https://vocacaodepai.com.br/images/logo.png" } },
   "reviewBody": "O OneBlade QP2724 é a porta de entrada mais sensata da linha: faz o básico muito bem, aguenta o banho e cabe no bolso.",
   "reviewRating": { "@type": "Rating", "ratingValue": 7.9, "bestRating": 10, "worstRating": 0 },
@@ -1212,7 +1367,7 @@ com estrelas da Amazon; `Review.reviewRating` é a nossa nota (bestRating 10). P
     "brand": { "@type": "Brand", "name": "Philips" },
     "image": "https://m.media-amazon.com/images/I/XXXXXXXX._AC_SL1500_.jpg",
     "sku": "B0XXXXXXXX",
-    "offers": { "@type": "Offer", "url": "https://www.amazon.com.br/dp/B0XXXXXXXX?tag=<TAG_AMAZON>", "priceCurrency": "BRL", "availability": "https://schema.org/InStock" }
+    "offers": { "@type": "Offer", "url": "https://www.amazon.com.br/dp/B0XXXXXXXX/?tag=<PUBLIC_AMAZON_TAG>", "priceCurrency": "BRL", "availability": "https://schema.org/InStock" }
   }
 }
 ```
@@ -1231,13 +1386,13 @@ com estrelas da Amazon; `Review.reviewRating` é a nossa nota (bestRating 10). P
     { "@type": "ListItem", "position": 1, "item": {
         "@type": "Product", "name": "Bosch GSR 120-LI", "brand": { "@type": "Brand", "name": "Bosch" },
         "image": "https://m.media-amazon.com/images/I/AAAA._AC_SL1500_.jpg",
-        "review": { "@type": "Review", "author": { "@type": "Person", "name": "Bruno Danello" },
+        "review": { "@type": "Review", "author": { "@type": "Person", "name": "Bruno Danello", "url": "https://vocacaodepai.com.br/autor/bruno-danello" },
                     "reviewRating": { "@type": "Rating", "ratingValue": 8.4, "bestRating": 10 } },
-        "offers": { "@type": "Offer", "url": "https://www.amazon.com.br/dp/B0AAAAAAAA?tag=<TAG_AMAZON>", "priceCurrency": "BRL" } } },
+        "offers": { "@type": "Offer", "url": "https://www.amazon.com.br/dp/B0AAAAAAAA/?tag=<PUBLIC_AMAZON_TAG>", "priceCurrency": "BRL" } } },
     { "@type": "ListItem", "position": 2, "item": { "@type": "Product", "name": "Makita HP333DWYE", "brand": { "@type": "Brand", "name": "Makita" },
-        "review": { "@type": "Review", "author": { "@type": "Person", "name": "Bruno Danello" }, "reviewRating": { "@type": "Rating", "ratingValue": 8.1, "bestRating": 10 } } } },
+        "review": { "@type": "Review", "author": { "@type": "Person", "name": "Bruno Danello", "url": "https://vocacaodepai.com.br/autor/bruno-danello" }, "reviewRating": { "@type": "Rating", "ratingValue": 8.1, "bestRating": 10 } } } },
     { "@type": "ListItem", "position": 3, "item": { "@type": "Product", "name": "Black+Decker LD12SP", "brand": { "@type": "Brand", "name": "Black+Decker" },
-        "review": { "@type": "Review", "author": { "@type": "Person", "name": "Bruno Danello" }, "reviewRating": { "@type": "Rating", "ratingValue": 7.4, "bestRating": 10 } } } }
+        "review": { "@type": "Review", "author": { "@type": "Person", "name": "Bruno Danello", "url": "https://vocacaodepai.com.br/autor/bruno-danello" }, "reviewRating": { "@type": "Rating", "ratingValue": 7.4, "bestRating": 10 } } } }
   ]
 }
 ```
@@ -1267,8 +1422,10 @@ Início → Pai Indica (`/pai-indica`) → título do post (`/pai-indica/<slug>`
    Kabum, Leroy Merlin, site do fabricante), mesmo item (marca/modelo/cor/voltagem) em **≥ 2 lojas**; `max ≤ 3×min`;
    gravar com `update products set price_min=…, price_max=…, price_range_checked_at=now() where slug='…'`. Sem 2
    lojas: não gravar. O texto diz sempre "faixa consultada na internet, não é o preço da Amazon".
-3. **Botão**: sempre "Comprar agora na Amazon" (nunca "Ver preço", nunca preço no botão). `rel="noopener noreferrer
-   sponsored nofollow"`, `target="_blank"`, `href` = `products.affiliate_url` real (`/dp/<ASIN>?tag=<TAG_AMAZON>`).
+3. **Botão**: sempre "Comprar agora na Amazon" (nunca "Ver preço", nunca preço no botão). `rel="sponsored nofollow
+   noopener"` (ordem exata do `CLAUDE.md` §5.1; o validador da seção 11 compara o atributo inteiro), `target="_blank"`,
+   `href` = `products.affiliate_url` real no formato do `CLAUDE.md` §5.1:
+   `https://www.amazon.com.br/dp/<ASIN>/?tag=<PUBLIC_AMAZON_TAG>` (sem `linkCode` nem outro parâmetro).
    Mínimo de botões: review 4; comparativo 1 por produto + 1 em "Qual comprar" + 1 em "Variação de preço"; lista 1
    por produto.
 4. **Tamanho**: mínimo **1100 palavras** (mirar 1500 a 2000); lista: mínimo 120 palavras por produto além dos cards.
@@ -1594,7 +1751,8 @@ Regras por `kind` (erro = "✗", bloqueia):
 - Sem "Ver preço", "cupom", "frete grátis", "menor preço", "% de desconto", "em promoção", "testamos", "usamos por".
 - Palavras do body ≥ 1100; headings nível 2 ≥ 6; links internos distintos ≥ 8 (≥ 4 `/post/`, todos os
   `/loja/<slug>` dos produtos); todo `/post/<slug>` linkado existe e está publicado.
-- Botões `btn-comprar` (ou `buyCard`): texto contém "Comprar" e "agora na Amazon"; `href` contém `amazon.com.br/dp/` e `tag=`.
+- Botões `btn-comprar` (ou `buyCard`): texto contém "Comprar" e "agora na Amazon"; `href` contém `amazon.com.br/dp/` e `tag=`
+  e não contém `linkCode`; `rel` é exatamente `sponsored nofollow noopener` e `target` é `_blank` (CLAUDE.md §5.1 e §4.3).
 - `faq` com ≥ 4 `{question, answer}` não vazios.
 - Body contém heading "Como avaliamos" e heading "Variação de preço".
 - Todos os produtos existem em `products` (`active=true`), têm `affiliate_url`, `image_url` e `images` ≥ 3, e `review` jsonb objeto.
@@ -1680,6 +1838,9 @@ Adicionar em `package.json`: `"validate:content": "node scripts/validate-content
 7. JSON-LD presente e válido no Rich Results Test / validator.schema.org: Article + Review + Product (review);
    Article + ItemList (comparativo/lista); BreadcrumbList e FAQPage em todos; nenhum `aggregateRating`; nenhum `price`.
 8. Menu com "Pai Indica" em destaque; home com seção Pai Indica; sitemap com `/pai-indica` e os slugs.
+   `/politica-editorial` (seção 5.4) e `/autor/<slug>` (seção 5.5) publicadas, no sitemap e no rodapé; view
+   `public_authors` aplicada e registrada em `PROGRESSO.md`; `AuthorByline` linkando `/autor/<slug>` e mostrando
+   "Revisado por" nos posts da rotina; JSON-LD `Person` válido e `author.url` em todo `Article`/`Review`.
 9. `scripts/rotina/` contém `amz.py`, `cmp_gen.py`, `rev_art_gen.py`, `review_gen.py`, `cover_cmp.py` (cores do
    Vocação de Pai), `photo_upgrade.py`, `backfill_covers.py`, `README.md`, `BRIEF_COMPARATIVO_PAI.md`,
    `BRIEF_REVIEW_UNICA_PAI.md`, `BRIEF_REVIEW_LOJA_PAI.md`; `cover_cmp.py` gera um JPG 1280×720 de teste (abrir com
@@ -1704,7 +1865,7 @@ Execute a Fase 2 (Pai Indica) na ordem do documento, um commit por bloco, em uma
 1. Seção 2.2: rode o SQL de verificação/reparo no Supabase (project `<SUPABASE_PROJECT_REF>`, via mcp__Supabase__execute_sql; carregue a ferramenta com ToolSearch "select:mcp__Supabase__execute_sql"). Nunca DELETE/DROP.
 2. Seções 2.5, 2.6, 3 e 3.2: crie src/lib/pai-indica/{types,score,taxonomia,criterios}.ts exatamente como especificado (10 categorias, 6 a 10 subcategorias cada, 5 critérios por categoria somando 100).
 3. Seção 4: crie os 11 arquivos de src/components/pai-indica/ a partir dos esqueletos, ajustando os nomes dos tokens de cor ao src/styles.css real.
-4. Seção 5: crie src/lib/pai-indica.functions.ts, src/routes/_site/pai-indica/index.tsx, src/routes/_site/pai-indica/$slug.tsx, src/pages/PaiIndicaListPage.tsx e src/pages/PaiIndicaPostPage.tsx; redirecione /post/$slug → /pai-indica/$slug para kinds review/comparativo/lista e /categoria/pai-indica → /pai-indica; inclua "Pai Indica" no menu, na home e no sitemap.
+4. Seção 5: crie src/lib/pai-indica.functions.ts, src/routes/_site/pai-indica/index.tsx, src/routes/_site/pai-indica/$slug.tsx, src/pages/PaiIndicaListPage.tsx e src/pages/PaiIndicaPostPage.tsx; redirecione /post/$slug → /pai-indica/$slug para kinds review/comparativo/lista e /categoria/pai-indica → /pai-indica; inclua "Pai Indica" no menu, na home e no sitemap. Crie também src/routes/_site/politica-editorial.tsx (seção 5.4), supabase/migrations/0009_public_authors.sql (aplicar com mcp__Supabase__apply_migration e registrar em PROGRESSO.md), src/routes/_site/autor/$slug.tsx + src/pages/AuthorPage.tsx (seção 5.5), a constante AUTHORS em src/lib/site.ts, o AuthorByline com "Revisado por", e inclua /politica-editorial e /autor/<slug> no sitemap e no rodapé.
 5. Seção 7: crie src/lib/pai-indica/jsonld.ts (Review+Product, ItemList, FAQPage, BreadcrumbList; sem aggregateRating e sem price).
 6. Seção 11: crie scripts/validate-content.mjs, scripts/export-taxonomia.mjs e os scripts npm validate:content e taxonomia:json.
 7. Seções 6 e 9: copie de /home/user/vocacaodemae/scripts/rotina/ (somente leitura) os scripts listados para scripts/rotina/, aplique as adaptações da seção 9 (category_id, kind, review/comparison, product_category/subcategory/score, REST do novo Supabase, cache /tmp/amzcache-vocacaodepai, textos) e as cores da seção 6 em cover_cmp.py; grave os três briefs BRIEF_COMPARATIVO_PAI.md, BRIEF_REVIEW_UNICA_PAI.md e BRIEF_REVIEW_LOJA_PAI.md com o texto literal do documento.
@@ -1727,6 +1888,7 @@ Regras que não podem ser quebradas: nunca preço em reais no texto (use {FAIXA:
 - [ ] Redirects 301: `/post/<slug>` (Pai Indica) → `/pai-indica/<slug>`; `/categoria/pai-indica` → `/pai-indica`.
 - [ ] JSON-LD: Review+Product (review), ItemList (comparativo/lista), FAQPage, BreadcrumbList, Article; sem `aggregateRating`, sem `price`.
 - [ ] Menu "Pai Indica" em destaque âmbar; seção na home; sitemap atualizado; busca linkando `/pai-indica/`.
+- [ ] `/politica-editorial` (seção 5.4) e `/autor/$slug` (seção 5.5) publicadas: view `public_authors` aplicada (`0009_public_authors.sql`) e registrada em `PROGRESSO.md`; `AUTHORS` em `src/lib/site.ts`; `AuthorByline` linkando `/autor/<slug>` e "Revisado por" nos posts da rotina; JSON-LD `Person` e `author.url`; as duas rotas no sitemap e no rodapé.
 - [ ] `scripts/rotina/` completo (amz, cmp_gen, rev_art_gen, review_gen, cover_cmp com cores do VDP, photo_upgrade, backfill_covers, README) + 3 briefs `_PAI.md`.
 - [ ] `cover_cmp.py` testado: JPG 1280×720, degradê areia→petróleo, barra âmbar, rótulo "PAI INDICA", nome do modelo em grafite.
 - [ ] `scripts/validate-content.mjs` com todas as regras da seção 11; `npm run validate:content` no CI.

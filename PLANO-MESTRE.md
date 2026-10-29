@@ -35,7 +35,7 @@ arquitetura já estão tomadas neste plano.
 
 **Como monetiza.** Google AdSense, Amazon Associados BR (botão sempre "Comprar agora na Amazon",
 faixa de preço pesquisada, nunca preço exato), newsletter (Resend) e, no futuro, plano pago da Área do
-Pai (tabelas `plans`/`subscriptions` já previstas desde a Fase 1).
+Pai (tabelas `plans`/`subscriptions` criadas em `0004_membros.sql`, na Fase 5).
 
 **Linha editorial (inegociável).** Visão católica de família tradicional: homem e mulher, pai e mãe.
 Nunca conteúdo ou imagem LGBTQI ou de casais do mesmo sexo. Tom direto, masculino, respeitoso,
@@ -78,18 +78,24 @@ Detalhes completos em `docs/plano/02-arquitetura-e-stack.md`. O que está aqui �
 
 ### 2.3 As 7 migrations (ordem fixa)
 
-| Arquivo | Tabelas criadas |
-|---|---|
-| `supabase/migrations/0001_core.sql` | `profiles`, `children`, `saved_items`, `newsletter_subscribers`, `plans`, `subscriptions`, `moderation_log`, `_tmp_post_staging`, função `public.is_admin()`, trigger de `updated_at`, RLS base |
-| `0002_blog.sql` | `categories`, `tags`, `post_tags`, `posts` (com `kind`, `review`, `comparison`, `faq`, `quiz`, `search_content`), `comments`, `reactions`, `post_view_events`, `seo_search_stats` |
-| `0003_loja.sql` | `product_categories`, `products`, `product_price_checks` |
-| `0004_membros.sql` | `tracks`, `track_steps`, `track_progress`, `badges`, `user_badges`, `challenges`, `challenge_days`, `challenge_progress` |
-| `0005_pai_indica_pai.sql` | `jobs`, `job_referrals`, `professionals`, `mentorships` |
-| `0006_irmandade_formacao.sql` | `stories`, `questions`, `answers`, `events`, `event_rsvps` |
-| `0007_ferramentas.sql` | `market_cache`, `tool_usage` |
+**Fase 1 aplica só `0001_core.sql` e `0002_blog.sql` (SQL do doc 03 §3.1–3.2). `0003`…`0007` são
+escritas e aplicadas na fase correspondente com o SQL do doc da fase (0003 → doc 05 §2; 0004 → doc 07
+§2; 0005 → doc 08 §2; 0006 → doc 09 §2; 0007 → doc 06 §2.1). O doc 02 §4 é referência de NOMES de
+tabelas/colunas; quando o SQL do doc da fase e o do doc 02 divergirem, vale o doc da fase e o executor
+registra em PROGRESSO.md.**
+
+| Arquivo | Tabelas criadas (conteúdo = doc 02 §4.1–4.7) | Aplicada na |
+|---|---|---|
+| `supabase/migrations/0001_core.sql` | `profiles`, `children`, `contact_messages`, `newsletter_subscribers`, `moderation_log`, `_tmp_post_staging`, `seo_search_stats`, funções `is_admin()` e `get_secret()`, buckets de storage, trigger de `updated_at`, RLS base | F1 (SQL: doc 03 §3.1) |
+| `0002_blog.sql` | `categories`, `tags`, `post_tags`, `posts` (com `kind`, `review`, `comparison`, `faq`, `quiz`, `search_content`), `comments`, `reactions`, `post_view_events`, função `search_posts` | F1 (SQL: doc 03 §3.2) |
+| `0003_loja.sql` | `product_categories`, `products`, `product_price_checks` | F3 (SQL: doc 05 §2) |
+| `0004_membros.sql` | `saved_items`, `plans`, `subscriptions`, `badges`, `user_badges` | F5 (SQL: doc 07 §2) |
+| `0005_pai_indica_pai.sql` | `jobs`, `job_referrals`, `professionals`, `mentorships` | F6 (SQL: doc 08 §2) |
+| `0006_irmandade_formacao.sql` | `stories`, `questions`, `answers`, `events`, `event_rsvps`, `tracks`, `track_steps`, `track_progress`, `challenges`, `challenge_days`, `challenge_progress` | F7 (SQL: doc 09 §2) |
+| `0007_ferramentas.sql` | `market_cache`, `tool_usage` | F4 (SQL: doc 06 §2.1) |
 
 Regra de RLS em todas: anônimo lê só `status='published'`/`'approved'`/`active=true`; usuário
-edita o próprio registro (`auth.uid()`); admin via `public.is_admin()` (`profiles.role='admin'`).
+edita o próprio registro (`auth.uid()`); admin via `public.is_admin()` (`profiles.role in ('editor','admin')`).
 As colunas-chave de cada tabela estão em `docs/plano/02-arquitetura-e-stack.md` e no `CLAUDE.md`.
 
 ### 2.4 Design tokens
@@ -117,14 +123,14 @@ Tailwind 4 via `@theme`. Semáforo do Pai usa sucesso/atenção/alerta.
 
 | Id | Título | Objetivo | Documento | Sessões Sonnet (est.) | Depende de | Critério de pronto |
 |---|---|---|---|---|---|---|
-| F1 | Fundação | Clonar VDM, limpar, aplicar design tokens, criar projeto Supabase e as 7 migrations, blog funcionando com Padrão A do Pai, deploy na Vercel | `docs/plano/03-fase-1-fundacao.md` | 4-6 | — | Site no ar na Vercel com home, `/blog`, `/post/$slug`, `/categoria/$slug`, `/busca`, institucionais e `/admin` com editor; 7 migrations aplicadas; `npm run build && npm run lint && node scripts/validate-content.mjs` verdes; 10 artigos seed publicados |
-| F2 | Pai Indica | Reviews individuais, comparativos e listas com nota 0-10, régua de nota, filtros por categoria de produto, JSON-LD | `docs/plano/04-fase-2-pai-indica-reviews.md` | 3-4 | F1 | `/pai-indica` e `/pai-indica/$slug` no ar com 3 reviews, 2 comparativos e 1 lista; `ReviewBadge`, `ScoreScaleNote`, filtro de duas camadas; validador aceita JSON de `review`/`comparison` |
-| F3 | Loja do Pai | Vitrine de produtos afiliados por categoria, página de produto com review longa, faixa de preço e botão "Comprar agora na Amazon" | `docs/plano/05-fase-3-loja.md` | 3-4 | F1 | `/loja`, `/loja/categoria/$slug`, `/loja/$slug` no ar com 8 categorias e 24 produtos; CRUD de produtos no `/admin`; checagem de faixa de preço registrada em `product_price_checks` |
-| F4 | Caixa de Ferramentas | Conversor de moedas, mercado financeiro ("Mercado do pai"), calculadoras com cache em `market_cache` | `docs/plano/06-fase-4-ferramentas.md` | 3-4 | F1 | `/ferramentas` com 8 ferramentas; conversor e mercado funcionando com cache (TTL) e fallback; `tool_usage` registrando uso |
+| F1 | Fundação | Clonar VDM, limpar, aplicar design tokens, criar projeto Supabase e as migrations `0001_core.sql` e `0002_blog.sql`, blog funcionando com Padrão A do Pai, deploy na Vercel | `docs/plano/03-fase-1-fundacao.md` | 4-6 | — | Site no ar na Vercel com home, `/blog`, `/post/$slug`, `/categoria/$slug`, `/busca`, `/rss.xml`, institucionais e `/admin` com editor; `0001_core.sql` e `0002_blog.sql` aplicadas (doc 03 §3); `npm run build && npm run lint && node scripts/validate-content.mjs` verdes; 10 artigos seed publicados |
+| F2 | Pai Indica | Reviews individuais, comparativos e listas com nota 0-10, régua de nota, filtros por categoria de produto, JSON-LD | `docs/plano/04-fase-2-pai-indica-reviews.md` | 3-4 | F1 | `/pai-indica` e `/pai-indica/$slug` no ar; 20 Pai Indica do doc 04 §10 (mínimo rodadas R1+R2 = 10, com R3/R4 registradas em `PROGRESSO.md`) com capa composta; `ReviewBadge`, `ScoreScaleNote`, filtro de duas camadas; validador aceita `review`/`comparison` |
+| F3 | Loja do Pai | Vitrine de produtos afiliados por categoria, página de produto com review longa, faixa de preço e botão "Comprar agora na Amazon" | `docs/plano/05-fase-3-loja.md` | 3-4 | F1 | `/loja`, `/loja/categoria/$slug`, `/loja/$slug` no ar com 10 categorias e 60 produtos (≥20 com review longa, ≥15 com faixa de mercado); CRUD em `/admin/produtos`; `product_price_checks` preenchida |
+| F4 | Caixa de Ferramentas | Conversor de moedas, mercado financeiro ("Mercado do pai"), calculadoras com cache em `market_cache` | `docs/plano/06-fase-4-ferramentas.md` | 3-4 | F1 | `/ferramentas` com as 17 ferramentas do doc 06 §0.2; conversor e Mercado do pai com `market_cache` (`fetched_at` < 35 min) e fallback; `tool_usage` registrando uso |
 | F5 | Área do Pai | Auth (e-mail/senha + Google), perfil, filhos, itens salvos, painel `/area-do-pai`, newsletter, planos (gratuito ativo, pago desativado) | `docs/plano/07-fase-5-area-do-pai-membros.md` | 4-5 | F1, F3, F4 | Cadastro, login, `/area-do-pai` com widgets; salvar post/produto/ferramenta funciona; RLS testada com usuário anônimo e logado |
 | F6 | Pai Indica Pai | Vagas (cadastro, moderação, listagem, JSON-LD JobPosting), indicações de profissionais/serviços, diretório Pai Profissional, mentoria | `docs/plano/08-fase-6-pai-indica-pai.md` | 4-5 | F5 | Fluxo completo vaga: `nova` → `pending` → aprovação no `/admin` → `approved` publicada com JobPosting; profissionais e mentoria no ar; `moderation_log` preenchido |
-| F7 | Irmandade e Formação | Histórias, perguntas/respostas, eventos com RSVP; trilhas de formação, desafios de N dias, badges | `docs/plano/09-fase-7-irmandade-e-formacao.md` | 5-6 | F5 | `/irmandade`, `/historias`, `/perguntas`, `/eventos`, `/formacao`, `/desafios` no ar; 2 trilhas e 2 desafios seed; progresso e badges funcionando |
-| F8 | Automação, rotinas e painel | Rotina diária de artigos (Padrão A do Pai + Pai Indica), atualização de faixas de preço, auto-merge, sitemap/RSS, GA4, integração no Painel Lisieux | `docs/plano/10-fase-8-automacao-rotinas-e-painel.md` | 3-4 | F1-F7 | Rotina gera e publica 1 artigo/dia sem intervenção; auto-merge ativo; site aparece no Painel Lisieux; checklist de SEO/AdSense do doc 11 cumprido |
+| F7 | Irmandade e Formação | Histórias, perguntas/respostas, eventos com RSVP; trilhas de formação, desafios de N dias, badges | `docs/plano/09-fase-7-irmandade-e-formacao.md` | 5-6 | F5 | `/irmandade`, `/historias`, `/perguntas`, `/eventos`, `/formacao`, `/desafios` no ar; 8 trilhas (107 passos), 3 desafios de 30 dias e 20 insígnias (doc 09); `/eventos` com RSVP e lembrete; progresso e insígnias funcionando |
+| F8 | Automação, rotinas e painel | Rotina diária de artigos (Padrão A do Pai + Pai Indica), atualização de faixas de preço, auto-merge, sitemap/RSS, GA4, integração no Painel Lisieux | `docs/plano/10-fase-8-automacao-rotinas-e-painel.md` | 3-4 | F1-F7 | Rotina diária com as quantidades do doc 10 §2.2 rodando sem intervenção (1ª execução real abre PR `claude/rotina-*` mesclado sozinho — doc 10 §14 itens 10-11); auto-merge ativo; site aparece no Painel Lisieux; checklist de SEO/AdSense do doc 11 cumprido |
 
 **Total estimado: 29-38 sessões de Sonnet 5.5.** Uma sessão = um bloco de trabalho de 1 a 3 horas,
 sempre terminando em PR aberto e `PROGRESSO.md` atualizado.
@@ -264,6 +270,7 @@ avisa e para (não executa fora de ordem sem autorização explícita do dono).
 | `12-backlog-de-conteudo.md` | 200+ títulos de artigos, reviews e comparativos por categoria, com prioridade |
 | `13-checklist-de-execucao.md` | Checklist único de todas as etapas das 8 fases, em caixas, na ordem exata |
 | `PROGRESSO.md` | Tabela viva de status por fase/etapa, decisões tomadas e pendências do dono |
+| `anexos/` | Pesquisas web da sessão de planejamento (`res-sites.md`, `res-ecossistema.md`, `res-tecnico.md`), só para consulta. Os inventários técnicos dos outros repositórios do grupo ficaram fora do repositório público e estão com o dono |
 
 Na raiz: `PLANO-MESTRE.md` (este), `CLAUDE.md` (regras lidas por toda sessão), `README.md`
 (apresentação pública).
@@ -299,27 +306,35 @@ Na raiz: `PLANO-MESTRE.md` (este), `CLAUDE.md` (regras lidas por toda sessão), 
 
 ---
 
-## 8. Sugestões extras e surpresas (15 ideias de alto impacto)
+## 8. Sugestões extras e surpresas (21 ideias de alto impacto)
 
-Todas já têm fase definida. O Sonnet implementa quando a fase chegar; o dono pode antecipar ou cortar.
+Coluna "Status": **especificada** = tem seção no doc da fase; **backlog pós-F8** = só executar quando
+ganhar seção no doc da fase (não improvisar). O dono pode antecipar (escrevendo a seção no doc da fase)
+ou cortar.
 
-| # | Ideia | O que é | Entra na |
-|---|---|---|---|
-| 1 | **"Mercado do pai" diário** | Painel em `/ferramentas/mercado-financeiro` com dólar, euro, Bitcoin, Ibovespa, Selic, IPCA e poupança, com leitura em 3 linhas "o que isso muda no seu bolso", cache em `market_cache` (TTL 15 min) e bloco "Mercado do pai hoje" na home | F4 (painel), F8 (bloco diário automático) |
-| 2 | **Pai Indica Pai com Google for Jobs** | Vagas aprovadas emitem JSON-LD `JobPosting` completo (título, empresa, local, remoto, salário, validade) para aparecer no Google Vagas; sitemap próprio de vagas | F6 |
-| 3 | **Trilha de consagração a São José** | Trilha de 33 dias em `tracks` (is_premium=false) com leitura diária, oração e exercício prático; badge "Filho de São José" ao concluir | F7 |
-| 4 | **Calculadora de churrasco com lista de compras** | `/ferramentas/calculadora-de-churrasco`: adultos, crianças, duração → carne por corte, carvão, bebidas, acompanhamentos; gera lista de compras imprimível e botões de produtos da Loja do Pai | F4 (calculadora), F3 (links de produto) |
-| 5 | **Guia interativo de cortes de carne** | `/ferramentas/guia-de-cortes`: diagrama do boi clicável (SVG), por corte: preparo ideal, ponto, preço médio, artigos relacionados | F4 |
-| 6 | **Newsletter por fase do filho** | `newsletter_subscribers.segments` por idade do filho mais novo (gestação, 0-1, 1-3, 3-6, 6-12, adolescente, adulto); e-mail semanal via Resend com artigos da fase | F5 (segmentos), F8 (envio automático) |
-| 7 | **Badge de pai presente** | Sistema de badges (`badges`/`user_badges`) com regras em JSON; primeiros badges: "Pai presente" (30 dias de desafio), "Leitor" (20 artigos salvos), "Irmão" (3 histórias aprovadas), "Provedor" (perfil Pai Profissional) | F7 |
-| 8 | **Pai Profissional** | Diretório público de profissionais membros com busca por profissão/cidade/UF e contato direto; cartão com badge do membro | F6 |
-| 9 | **Mentoria entre pais** | `/pai-indica-pai/mentoria`: pais experientes se oferecem por área (carreira, finanças, fé, filhos adolescentes); pedido de mentoria vira `mentorships` com aprovação do mentor | F6 |
-| 10 | **Eventos e retiros** | `/eventos` com encontros presenciais e online, RSVP, lembrete por e-mail; integração futura com paróquias e grupos de homens | F7 |
-| 11 | **Casal de sites com Vocação de Mãe** | Bloco "Para a mãe" nos artigos (link cruzado para o post irmão no Vocação de Mãe) e vice-versa; newsletter conjunta "Casal" | F8 (links cruzados automáticos) + F1 (componente) |
-| 12 | **E-book do churrasco** | "O churrasco do pai" em PDF gerado a partir de 10 artigos + calculadora; isca de cadastro na Área do Pai | F5 (entrega ao cadastrar), conteúdo no doc 12 |
-| 13 | **Planner do pai** | PDF mensal imprimível (agenda da família, orçamento, metas de formação) baixável na Área do Pai; versão premium com personalização | F5 |
-| 14 | **Podcast "Vocação de Pai"** | Página `/podcast` com episódios (áudio hospedado fora) e transcrição; cada episódio vira artigo Padrão A | F8 (após rotina estável) |
-| 15 | **App PWA** | Manifest + service worker: ícone na tela inicial, ferramentas funcionando offline (calculadoras), push de novo artigo | F4 (manifest/calculadoras offline), F8 (push) |
+| # | Ideia | O que é | Entra na | Status |
+|---|---|---|---|---|
+| 1 | **"Mercado do pai" diário** | Painel em `/ferramentas/mercado-financeiro` com dólar, euro, Bitcoin, Ibovespa, Selic, IPCA e poupança, com leitura em 3 linhas "o que isso muda no seu bolso", cache em `market_cache` (TTL 15 min) e bloco "Mercado do pai hoje" na home | F4 (painel), F8 (bloco diário automático) | **especificada** (doc 06 §0.2, doc 10 §7) |
+| 2 | **Pai Indica Pai com Google for Jobs** | Vagas aprovadas emitem JSON-LD `JobPosting` completo (título, empresa, local, remoto, salário, validade) para aparecer no Google Vagas; sitemap próprio de vagas | F6 | **especificada** (doc 08 §8) |
+| 3 | **Trilha de consagração a São José** | Trilha de 33 dias em `tracks` (is_premium=false) com leitura diária, oração e exercício prático; badge "Filho de São José" ao concluir | F7 | **especificada** (doc 09 §5.2, trilha T4 `fe-do-pai-33-dias-com-sao-jose`) |
+| 4 | **Calculadora de churrasco com lista de compras** | `/ferramentas/calculadora-de-churrasco`: adultos, crianças, duração → carne por corte, carvão, bebidas, acompanhamentos; gera lista de compras imprimível e botões de produtos da Loja do Pai | F4 (calculadora), F3 (links de produto) | **especificada** (doc 06 §0.2, slug `calculadora-de-churrasco`) |
+| 5 | **Guia interativo de cortes de carne** | `/ferramentas/cortes-de-carne`: diagrama do boi clicável (SVG), por corte: preparo ideal, ponto, preço médio, artigos relacionados | F4 | **especificada** (doc 06 §0.2, slug `cortes-de-carne`) |
+| 6 | **Newsletter por fase do filho** | `newsletter_subscribers.segments` por idade do filho mais novo (gestação, 0-1, 1-3, 3-6, 6-12, adolescente, adulto); e-mail semanal via Resend com artigos da fase | F5 (segmentos), F8 (envio automático) | **especificada** (doc 07 §3 e §6.6, doc 10 §8) |
+| 7 | **Badge de pai presente** | Sistema de badges (`badges`/`user_badges`) com regras em JSON; primeiros badges: "Pai presente" (30 dias de desafio), "Leitor" (20 artigos salvos), "Irmão" (3 histórias aprovadas), "Provedor" (perfil Pai Profissional) | F7 | **especificada** (doc 09 §7, 20 insígnias) |
+| 8 | **Pai Profissional** | Diretório público de profissionais membros com busca por profissão/cidade/UF e contato direto; cartão com badge do membro | F6 | **especificada** (doc 08 §3.5) |
+| 9 | **Mentoria entre pais** | `/pai-indica-pai/mentoria`: pais experientes se oferecem por área (carreira, finanças, fé, filhos adolescentes); pedido de mentoria vira `mentorships` com aprovação do mentor | F6 | **especificada** (doc 08 §3.7) |
+| 10 | **Eventos e retiros** | `/eventos` com encontros presenciais e online, RSVP, lembrete por e-mail; integração futura com paróquias e grupos de homens | F7 | **especificada** (doc 09 §8) |
+| 11 | **Casal de sites com Vocação de Mãe** | Bloco "Para a mãe" nos artigos (link cruzado para o post irmão no Vocação de Mãe) e vice-versa; newsletter conjunta "Casal" | F8 (links cruzados automáticos) + F1 (componente) | componente: doc 03 §4.4/§6.2 (ver correção própria); links cruzados automáticos e newsletter conjunta: **backlog pós-F8** |
+| 12 | **E-book do churrasco** | "O churrasco do pai" em PDF gerado a partir de 10 artigos + calculadora; isca de cadastro na Área do Pai | F5 (entrega ao cadastrar), conteúdo no doc 12 | **backlog pós-F8** |
+| 13 | **Planner do pai** | PDF mensal imprimível (agenda da família, orçamento, metas de formação) baixável na Área do Pai; versão premium com personalização | F5 | **backlog pós-F8** |
+| 14 | **Podcast "Vocação de Pai"** | Página `/podcast` com episódios (áudio hospedado fora) e transcrição; cada episódio vira artigo Padrão A | F8 (após rotina estável) | **backlog pós-F8** |
+| 15 | **App PWA** | Manifest + service worker: ícone na tela inicial, ferramentas funcionando offline (calculadoras), push de novo artigo | F4 (manifest/calculadoras offline), F8 (push) | **backlog pós-F8** |
+| 16 | **Check-up do Pai** | Questionário de onboarding nos eixos Presença, Provisão, Proteção, Fé e Corpo que "conhece" o pai e o encaminha para a trilha certa da Formação (doc 01 §4.2 #13; eixos no doc 00 §7) | F5 | **backlog pós-F8** |
+| 17 | **15 minutos com seu filho** | Ferramenta com atividades de 15 minutos por idade do filho + trilha curta de uso diário (doc 01 §4.2 #12) | F4 (ferramenta), F7 (trilha) | **backlog pós-F8** |
+| 18 | **1 produto, 3 orçamentos** | Série semanal de Pai Indica (`kind='comparativo'`) com o mesmo tipo de produto em três faixas de preço (doc 00 §3.7 `serie:1-produto-3-orcamentos`; doc 01 §4.2 #5) | F2 | **backlog pós-F8** |
+| 19 | **Contador "Fim de semana de 940"** | Contador na Área do Pai dos fins de semana que restam até os 18 anos de cada filho cadastrado em `children`, ligado à série semanal (doc 00 §3.7 `serie:fim-de-semana-de-940`; doc 01 §4.2 #4) | F5 | **backlog pós-F8** |
+| 20 | **Desafio "90 dias do Pai"** | Desafio longo de 90 dias em `challenges`/`challenge_days` (doc 00 §6; doc 01 §4.2 #15) — o doc 09 só especifica 3 desafios de 30 dias | F7 | **backlog pós-F8** |
+| 21 | **Caderno do Pai e turmas (coortes)** | PDF pessoal do pai (doc 00 §6/§7) e turmas com data de início para as trilhas (doc 01 §4.1 #23) — doc 09 §5.1 diz "não há tabela nesta fase" | F7 | **backlog pós-F8** |
 
 Outras ideias menores já incorporadas ao plano: busca com `tsvector` em português (F1), modo
 escuro (F1), "Pergunte ao pai" (Q&A) com melhor resposta votada (F7), política de afiliados
@@ -423,7 +438,7 @@ Nota quebrada (ex.: 7,8) é proposital — diferencia dois produtos que em nota 
 
 ```
 Fase 3 — Loja do Pai: etapas 3.1 a 3.4 concluídas.
-Feito: migration 0003 aplicada; /loja, /loja/categoria/$slug e /loja/$slug no ar; 8 categorias e 12 produtos seed.
+Feito: migration 0003 aplicada; /loja, /loja/categoria/$slug e /loja/$slug no ar; 10 categorias e 30 produtos seed.
 Validado: build, lint e validate-content verdes; RLS testada com anônimo.
 PR: #12 (claude/fase-3-loja-vitrine) aberto contra main.
 Falta: 3.5 (admin de produtos) e 3.6 (checagem de faixa de preço).

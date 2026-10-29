@@ -12,7 +12,7 @@ Nomes fixos usados aqui (DECISÕES FIXAS do briefing):
 |---|---|
 | Nome da seção | Loja do Pai |
 | Slogan | O pai também quer desconto |
-| Rotas | `/loja`, `/loja/categoria/$slug`, `/loja/$slug`, `/politica-de-afiliados` |
+| Rotas | `/loja`, `/loja/categoria/$slug`, `/loja/$slug`, `/loja/ofertas`, `/loja/presentes` (rotas secundárias oficiais do doc 02 §1.3; nomes fixos do doc 00 §6), `/politica-de-afiliados` |
 | Tabelas | `products`, `product_categories`, `product_price_checks` |
 | Migration | `supabase/migrations/0003_loja.sql` |
 | Bucket Storage | `products` (público para leitura) |
@@ -99,7 +99,7 @@ Critério: a frase "participante do Programa de Associados da Amazon Brasil" **p
 ## 2. Migration `supabase/migrations/0003_loja.sql` (completa)
 
 Pressupostos vindos de `0001_core.sql`: existem `public.profiles`, a função `public.is_admin()` (retorna `boolean`, `security definer`,
-`profiles.role = 'admin'`) e a função de gatilho `public.set_updated_at()`. Se `set_updated_at()` não existir em `0001`, o bloco
+`profiles.role in ('editor','admin')`) e a função de gatilho `public.set_updated_at()`. Se `set_updated_at()` não existir em `0001`, o bloco
 `create or replace function public.set_updated_at()` abaixo cria (é idempotente).
 
 Passos:
@@ -591,6 +591,67 @@ evita fetch no cliente).
 
 Adicionar item de menu **"Loja do Pai"** → `/loja` (ordem definida na Fase 1). No rodapé, link "Política de afiliados" → `/politica-de-afiliados`.
 
+### 4.11 `/loja/ofertas` ("Ofertas que valem") — `src/routes/_site/loja/ofertas.tsx` + `src/pages/StoreOffersPage.tsx` (novos)
+
+Nome fixo: **"Ofertas que valem"** (doc 00 §6). Rota secundária oficial da Loja (doc 02 §1.3). Referência: Gear Patrol "Deals of Note" e Primer
+"Deal Picks" (doc 01 §3.3 e §4.2 item 18). Nenhuma tabela nem coluna nova: a página só lê o que a rotina de faixa de preço já grava.
+
+- **Dados** — server fn `getStoreOffersData` em `src/lib/hub.functions.ts`: até **10 produtos ativos** com `price_range_checked_at >= now() - interval '7 days'`
+  (equivale a ter `product_price_checks.checked_at` ≤ 7 dias, porque a seção 8.4 grava os dois no mesmo comando; lendo `products` o anon não precisa
+  de acesso a `product_price_checks`), ordem `featured desc, price_range_checked_at desc`, `affiliate_url` normalizado (`normalizeAffiliate`).
+  Query equivalente para conferir no SQL: `select slug, price_min, price_max, price_range_checked_at from products where active and price_range_checked_at >= now() - interval '7 days' order by featured desc, price_range_checked_at desc limit 10;`
+- **Página** — título "Ofertas que valem"; subtítulo "Até 10 produtos com faixa de preço conferida nos últimos 7 dias. Não é liquidação: é o que vale o
+  dinheiro hoje."; cada item em `ProductCard` + linha **"Por que vale: {products.short_description}"** + texto da faixa no formato exato da seção 4.7
+  ("Faixa pesquisada na internet em {dd/mm}: {R$ X a R$ Y}. Não é o preço da Amazon.") + botão **"Comprar agora na Amazon"**. Nunca escrever
+  "desconto de X%", "promoção", "oferta relâmpago" nem preço exato. `<AffiliateNotice />` no fim.
+- **Lista vazia** — com 0 itens, renderizar o texto "Nenhuma faixa conferida nos últimos 7 dias. Veja os destaques da loja." seguido de 4 produtos
+  `featured` (nunca página em branco).
+- **Sem anúncio** — página majoritariamente afiliada: sem AdSense (doc 11 §2.4). Quando o `AdSlot` existir (Fase 8), ele **não** entra aqui.
+- **SEO** — `head`: título `Ofertas que valem | Loja do Pai | Vocação de Pai`; canonical `https://vocacaodepai.com.br/loja/ofertas`;
+  `<meta name="robots" content="noindex,follow">` enquanto a lista tiver **menos de 5 itens** (`loaderData.products.length < 5`); JSON-LD `ItemList` +
+  `BreadcrumbList` só quando indexável. Em `src/routes/sitemap[.]xml.ts`, incluir `/loja/ofertas` apenas quando houver ≥ 5 itens (o sitemap é dinâmico, doc 02 §7).
+- **Alimentação** — automática pela rotina de faixa de preço (seção 8.4; na Fase 8 ela roda todo dia dentro da rotina do doc 10 §2). Nesta fase a
+  página já funciona com os produtos que ganharem faixa de mercado (critério 13 da seção 12 exige ≥ 15).
+- **Links de entrada** — chip "Ofertas que valem" no hero de `/loja` (ao lado dos 10 cards de categoria) e link no bloco `StorePromo`.
+
+### 4.12 `/loja/presentes` ("Presentes por ocasião") — `src/routes/_site/loja/presentes.tsx` + `src/pages/StoreGiftsPage.tsx` + `src/lib/store-gifts.ts` (novos)
+
+Nome fixo: **"Presentes por ocasião"** (doc 00 §6). Hub do cluster 15 de SEO (doc 11 §12: "presente de dia dos pais", "presente para pai que gosta de
+churrasco", "presente de natal para pai", "presente para filho de 5 anos", "presente para padrinho") e das datas sazonais do doc 12 (Dia dos Pais,
+Natal, Dia das Crianças). Regra do doc 02 (§1.3 e §4.3): presentes é **rota/tag, não categoria de produto**, e `products.subcategory` continua sendo
+só slug da taxonomia (doc 04 §3, que não tem subcategoria `presente-*`). Por isso a curadoria mora em código, não no banco, e a rota não depende da
+categoria `presentes-para-o-pai` da seção 3 (lê slugs de produto, não categoria):
+
+```ts
+// src/lib/store-gifts.ts — curadoria editorial por ocasião. Renovar todo ano (seção "Calendário" abaixo).
+export interface GiftOccasion { slug: string; title: string; intro: string; productSlugs: string[]; externalUrl?: string }
+export const GIFTS_UPDATED_YEAR = 2026; // vira o selo "Atualizado 2026"
+export const GIFT_OCCASIONS: GiftOccasion[] = [
+  { slug: "dia-dos-pais",         title: "Dia dos Pais",          intro: "O que um pai usa de verdade: fogo, ferramenta e leitura.", productSlugs: [/* 10 slugs de products ativos, seção 10 */] },
+  { slug: "natal",                title: "Natal",                 intro: "Presente para o pai da casa e para o avô.",                productSlugs: [] },
+  { slug: "aniversario-do-filho", title: "Aniversário do filho",  intro: "Presente que vira tempo junto: bola, jogo, acampamento.",   productSlugs: [] },
+  { slug: "para-a-esposa",        title: "Para a esposa",         intro: "O presente dela a gente deixa com quem entende: a loja do Vocação de Mãe.", productSlugs: [], externalUrl: "https://vocacaodemae.com.br/loja" },
+  { slug: "para-o-padrinho",      title: "Para o padrinho",       intro: "Para o homem que vai ajudar a criar o seu filho.",          productSlugs: [] },
+];
+```
+
+- **Abas** (Radix `Tabs`, já no shadcn): Dia dos Pais · Natal · Aniversário do filho · Para a esposa · Para o padrinho, nessa ordem; `?ocasiao=<slug>`
+  sincroniza a aba com a URL (mesma rota, sem rota filha, como `?categoria=` em `/loja`). A aba **"Para a esposa"** não lista produto: mostra o `intro`
+  e o botão "Ver a loja do Vocação de Mãe" (`externalUrl`, `target="_blank" rel="noopener"`), cumprindo o guia cruzado do doc 00 §9.1 item 9
+  ("Presente para a sua esposa" aponta para a loja dela; "Presente para o seu marido" lá aponta para a nossa).
+- **Dados** — server fn `getStoreGiftsData` em `src/lib/hub.functions.ts`: chama `getProductsBySlugs` (seção 6.2) com a união dos `productSlugs`,
+  devolve `{ occasions: [{ ...occasion, products }] }` na ordem dos slugs, ignora slug inativo/inexistente (e registra `console.warn` no servidor).
+  Cada aba: até 10 `ProductCard` com faixa de preço e botão **"Comprar agora na Amazon"**; só produto com `affiliate_url` com tag e foto oficial.
+- **Selo** — "Atualizado {GIFTS_UPDATED_YEAR}" ao lado do título. URL fixa, sem ano (doc 11 §12 cluster 15 e §8 item 13).
+- **Primeira curadoria** — os 10 slugs de cada ocasião saem dos 60 produtos da seção 10 (os da seção 10.10 entram em Dia dos Pais e Natal; os de
+  Esporte e Outdoor e Paternidade Prática, em Aniversário do filho; Churrasco, Estilo e Barba e Livros, em Padrinho).
+- **Calendário** — renovar `GIFT_OCCASIONS` e `GIFTS_UPDATED_YEAR` nas datas do doc 12 (Dia dos Pais: 24/06; Dia das Crianças: 12/09; Natal: 25/11).
+  A partir da Fase 8 a rotina abre esse PR; nesta fase basta a primeira curadoria.
+- **SEO** — `head`: título `Presentes por ocasião | Loja do Pai | Vocação de Pai`; canonical **única** `https://vocacaodepai.com.br/loja/presentes`
+  (independente de `?ocasiao=`); JSON-LD `ItemList` da aba ativa + `BreadcrumbList`; `<AffiliateNotice />` no fim. AdSense segue o padrão de `/loja`
+  (doc 11 §2.4). Incluir `/loja/presentes` como estática em `src/routes/sitemap[.]xml.ts`.
+- **Links de entrada** — chip "Presentes por ocasião" no hero de `/loja` e card "Procurando presente?" no fim de `/loja/categoria/$slug`.
+
 ---
 
 ## 5. `src/lib/price-range.ts` — herdar (faixa de mercado vs. estimativa -15%/+20%)
@@ -611,13 +672,22 @@ export interface PriceRangeInput { price?: string | number | null; price_min?: n
 Regras herdadas (não mudar): `LOW_FACTOR = 0.85`, `HIGH_FACTOR = 1.2`; faixa de mercado só quando `price_min > 0 && price_max >= price_min`;
 `kind: "market"` traz `checkedOn` em `dd/mm`; `kind: "estimate"` nunca é apresentado como preço da Amazon; formatação `R$ 1.234` sem centavos.
 
-Teste rápido (vitest, `src/lib/price-range.test.ts`):
+Conferência rápida (sem test runner: o `package.json` do doc 02 §2.1 não tem script `test` nem vitest instalado; `tsx` é devDependency do
+doc 02 §2.3). Criar `scripts/check-price-range.ts` e rodar `npx tsx scripts/check-price-range.ts`; as três linhas precisam sair `ok`, senão o script
+termina com código 1:
 
 ```ts
-import { productPriceRange } from "./price-range";
-test("mercado", () => expect(productPriceRange({ price_min: 100, price_max: 150, price_range_checked_at: "2026-10-24T10:00:00Z" })).toEqual({ text: "R$ 100 a R$ 150", kind: "market", checkedOn: "24/10" }));
-test("estimativa", () => expect(productPriceRange({ price: 100 })).toEqual({ text: "R$ 85 a R$ 120", kind: "estimate", checkedOn: null }));
-test("sem preço", () => expect(productPriceRange({})).toBeNull());
+// scripts/check-price-range.ts — conferência de src/lib/price-range.ts (rodar: npx tsx scripts/check-price-range.ts)
+import { productPriceRange } from "../src/lib/price-range";
+const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+const casos: [string, boolean][] = [
+  ["mercado", eq(productPriceRange({ price_min: 100, price_max: 150, price_range_checked_at: "2026-10-24T10:00:00Z" }), { text: "R$ 100 a R$ 150", kind: "market", checkedOn: "24/10" })],
+  ["estimativa", eq(productPriceRange({ price: 100 }), { text: "R$ 85 a R$ 120", kind: "estimate", checkedOn: null })],
+  ["sem preço", productPriceRange({}) === null],
+];
+let falhou = false;
+for (const [nome, ok] of casos) { console.log(`${ok ? "ok" : "FALHOU"} ${nome}`); if (!ok) falhou = true; }
+process.exit(falhou ? 1 : 0);
 ```
 
 ---
@@ -1033,9 +1103,11 @@ from public.products order by sort_order;   -- 5 linhas; secoes = 6; fotos >= 3
 9. Um post com nó `product` e um com `fotosModelos` renderizam o widget hidratado com foto, faixa e botão.
 10. `python3 scripts/rotina/amz.py <ASIN real>` devolve JSON com `images` ≥ 3; `python3 scripts/rotina/review_gen.py exemplo.json` gera `.insert.sql` que roda sem erro no banco.
 11. `fila-precos` e `fila-fotos` listam os produtos certos; gravar uma faixa com `max > 3×min` é recusado (UI e banco).
-12. `pnpm typecheck && pnpm lint && pnpm build` sem erro; `pnpm test` com `price-range.test.ts` verde.
+12. `npm run build && npm run lint && node scripts/validate-content.mjs` verdes (os três, CLAUDE.md §4.1) e `npm run typecheck` sem erro (script do doc 02 §2.1); `npx tsx scripts/check-price-range.ts` imprime as três linhas `ok` da seção 5. O projeto é npm (sem pnpm).
 13. 60 produtos cadastrados (`select count(*) from products where active` = 60), cada um com ≥ 3 fotos oficiais; ≥ 20 com review longa real; ≥ 15 com faixa de mercado.
 14. Lighthouse mobile em `/loja/<seed>` ≥ 85 em Performance e 100 em SEO.
+15. `/loja/ofertas` lista só produtos ativos com `price_range_checked_at` nos últimos 7 dias (máximo 10, ordem `featured desc, price_range_checked_at desc`), com "Por que vale" e faixa no texto da seção 4.7; sem anúncio; `<meta name="robots" content="noindex,follow">` enquanto houver menos de 5 itens; com 0 itens mostra o texto de vazio + 4 destaques.
+16. `/loja/presentes` mostra as 5 abas na ordem da seção 4.12 com o selo "Atualizado 2026"; `?ocasiao=natal` abre a aba certa; a aba "Para a esposa" leva a `https://vocacaodemae.com.br/loja`; canonical única; as duas rotas novas estão em `src/routes/sitemap[.]xml.ts` (`/loja/ofertas` só quando indexável).
 
 ---
 
@@ -1051,12 +1123,12 @@ Execute a Fase 3 (Loja do Pai, slogan "O pai também quer desconto") exatamente 
 1) Criar supabase/migrations/0003_loja.sql com o SQL da seção 2.1 (sem mudar nome de coluna) e aplicar (supabase db push ou mcp__Supabase__apply_migration). Validar com a seção 2.2.
 2) Criar src/lib/store-categories.ts, src/lib/affiliate.ts, atualizar src/lib/types.ts (Product/ProductCategory/ProductReviewData), src/lib/queries.ts e src/lib/hub.functions.ts (seções 3 e 4.1-4.4). Adicionar PUBLIC_AMAZON_TAG em .env.example e no Vercel.
 3) Copiar e adaptar de vocacaodemae: src/lib/price-range.ts (seção 5), src/components/store/{ProductCard,ProductReviewArticle,StorePromo}.tsx, criar AffiliateNotice.tsx, src/pages/{StorePage,ProductPage}.tsx e as rotas src/routes/_site/loja/index.tsx, $slug.tsx, categoria/$slug.tsx (seções 4.5-4.9). Remover todo i18n. Texto do botão: sempre "Comprar agora na Amazon".
-4) Criar src/routes/_site/politica-de-afiliados.tsx com o texto exato da seção 1.3 e linkar no rodapé; adicionar "Loja do Pai" no menu.
+4) Criar src/routes/_site/politica-de-afiliados.tsx com o texto exato da seção 1.3 e linkar no rodapé; adicionar "Loja do Pai" no menu. Criar /loja/ofertas e /loja/presentes (seções 4.11 e 4.12: rotas, páginas StoreOffersPage/StoreGiftsPage, src/lib/store-gifts.ts, server fns getStoreOffersData e getStoreGiftsData) e acrescentar as duas rotas em src/routes/sitemap[.]xml.ts.
 5) Widgets em artigos (seção 6): copiar FotosModelosExtension/FotosModelos/ToolEmbedHost/review-body e os cases de tiptap-html; criar o nó `product` e o ProductEmbed; botões no editor admin.
 6) Admin de produtos (seção 7): rotas /admin/produtos, /admin/produtos/novo, /admin/produtos/$id, fila-fotos, fila-precos, ProductForm e server fns.
 7) Scripts (seção 8): copiar amz.py, photo_upgrade.py, review_gen.py e BRIEF_REVIEW.md -> BRIEF_REVIEW_LOJA_PAI.md com as adaptações listadas; criar BRIEF_FAIXA_PRECO.md.
 8) Seed (seção 11): confirmar os 5 ASINs com amz.py, preencher fotos oficiais e rodar supabase/seed/0003_loja_seed.sql. Depois cadastrar os outros 55 produtos da seção 10 (ASIN confirmado, >= 3 fotos oficiais, pros/cons), sem inventar dado.
-9) Rodar pnpm typecheck, pnpm lint, pnpm test, pnpm build; abrir /loja, /loja/categoria/ferramentas e /loja/<slug> e conferir os critérios da seção 12.
+9) Rodar npm run build && npm run lint && node scripts/validate-content.mjs (os três verdes, CLAUDE.md §4.1; o projeto é npm, não existe pnpm nem vitest) e npm run typecheck; rodar npx tsx scripts/check-price-range.ts (seção 5); abrir /loja, /loja/categoria/ferramentas, /loja/<slug>, /loja/ofertas e /loja/presentes e conferir os critérios da seção 12.
 10) Atualizar docs/plano/PROGRESSO.md (Fase 3: o que ficou pronto, pendências) e fazer commits pequenos por etapa em branch claude/fase-3-loja; abrir PR.
 
 Regras invioláveis: nunca mostrar preço exato (só faixa pesquisada na internet; "não é o preço da Amazon"); botão sempre "Comprar agora na Amazon";
@@ -1070,15 +1142,16 @@ nunca inventar ASIN, especificação ou nota. Se algo do plano não bater com o 
 
 - [ ] `supabase/migrations/0003_loja.sql` criado, aplicado e validado (10 categorias, RLS, bucket)
 - [ ] `PUBLIC_AMAZON_TAG` em `.env.example`, `.env.local` e Vercel (Production e Preview)
-- [ ] `src/lib/store-categories.ts`, `src/lib/affiliate.ts`, `src/lib/price-range.ts` (+ teste) prontos
-- [ ] `types.ts`, `queries.ts`, `hub.functions.ts` com `getStoreData`, `getStoreCategoryData`, `getProductData`, `getProductsBySlugs`
+- [ ] `src/lib/store-categories.ts`, `src/lib/affiliate.ts`, `src/lib/store-gifts.ts`, `src/lib/price-range.ts` (+ `scripts/check-price-range.ts`) prontos
+- [ ] `types.ts`, `queries.ts`, `hub.functions.ts` com `getStoreData`, `getStoreCategoryData`, `getProductData`, `getProductsBySlugs`, `getStoreOffersData`, `getStoreGiftsData`
 - [ ] `ProductCard`, `ProductReviewArticle` ("Review do Pai"), `StorePromo`, `AffiliateNotice`, `StickyBuyBar`
 - [ ] Rotas `/loja`, `/loja/categoria/$slug`, `/loja/$slug` com SSR, canonical, OG e JSON-LD (Product sem offers, Review, Breadcrumb)
+- [ ] `/loja/ofertas` ("Ofertas que valem": ≤ 10 itens com faixa ≤ 7 dias, "Por que vale", sem anúncio, `noindex` até 5 itens) e `/loja/presentes` ("Presentes por ocasião": 5 abas, selo "Atualizado 2026", aba "Para a esposa" → loja do Vocação de Mãe); as duas em `sitemap[.]xml.ts`
 - [ ] `/politica-de-afiliados` com o texto exato; rodapé linka; menu tem "Loja do Pai"
 - [ ] Nós Tiptap `fotosModelos`, `product`, `buyCard`, `galeriaProduto` renderizando no SSR e hidratando no cliente
 - [ ] Admin: listar, criar, editar, fila de fotos, fila de faixa de preço (recusa `max > 3×min` e menos de 2 lojas)
 - [ ] Scripts: `amz.py`, `photo_upgrade.py`, `review_gen.py` adaptados; `BRIEF_REVIEW_LOJA_PAI.md` e `BRIEF_FAIXA_PRECO.md`
 - [ ] Seed com 5 produtos completos aplicado; 60 produtos cadastrados com ASIN confirmado e ≥ 3 fotos oficiais
-- [ ] `grep` sem "Ver preço" e sem preço exato hard-coded; `typecheck`, `lint`, `test`, `build` verdes
+- [ ] `grep` sem "Ver preço" e sem preço exato hard-coded; `npm run build && npm run lint && node scripts/validate-content.mjs` e `npm run typecheck` verdes; `npx tsx scripts/check-price-range.ts` ok
 - [ ] Lighthouse mobile `/loja/<slug>` ≥ 85 Performance / 100 SEO
 - [ ] `docs/plano/PROGRESSO.md` atualizado; PR `claude/fase-3-loja` aberto com os critérios da seção 12 marcados

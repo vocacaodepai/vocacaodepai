@@ -15,12 +15,13 @@
 5. Validador `scripts/validate-content.mjs` e CI
 6. Imagens: cascata, licenças, pessoas reais, Vault, edge function `stock-photos`
 7. Mercado financeiro: refresh a cada 30 min (YAML completo)
-8. Newsletter semanal automática (Resend; segmentação por fase do filho)
+8. Newsletter: semanal = edge function `weekly-digest` (doc 07 §6.6, pg_cron) com os blocos novos da F8; diária = Jogada do Dia (`/api/newsletter/daily`)
 9. Expiração de vagas (cron diário)
-10. GitHub workflows completos (5 YAMLs)
+10. GitHub workflows completos (6 YAMLs)
 11. Painel Lisieux (grupovdp): registrar o site e reportar status da rotina
 12. Tabela de secrets
 13. PROMPT COMPLETO DA ROTINA DIÁRIA (texto literal)
+13b. Salvaguardas e entregas extras da Fase 8 (guard, e-mail ao dono, similaridade com o VDM, `/loja/ofertas`, `/anuncie`, backlog)
 14. Critérios de aceite
 15. Prompt para iniciar esta fase no Sonnet
 16. Checklist de pronto
@@ -29,14 +30,15 @@
 
 ## 1. Visão da fábrica de conteúdo
 
-O Vocação de Pai nasce com a mesma máquina que já roda no Vocação de Mãe (vocacaodemae.com.br), adaptada à voz do pai e às seções novas do site. A fábrica tem **quatro linhas de produção** e **três esteiras de manutenção**, todas disparadas uma vez por dia por uma única **Routine do Claude Code** (sem chave de API paga; usa a assinatura do Claude):
+O Vocação de Pai nasce com a mesma máquina que já roda no Vocação de Mãe (vocacaodemae.com.br), adaptada à voz do pai e às seções novas do site. A fábrica tem **cinco linhas de produção** e **três esteiras de manutenção**, todas disparadas uma vez por dia por uma única **Routine do Claude Code** (sem chave de API paga; usa a assinatura do Claude):
 
 | Linha | O que produz | Para onde vai |
 | --- | --- | --- |
 | **Blog (Padrão A do Pai)** | 3 artigos informativos novos + 2 reformas de artigos finos | `posts` com `kind='artigo'` → `/post/$slug` |
 | **Pai Indica** | 3 comparativos (`kind='comparativo'`) + 2 reviews únicas (`kind='review'`), todos com capa composta | `posts` → `/pai-indica/$slug` |
 | **Loja do Pai** ("O pai também quer desconto") | 5 produtos novos com review longa + 10 reviews longas de produtos antigos | `products` → `/loja/$slug` |
-| **Mercado do pai** | 1 notícia curta (`kind='noticia'`) sobre economia doméstica/trabalho/mercado | `posts` → `/post/$slug` na categoria `mercado-do-pai` |
+| **Mercado do pai** | 1 notícia curta (`kind='noticia'`) sobre economia doméstica/trabalho/mercado | `posts` → `/post/$slug` na categoria `noticias` (slug do doc 02 §4.2) com a tag `serie:mercado-do-pai` |
+| **Jogada do Dia** | 1 post curto por dia (80–120 palavras, 1 ação prática com o filho), gerados em lote de 30 na 1ª rodada do mês | `posts` com `kind='noticia'`, tag `serie:jogada-do-dia` → e-mail diário (§8.4) |
 
 | Esteira | O que faz | Limite/dia |
 | --- | --- | --- |
@@ -44,7 +46,7 @@ O Vocação de Pai nasce com a mesma máquina que já roda no Vocação de Mãe 
 | **Fotos oficiais** | Troca fotos ruins pela galeria oficial da Amazon (`_AC_SL1500_`) | 20 produtos |
 | **Moderação** | Aprova/rejeita a fila de `jobs`, `job_referrals`, `stories`, `questions` com status `pending` | toda a fila (só moderar; nunca criar vaga de exemplo) |
 
-Além da rotina diária, há **quatro automações sem IA** em GitHub Actions: refresh do mercado financeiro (30 min), newsletter semanal (Resend), expiração de vagas (diário) e auto-merge dos PRs `claude/*` após o deploy da Vercel. E um **validador** (`scripts/validate-content.mjs`) que roda no CI e dentro da rotina, bloqueando conteúdo fora do padrão antes do PR.
+Além da rotina diária, há **automações sem IA**: em GitHub Actions, refresh do mercado financeiro (30 min), envio diário da Jogada do Dia (§8.4), expiração de vagas (diário) e auto-merge dos PRs `claude/*` após o deploy da Vercel; no Supabase, o resumo semanal da newsletter — edge function `weekly-digest` + pg_cron, **criada na Fase 5** (doc 07 §6.6); a Fase 8 só acrescenta blocos ao template (§8). E um **validador** (`scripts/validate-content.mjs`) que roda no CI e dentro da rotina, bloqueando conteúdo fora do padrão antes do PR.
 
 Princípios herdados do grupo (não negociáveis):
 - Linha editorial católica de família tradicional; tom direto, masculino, respeitoso, prático; sem vulgaridade e sem machismo tóxico.
@@ -77,10 +79,11 @@ Princípios herdados do grupo (não negociáveis):
 | 7 | Faixas de preço | 15 | `price_range.py` + WebSearch | `products.price_min/max` |
 | 8 | Fotos oficiais | 20 | `photo_upgrade.py 20` | `products.image_url/images` |
 | 9 | Temas em alta (dentro dos itens 1, 3 e 4) | ≥ 2, com fonte datada ≤ 14 dias | — | — |
-| 10 | Notícia "Mercado do pai" | 1 | `news_gen.py` | `posts.kind='noticia'`, categoria `mercado-do-pai` |
+| 10 | Notícia "Mercado do pai" | 1 | `news_gen.py` | `posts.kind='noticia'`, categoria `noticias` + tag `serie:mercado-do-pai` |
 | 11 | Moderação da fila | toda a fila `pending` | SQL curto | `jobs`, `job_referrals`, `stories`, `questions`, `moderation_log` |
 | 12 | Search Console | 1 sync + `notify_index` dos slugs novos | edge function `seo-search-console` | `seo_search_stats` |
 | 13 | PR + resumo | 1 PR `claude/rotina-*` com capas e SQL; resumo em PT-BR | `gh pr create` | — |
+| 14 | Jogada do Dia | 1 (30 por mês, gerados em lote na 1ª rodada do mês) | `jogada_gen.py` | `posts.kind='noticia'`, tag `serie:jogada-do-dia`, 80–120 palavras, 1 link interno |
 
 ### 2.3 Ordem exata de execução (com limites de tempo)
 
@@ -88,22 +91,22 @@ Tempo total alvo: **≤ 150 min**. Cada etapa tem um teto; estourou, pula para a
 
 | Etapa | Ação | Teto |
 | --- | --- | --- |
-| E0 | `git fetch && git checkout -b claude/rotina-$(date +%F) origin/main`; `node scripts/agente.mjs inicio rt-vocacaodepai "Rotina diária: início" vocacaodepai` (ou o SQL do §11.3) | 2 min |
+| E0 | `git fetch && git checkout -b claude/rotina-$(date +%F) origin/main`; **salvaguarda** (§13b-a): `select data from public._tmp_post_staging where k='rotina:status'` — se contiver `"rotina_pausada":true`, não produzir nada, registrar no resumo e encerrar; `node scripts/agente.mjs inicio rt-vocacaodepai "Rotina diária: início" <COMPANY_ID_VDP>` (id de empresa do §11.1 item 7; ou o SQL do §11.3) | 2 min |
 | E1 | **Search Console**: `POST` na edge function `seo-search-console` com `{"action":"sync","site_url":"sc-domain:vocacaodepai.com.br","days":28}` (header `x-seo-sync-secret`). Ler `seo_search_stats`: páginas com impressões altas e CTR baixo viram candidatas a reforma; consultas sem página viram temas. | 5 min |
 | E2 | **Temas em alta**: WebSearch (pt-BR, últimos 14 dias) sobre paternidade, homens, família, trabalho, finanças domésticas, churrasco/carnes, ferramentas, saúde do homem, datas (Dia dos Pais, volta às aulas, Black Friday, Natal). Escolher ≥ 2 temas com fonte datada. | 8 min |
 | E3 | **Planejamento**: escolher 3 temas Padrão A (categorias diferentes), 2 reformas (query do §2.5), 3 comparativos e 2 reviews únicas (produtos reais com ASIN; nenhum já coberto nos últimos 60 dias). Gravar o plano em `/tmp/rotina-pai/plano.json`. | 5 min |
 | E4 | **Loja primeiro**: para cada produto dos comparativos e reviews únicas: `amz.py ASIN`, pesquisa de faixa (`price_range.py`), fotos, `review_gen.py` (novo ou existente). Aplicar SQL. Até 5 produtos novos. | 35 min |
 | E5 | **Pai Indica**: `cover_cmp.py` (capa composta) → JSON → `cmp_gen.py` / `rev_art_gen.py` → "OK" → `INSERT`. 3 comparativos + 2 reviews únicas. Pode rodar em até 5 subagentes em paralelo (1 por artigo), cada um lendo o BRIEF correspondente. | 35 min |
 | E6 | **Blog Padrão A**: 3 novos (`art_gen.py`) + 2 reformas (`art_gen.py --reforma`). Até 5 subagentes em paralelo, cada um com `BRIEF_ARTIGO_PAI.md`. | 30 min |
-| E7 | **Notícia Mercado do pai**: `news_gen.py` (1 item, 350–600 palavras, fonte datada ≤ 48h). | 6 min |
+| E7 | **Notícia Mercado do pai**: `news_gen.py` (1 item, 350–600 palavras, fonte datada ≤ 48h, categoria `noticias` + tag `serie:mercado-do-pai`). **Só na 1ª rodada do mês** (`date +%d` = 01, ou quando `select count(*) from posts where slug like 'jogada-do-dia-' || to_char(now() at time zone 'America/Sao_Paulo','YYYY-MM') || '%'` = 0): `BRIEF_JOGADA.md` + `jogada_gen.py` geram as 30 Jogadas do Dia do mês (§4.7), um INSERT por dia com `publish_at` escalonado. | 6 min (+10 min na 1ª rodada do mês) |
 | E8 | **Reviews longas antigas**: fila de 10 (query do `BRIEF_REVIEW.md`), `review_gen.py` por produto, staging + UPDATE curto. | 20 min |
 | E9 | **Faixa de preço**: até 15 produtos (`price_range_checked_at is null` primeiro; depois > 60 dias). | 10 min |
 | E10 | **Fotos oficiais**: `python3 scripts/rotina/photo_upgrade.py 20`; aplicar `photo_upgrade_out.sql` linha a linha. | 8 min |
 | E11 | **Moderação**: aprovar/rejeitar `pending` em `jobs`, `job_referrals`, `stories`, `questions` com as regras do §2.6; registrar em `moderation_log`. | 5 min |
-| E12 | **Validação**: `node scripts/validate-content.mjs --since 24h --images`; corrigir ou despublicar (`status='draft'`) o que falhar. Conferir `select count(*) from posts where status='published' and (seo_description is null or btrim(seo_description)='')` = 0. | 6 min |
+| E12 | **Validação**: `node scripts/validate-content.mjs --since 24h --images --similaridade | tee /tmp/rotina-pai/validate.log`; corrigir ou despublicar (`status='draft'`) o que falhar; depois `node scripts/rotina/guard.mjs /tmp/rotina-pai/validate.log '<status atual>'` e aplicar `guard_out.sql` (§13b-a). Conferir `select count(*) from posts where status='published' and (seo_description is null or btrim(seo_description)='')` = 0. | 6 min |
 | E13 | **Search Console notify_index** com as URLs novas/reformadas. | 2 min |
 | E14 | **PR**: commitar `public/images/covers/*.jpg` e `supabase/rotina/AAAA-MM-DD/*.sql`; `gh pr create --base main --title "rotina: AAAA-MM-DD" --body "<resumo>"`. O auto-merge cuida do resto. | 3 min |
-| E15 | `node scripts/agente.mjs fim rt-vocacaodepai`; resumo final em PT-BR (≤ 40 linhas). | 1 min |
+| E15 | Gravar o resumo em `_tmp_post_staging` (`k='rotina:resumo:AAAA-MM-DD'`, `data` = texto do resumo; `insert … on conflict (k) do update`) para o e-mail semanal ao dono (§13b-b); `node scripts/agente.mjs fim rt-vocacaodepai`; resumo final em PT-BR (≤ 40 linhas). | 1 min |
 
 Entre as etapas longas (E4, E5, E6, E8) atualizar o status do Lisieux com a tarefa atual (`agente.mjs inicio rt-vocacaodepai "E5: Pai Indica 2/5"`), porque o escritório devolve ao descanso quem fica > 90 min sem aviso.
 
@@ -172,7 +175,7 @@ order by created_at;
 
 ### 2.6 Regras de moderação (só moderar; nunca criar vaga de exemplo)
 
-Aprovar (`status='approved'`, `moderated_by = <id do admin da rotina>`, `moderated_at=now()`) quando: título e descrição claros; sem palavrão, golpe ("pague taxa para se candidatar"), pirâmide, conteúdo adulto, discriminação ou contato inválido; `expires_at` ≤ 45 dias (se nulo, definir `now() + interval '30 days'`); UF válida. Rejeitar (`status='rejected'`) nos demais casos, com `note` em `moderation_log`. Em dúvida: deixar `pending` e listar no resumo para o dono. Um UPDATE curto por registro:
+Aprovar (`status='approved'`, `moderated_by = <id do admin da rotina>`, `moderated_at=now()`) quando: título e descrição claros; sem palavrão, golpe ("pague taxa para se candidatar"), pirâmide, conteúdo adulto, discriminação ou contato inválido; `expires_at` ≤ 45 dias (se nulo, definir `now() + interval '30 days'`); UF válida. Rejeitar (`status='rejected'`) nos demais casos, com `note` em `moderation_log`. Em dúvida: deixar `pending` e listar no resumo para o dono — o resumo diário é gravado em `_tmp_post_staging` (E15) e chega ao dono pelo e-mail semanal do §13b-b, que também traz a contagem da fila `pending`. Um UPDATE curto por registro:
 
 ```sql
 update jobs set status='approved', moderated_by='<ADMIN_UUID>', moderated_at=now(),
@@ -227,11 +230,13 @@ Copiar de `/home/user/vocacaodemae/scripts/rotina/` e adaptar. **Mudanças comun
 | `amz.py` | `ASIN [--tries N] [--refresh]` | JSON (title, images[8], bullets, details, rating, reviews, price, available) | Só o cache (`/tmp/amzcache-pai`) |
 | `photo_upgrade.py` | `N [OFFSET]` | `photo_upgrade_out.sql`, `photo_upgrade_log.txt` | Base da REST; usa `products.asin` quando existe, senão extrai de `affiliate_url` |
 | `price_range.py` (novo) | `--fila N` ou `--slug s --lojas "ML=199.90,Magalu=249.00"` | `price_range_out.sql` (um UPDATE pequeno por produto) e checklist de busca | Novo: imprime as consultas de WebSearch sugeridas por produto e valida `max ≤ 3×min`, ≥2 lojas, mesma marca/modelo; grava também `product_price_checks` |
-| `news_gen.py` (novo) | `arquivo.json` (§4.4) | `<slug>.insert.sql` | Novo: `kind='noticia'`, categoria `mercado-do-pai`, 350–600 palavras, fonte datada ≤ 48 h obrigatória com link externo, 3+ links internos, sem semáforo |
-| `slugs.sh` | — | `slugs.txt` (posts, produtos, ferramentas, trilhas publicados) | Inclui `/pai-indica/`, `/loja/`, `/ferramentas/`, `/formacao/` |
+| `news_gen.py` (novo) | `arquivo.json` (§4.4) | `<slug>.insert.sql` | Novo: `kind='noticia'`, categoria `noticias` + tag `serie:mercado-do-pai` em `post_tags`, 350–600 palavras, fonte datada ≤ 48 h obrigatória com link externo, 3+ links internos, sem semáforo |
+| `jogada_gen.py` (novo) | `arquivo.json` com as jogadas do mês (§4.7) | `jogada-do-dia-AAAA-MM-DD.insert.sql` (um por dia) | Novo: `kind='noticia'`, categoria `noticias`, tags `serie:jogada-do-dia` + `fase-*`, 80–120 palavras, exatamente 1 link interno real, `publish_at` = dia correspondente às 06:00 BRT |
+| `guard.mjs` (novo) | `validate.log` + status atual | `guard_out.sql` | Novo (§13b-a): conta reprovações seguidas do validador e pausa a rotina na 3ª (`_tmp_post_staging`, `k='rotina:status'`) |
+| `slugs.sh` | — | `slugs.txt` (posts, produtos, ferramentas, trilhas publicados) | Inclui `/pai-indica/`, `/loja/`, `/ferramentas/`, `/formacao/`; os slugs de ferramenta vêm de `TOOLS` em `src/lib/tools/registry.ts` (`grep -o 'slug: "[a-z0-9-]*"' src/lib/tools/registry.ts`), não de arquivos de rota — a rota é única, `/ferramentas/$slug` (doc 06) |
 | `README.md` | — | — | Tabela igual a esta |
 
-BRIEFs em `scripts/rotina/`: `BRIEF_ARTIGO_PAI.md` (§4.2, completo), `BRIEF_COMPARATIVO.md`, `BRIEF_REVIEW_UNICA.md`, `BRIEF_REVIEW.md` (os três copiados do VDM, com as substituições do §4.3) e `BRIEF_NOTICIA.md` (§4.4).
+BRIEFs em `scripts/rotina/`: `BRIEF_ARTIGO_PAI.md` (§4.2, completo), `BRIEF_COMPARATIVO.md`, `BRIEF_REVIEW_UNICA.md`, `BRIEF_REVIEW.md` (os três copiados do VDM, com as substituições do §4.3), `BRIEF_NOTICIA.md` (§4.4) e `BRIEF_JOGADA.md` (§4.7).
 
 ### 4.2 `scripts/rotina/BRIEF_ARTIGO_PAI.md` (texto completo — gravar como está)
 
@@ -295,13 +300,14 @@ são colunas separadas. `kind = 'artigo'`. `seo_title` ≤ 60 caracteres; `seo_d
 ## Linha editorial (obrigatória)
 Família = homem e mulher. Pai como marido, provedor, educador e líder servidor. Respeito à esposa sempre.
 Proibidos: conteúdo/imagem LGBTQI; vulgaridade; piada com a esposa; "macho alfa", "red pill", "mulher tem que";
-apostas/bet; conteúdo adulto; dica de "pegar mulher". Nunca usar a categoria Espiritualidade para artigo da rotina
+apostas/bet; conteúdo adulto; dica de "pegar mulher". Nunca usar a categoria Fé e virtudes (`fe-e-virtudes`) para artigo da rotina
 (ela é editorial, escrita pelo dono).
 
-## Categorias do blog (slugs existentes em `categories`)
-pai-de-primeira-viagem, criacao-e-educacao, casamento-e-familia, carreira-e-dinheiro, saude-do-homem,
-churrasco-e-cozinha, ferramentas-e-casa, carro-e-moto, esporte-e-lazer, mercado-do-pai (só notícias),
-pai-indica (só reviews). Confirme com `select slug from categories` antes de usar.
+## Categorias do blog (slugs do seed de `categories`, doc 02 §4.2)
+paternidade, casamento-e-familia, financas-da-familia, carreira-e-trabalho, saude-do-homem, churrasco-e-cozinha,
+casa-carro-e-ferramentas, fe-e-virtudes (só o dono), pai-indica (só reviews), noticias (só notícias e Jogada do Dia;
+"Mercado do pai" é série, marcada pela tag `serie:mercado-do-pai`). Confirme com `select slug from categories` antes de usar.
+Fase do filho é tag (`fase-<slug>` ou `fase-todas`, doc 07 §3.1), nunca categoria: todo artigo da rotina leva ao menos uma.
 
 ## Fontes e imagens
 - Capa (só novo): cascata Wikimedia → Pexels → Pixabay via edge function `stock-photos`
@@ -344,7 +350,7 @@ Esquema do JSON que `art_gen.py` consome (igual ao `artigo/gen.py` do VDM, com c
   "excerpt": "Até 155 caracteres.",
   "seo_title": "até 60 caracteres",
   "seo_description": "120 a 155 caracteres",
-  "category": "pai-de-primeira-viagem",
+  "category": "paternidade",
   "kind": "artigo",
   "cover": "https://…",
   "cover_alt": "Pai segurando o filho recém-nascido",
@@ -441,7 +447,8 @@ Campos extras exigidos pelo `cmp_gen.py`/`rev_art_gen.py` do VDP no JSON: `"prod
 
 Nota curta e útil sobre economia doméstica, trabalho, benefícios, impostos, juros, câmbio, preço de
 combustível/carne/energia, mercado de trabalho, direitos do pai (licença-paternidade, pensão, guarda),
-sempre do ponto de vista de quem sustenta uma família. `kind='noticia'`, categoria `mercado-do-pai`,
+sempre do ponto de vista de quem sustenta uma família. `kind='noticia'`, categoria `noticias` (slug do doc 02 §4.2;
+"Mercado do pai" é a série, marcada pela tag `serie:mercado-do-pai` em `post_tags`, mais `fase-todas`),
 status published. 350 a 600 palavras. Fonte principal datada de ≤ 48 h (Banco Central, IBGE, Receita,
 Ministério do Trabalho, agências de notícia) citada no 1º ou 2º parágrafo com link externo e data.
 Estrutura: 1 parágrafo "o que aconteceu"; 1 parágrafo "o que muda para o pai"; `bulletList` "Na prática"
@@ -453,7 +460,7 @@ investimento específico; nunca "R$" no texto (usar percentuais e ordens de gran
 Gerador: `python3 scripts/rotina/news_gen.py arquivo.json` → `<slug>.insert.sql`.
 ```
 
-JSON do `news_gen.py`: `{slug, title, excerpt, seo_title, seo_description, cover, cover_alt, fonte:{url, veiculo, data}, paragrafos:[…4], na_pratica:[…], continue_lendo:["/post/…", "/ferramentas/…"], faq?}`. O gerador monta o `body` (marcação `[texto](url)` e `**negrito**` como no `cmp_gen.py`), valida fonte ≤ 48 h, 350–600 palavras, ≥3 links internos reais, 0 "R$", e emite o `INSERT` com `kind='noticia'`.
+JSON do `news_gen.py`: `{slug, title, excerpt, seo_title, seo_description, cover, cover_alt, fonte:{url, veiculo, data}, paragrafos:[…4], na_pratica:[…], continue_lendo:["/post/…", "/ferramentas/…"], faq?}`. O gerador monta o `body` (marcação `[texto](url)` e `**negrito**` como no `cmp_gen.py`), valida fonte ≤ 48 h, 350–600 palavras, ≥3 links internos reais, 0 "R$", e emite o `INSERT` com `kind='noticia'` e `category_id = (select id from categories where slug='noticias')`, seguido de `insert into tags (slug, name) values ('serie:mercado-do-pai','Mercado do pai'),('fase-todas','Todas as fases') on conflict (slug) do nothing;` e `insert into post_tags (post_id, tag_id) select p.id, t.id from posts p, tags t where p.slug='<slug>' and t.slug in ('serie:mercado-do-pai','fase-todas') on conflict do nothing;` (tabelas `tags`/`post_tags` da 0002, doc 02 §4.2).
 
 ### 4.5 `cover_cmp.py` — trecho que muda (cores)
 
@@ -498,14 +505,35 @@ def gravar(slug, lojas):
             f.write(f"insert into product_price_checks (product_id, store, price, url, checked_at) select id,'{n}',{v:.2f},{('null' if not u else repr(u))},now() from products where slug='{slug}';\n")
 ```
 
+### 4.7 `jogada_gen.py` (novo) + `scripts/rotina/BRIEF_JOGADA.md` — Jogada do Dia
+
+Produto "Jogada do Dia" (série `serie:jogada-do-dia` do doc 00 §3.7; ideia 1 do doc 01 §4.2; produto de e-mail do doc 11 §5.1): um texto de 80–120 palavras com **uma** ação prática para o pai fazer com o filho hoje e **um** link interno. Gerado em lote: na 1ª rodada do mês (§2.3 E7) a rotina escreve as 30 (ou 31) jogadas do mês num único JSON e `jogada_gen.py` emite um INSERT por dia.
+
+```markdown
+# Briefing: Jogada do Dia (lote mensal, 1 por dia)
+
+Escreva N jogadas (N = dias do mês), uma por dia, cada uma com: título "Jogada do dia: <ação em 3 a 6 palavras>",
+80 a 120 palavras em 1 ou 2 parágrafos, voz direta de pai para pai, 1 ação concreta que cabe em 15 minutos
+(brincadeira, conversa, tarefa a dois, oração curta, passeio, conserto junto), 1 link interno real
+(`/post/`, `/ferramentas/`, `/formacao/`, conferido em slugs.txt). Sem "R$", sem produto, sem semáforo, sem FAQ.
+Variar: 2/3 das jogadas servem a qualquer idade (tag `fase-todas`); 1/3 cita a fase no título ("com o bebê",
+"com o adolescente") e leva a tag `fase-<slug>` correspondente (8 fases do doc 07 §3.1).
+Slug fixo: `jogada-do-dia-AAAA-MM-DD`. A linha editorial do BRIEF_ARTIGO_PAI.md vale inteira.
+Gerador: `python3 scripts/rotina/jogada_gen.py arquivo.json` → um `jogada-do-dia-AAAA-MM-DD.insert.sql` por dia.
+```
+
+JSON: `{ "mes": "2026-11", "jogadas": [ { "dia": 1, "title": "Jogada do dia: …", "paragrafos": ["…"], "link": "/post/<slug>", "fase": "todas" } ] }` (`fase` = `todas` ou um dos 8 slugs de `src/lib/phases.ts`).
+
+O gerador valida 80–120 palavras, exatamente 1 link interno existente em `slugs.txt`, 0 "R$", termos proibidos (§5.3), e grava cada `jogada-do-dia-AAAA-MM-DD.insert.sql` com `kind='noticia'`, `category_id` de `noticias`, `status='published'`, `publish_at = '<AAAA-MM-DD> 06:00-03'`, `cover_image_url = '/images/covers/jogada-do-dia.jpg'` (capa fixa da série, commitada uma única vez em `public/images/covers/` — exceção à regra de capa única no validador, §5.1), `excerpt` = 1ª frase, `seo_title` = título (≤ 60), `seo_description` = texto até 150 caracteres, `faq = '[]'`, e os INSERTs em `tags`/`post_tags` (`serie:jogada-do-dia` + `fase-*`, mesmo padrão do §4.4). As listagens do site filtram `publish_at <= now()`, então as jogadas futuras ficam invisíveis até o dia. O e-mail diário (§8.4) lê a jogada do dia; o resumo semanal (§8.2) inclui as jogadas da semana.
+
 ---
 
 ## 5. Validador `scripts/validate-content.mjs`
 
-Node 20, sem dependências. Lê pela REST pública (anon key) os posts/produtos recentes ou os slugs passados e aplica as regras. Sai com código 1 se algo falhar.
+Node 22 (CLAUDE.md §2), sem dependências. Lê pela REST pública (anon key) os posts/produtos recentes ou os slugs passados e aplica as regras. Sai com código 1 se algo falhar.
 
 ```
-Uso: node scripts/validate-content.mjs [--since 24h|7d] [--slug a,b] [--images] [--all]
+Uso: node scripts/validate-content.mjs [--since 24h|7d] [--slug a,b] [--images] [--all] [--similaridade]
 ```
 
 ### 5.1 Regras por `kind`
@@ -525,7 +553,9 @@ Uso: node scripts/validate-content.mjs [--since 24h|7d] [--slug a,b] [--images] 
 | `seo_title`/`seo_description` | ≤60 / 120–155 | idem | idem | idem | idem |
 | `status`/`publish_at` | published + publish_at ≤ now | idem | idem | idem | idem |
 
-Regras comuns a todos: **nenhum "R$" seguido de dígito** no texto do `body`, `excerpt`, `faq` (a faixa é escrita pelo componente); **termos proibidos** (lista §5.3) ausentes; botão de compra sempre com texto "Comprar … agora na Amazon" (nunca "Ver preço"); todos os `href` internos existem (posts publicados, produtos ativos, `/ferramentas/*` do código, trilhas publicadas); `bulletList`/`taskItem` sem item vazio; `heading` só nível 2 e 3; `reading_time > 0`.
+**Exceção da série Jogada do Dia** (slug com prefixo `jogada-do-dia-`, `kind='noticia'`, §4.7): 80–120 palavras, exatamente 1 link interno, fonte datada dispensada, `faq` vazio permitido, capa fixa da série compartilhada entre as jogadas (não conta como "capa repetida"), e `publish_at` pode estar até 31 dias no futuro (lote mensal).
+
+Regras comuns a todos: **nenhum "R$" seguido de dígito** no texto do `body`, `excerpt`, `faq` (a faixa é escrita pelo componente); **termos proibidos** (lista §5.3) ausentes; botão de compra sempre com texto "Comprar … agora na Amazon" (nunca "Ver preço"); todos os `href` internos existem (posts publicados, produtos ativos, `/ferramentas/<slug>` com `slug` presente em `TOOLS` de `src/lib/tools/registry.ts` — a rota é única, `/ferramentas/$slug`, doc 06 —, trilhas publicadas); `bulletList`/`taskItem` sem item vazio; `heading` só nível 2 e 3; `reading_time > 0`.
 
 Regras de `products` (quando `--products`): `review` objeto com `nota`, 5 `criterios`, `em_3_pontos[3]`, ≥6 `secoes`, ≥3 com `cta`, `faq ≥4 {q,a}`; `image_url` contém `_AC_SL1500_`; `images` 3–8; `pros`/`cons` 4–6; `affiliate_url` contém `/dp/` + ASIN; `price_min ≤ price_max ≤ 3×price_min` quando preenchidos; `category_id` existe.
 
@@ -552,6 +582,9 @@ const walk = (n, f) => { if (Array.isArray(n)) n.forEach(x => walk(x, f)); else 
 const textOf = (b) => { const t = []; walk(b, n => n.type === "text" && t.push(n.text)); return t.join(" "); };
 const linksOf = (b) => { const s = new Set(); walk(b, n => n.type === "link" && n.attrs?.href?.startsWith("/") && s.add(n.attrs.href)); return s; };
 const base = (u) => (u || "").split("?")[0];
+// Ferramentas: a rota é única (/ferramentas/$slug, doc 06); os slugs válidos vivem em TOOLS de src/lib/tools/registry.ts
+const TOOL_SLUGS = new Set([...readFileSync("src/lib/tools/registry.ts", "utf8").matchAll(/slug:\s*"([a-z0-9-]+)"/g)].map(m => m[1]));
+const isJogada = (p) => p.kind === "noticia" && p.slug.startsWith("jogada-do-dia-"); // série Jogada do Dia (§4.7)
 
 const posts = slugs.length
   ? await get(`/posts?select=*&slug=in.(${slugs.join(",")})`)
@@ -565,16 +598,16 @@ const exists = (href) => {
   if (sec === "post") return allPosts.some(p => p.slug === slug && ["artigo","noticia"].includes(p.kind));
   if (sec === "pai-indica") return allPosts.some(p => p.slug === slug && ["review","comparativo","lista"].includes(p.kind));
   if (sec === "loja") return products.some(p => p.slug === slug);
-  if (sec === "ferramentas") return existsSync(`src/routes/ferramentas/${slug}.tsx`) || ["conversor-de-moedas","mercado-financeiro"].includes(slug);
+  if (sec === "ferramentas") return TOOL_SLUGS.has(slug);
   return true; // formacao/categoria: checadas no CI de build
 };
 
 let failed = 0;
 for (const p of posts) {
   const e = [], t = textOf(p.body), words = t.split(/\s+/).filter(Boolean).length, links = linksOf(p.body);
-  const [minW, minL] = MIN[p.kind] || [900, 8];
+  const [minW, minL] = isJogada(p) ? [80, 1] : (MIN[p.kind] || [900, 8]);
   if (words < minW) e.push(`${words} palavras (< ${minW})`);
-  if (p.kind === "noticia" && words > 600) e.push(`${words} palavras (> 600)`);
+  const maxW = isJogada(p) ? 120 : 600; if (p.kind === "noticia" && words > maxW) e.push(`${words} palavras (> ${maxW})`);
   if (links.size < minL) e.push(`${links.size} links internos (< ${minL})`);
   for (const l of links) if (!exists(l)) e.push(`link para slug inexistente: ${l}`);
   if (/R\$\s?\d/.test(t + " " + p.excerpt + " " + JSON.stringify(p.faq || []))) e.push("valor em reais no texto");
@@ -584,7 +617,7 @@ for (const p of posts) {
   else if (cal.length && cal.length !== 3) e.push(`semáforo com ${cal.length} callouts (precisa 3)`);
   else cal.forEach((c, i) => { if (c.attrs?.tone !== SEM[i][0] || !textOf(c).startsWith(SEM[i][1])) e.push(`callout ${i+1} fora do padrão (${SEM[i][1]})`); if (linksOf(c).size) e.push("link dentro do callout"); });
   if (!p.cover_image_url) e.push("sem capa");
-  for (const [s, c] of covers) if (s !== p.slug && c && c === base(p.cover_image_url)) e.push(`capa repetida com ${s}`);
+  for (const [s, c] of covers) if (s !== p.slug && c && c === base(p.cover_image_url) && !(isJogada(p) && s.startsWith("jogada-do-dia-"))) e.push(`capa repetida com ${s}`);
   walk(p.body, n => n.type === "image" && base(n.attrs?.src) === base(p.cover_image_url) && e.push("capa repetida no corpo"));
   if (["review","comparativo","lista"].includes(p.kind)) {
     if (!p.cover_image_url?.startsWith("/images/covers/") || !existsSync(`public${p.cover_image_url}`)) e.push("capa composta ausente em public/images/covers");
@@ -595,14 +628,14 @@ for (const p of posts) {
   if (p.kind === "comparativo") { const c = p.comparison || {}; if (!Array.isArray(c.produtos) || c.produtos.length < 2 || !c.produtos.some(x => x.slug === c.vencedor)) e.push("comparison jsonb inválido"); }
   const faq = p.faq || []; if ((p.kind !== "noticia" && faq.length < 4) || faq.some(f => !f.question?.trim() || !f.answer?.trim())) e.push("faq inválido");
   if ((p.seo_title || "").length > 60) e.push("seo_title > 60"); if (!(p.seo_description?.length >= 120 && p.seo_description.length <= 155)) e.push("seo_description fora de 120-155");
-  if (p.kind === "noticia") { let ext = 0; walk(p.body, n => n.type === "link" && /^https?:/.test(n.attrs?.href || "") && ext++); if (!ext) e.push("notícia sem fonte externa"); }
+  if (p.kind === "noticia" && !isJogada(p)) { let ext = 0; walk(p.body, n => n.type === "link" && /^https?:/.test(n.attrs?.href || "") && ext++); if (!ext) e.push("notícia sem fonte externa"); }
   if (e.length) { failed++; console.log(`✗ ${p.kind} ${p.slug}`); e.forEach(x => console.log(`   - ${x}`)); } else console.log(`✓ ${p.kind} ${p.slug} (${words} palavras, ${links.size} links)`);
 }
 console.log(`\n${posts.length - failed}/${posts.length} posts válidos`);
 process.exit(failed ? 1 : 0);
 ```
 
-Com `--images`, para cada capa e `image` inline fazer `fetch(url, {method:"HEAD"})` e exigir 200 e `content-length > 15000` (capas compostas locais: `statSync` > 15 KB).
+Com `--images`, para cada capa e `image` inline fazer `fetch(url, {method:"HEAD"})` e exigir 200 e `content-length > 15000` (capas compostas locais: `statSync` > 15 KB). Com `--similaridade`, comparar cada post com os títulos/excerpts publicados do Vocação de Mãe e reprovar acima de 0,60 (§13b-c).
 
 ### 5.3 Termos proibidos (linha editorial) — lista única, importada também pelos geradores Python
 
@@ -715,55 +748,43 @@ Aceite: após 2 execuções do workflow, `select key, fetched_at from market_cac
 
 ---
 
-## 8. Newsletter semanal automática (Resend)
+## 8. Newsletter: semanal (`weekly-digest`, Fase 5) e diária (Jogada do Dia, Fase 8)
 
-### 8.1 Segmentos por fase do filho
+### 8.1 Decisão: uma implementação só
 
-`newsletter_subscribers.segments jsonb` guarda um array de slugs calculados no cadastro/onboarding a partir de `children.birth_date` (e atualizado 1× por semana pelo próprio job):
+O envio semanal **já existe desde a Fase 5**: edge function `supabase/functions/weekly-digest/index.ts` acionada pelo **pg_cron** `weekly-digest` (domingo 11:00 UTC = 08:00 BRT), template em `supabase/functions/_shared/email-templates.ts`, envio via Resend Batch, registro em `moderation_log` e idempotência por `last_digest_at` — tudo definido no doc 07 §6.6 (cron no fim de `0008_area_do_pai.sql`, doc 07 §2.2). A Fase 8 **não cria** outra rota agendada, outro workflow com `schedule` nem outra edge function de newsletter (não existe `newsletter-send`, `src/emails/weekly.ts` nem `NEWSLETTER_CRON_SECRET`): ela só acrescenta dois blocos ao template (§8.2), liga o disparo manual (§8.3) e cria o e-mail diário da Jogada do Dia (§8.4).
 
-| Segmento | Regra |
-| --- | --- |
-| `esperando` | sem filho cadastrado e `profiles.onboarding_done` com resposta "esperando o primeiro" |
-| `bebe` | filho mais novo com 0–12 meses |
-| `pequeno` | 1–5 anos |
-| `crianca` | 6–11 anos |
-| `adolescente` | 12–17 anos |
-| `adulto` | ≥ 18 ou sem filho (conteúdo de homem/família em geral) |
-| `geral` | todo mundo (fallback) |
+Segmentos: um esquema único, o do doc 07. `newsletter_subscribers.segments` é um **array jsonb** (doc 07 §2.2) com itens `fase:<slug>`, onde `<slug>` é uma das 8 fases de `src/lib/phases.ts` (doc 07 §3.1): `gestacao`, `recem-nascido`, `bebe`, `primeira-infancia`, `infancia`, `pre-adolescencia`, `adolescencia`, `adulto`. Cada fase casa com a tag `fase-<slug>` dos posts (`post_tags`), e a `weekly-digest` escolhe os posts por essa tag (assinante com `user_id` → fases calculadas de `children`; sem `user_id` → `segments`; sem nada → posts com `fase-todas`). A Fase 8 acrescenta ao mesmo array o item de frequência `frequencia:diaria` ou `frequencia:semanal` (doc 11 §5.1; gravado no cadastro e em `/minha-conta` → aba notificações, doc 07 §6), com `frequencia:semanal` como padrão quando o item não existe. Nenhum outro esquema de segmento (`esperando`/`bebe`/`pequeno`/`crianca`, `idade-*`, `0-1`/`1-3`, `diaria`/`semanal` soltos) é usado em lugar nenhum.
 
-### 8.2 Server function `src/routes/api/newsletter/weekly.ts`
+### 8.2 O que a Fase 8 acrescenta ao template da `weekly-digest`
 
-Protegida por `x-newsletter-secret` = `NEWSLETTER_CRON_SECRET`. Passos:
-1. Recalcula `segments` de cada assinante com `user_id` (JOIN `children`).
-2. Seleciona os posts da semana (`publish_at > now() - 7 days`, `status='published'`), separados por `kind`: 3 artigos, 2 Pai Indica, 1 notícia; mais 1 produto em destaque (`products.featured`, com faixa) e 1 vaga aprovada recente.
-3. Para cada segmento com assinantes `status='confirmed'`, monta o HTML do template (abaixo), escolhendo os artigos cuja categoria combina com a fase (mapa fixo: `bebe` → `pai-de-primeira-viagem`; `pequeno`/`crianca` → `criacao-e-educacao`; `adolescente` → `criacao-e-educacao`+`carreira-e-dinheiro`; `adulto`/`geral` → mistura).
-4. Envia por lotes de 100 com `POST https://api.resend.com/emails/batch` (`Authorization: Bearer RESEND_API_KEY`), `from: "Vocação de Pai <newsletter@vocacaodepai.com.br>"`, `reply_to: contato@vocacaodepai.com.br`, cabeçalho `List-Unsubscribe` apontando para `/api/newsletter/unsubscribe?token=…`.
-5. Registra em `moderation_log` (`entity='newsletter'`, `action='sent'`, `note='segmento X: N e-mails'`).
-
-Template (`src/emails/weekly.ts`, string HTML inline, 600 px, cores do site):
+Em `supabase/functions/_shared/email-templates.ts`, na função do resumo semanal, inserir dois blocos entre "Para ler" e o rodapé (mesmo estilo inline, 600 px, cores do site):
 
 ```html
-<body style="margin:0;background:#F4EFE6;font-family:Inter,Arial,sans-serif;color:#1B1F23">
-  <table width="600" align="center" cellpadding="0" cellspacing="0" style="background:#fff;border-top:6px solid #14505C">
-    <tr><td style="padding:24px 32px 8px"><span style="font-family:'Barlow Condensed',Arial;font-size:28px;font-weight:700;color:#14505C">Vocação de Pai</span><br><span style="color:#D9822B;font-weight:600">A semana do pai — {{data}}</span></td></tr>
-    <tr><td style="padding:8px 32px"><p>{{abertura_por_segmento}}</p></td></tr>
-    <tr><td style="padding:8px 32px"><h2 style="font-family:'Barlow Condensed';color:#1F2429;margin:16px 0 8px">Para ler</h2>{{#artigos}}<p><a href="https://vocacaodepai.com.br/post/{{slug}}?utm_source=newsletter&utm_medium=email&utm_campaign=semanal" style="color:#14505C;font-weight:600">{{title}}</a><br><span style="color:#555">{{excerpt}}</span></p>{{/artigos}}</td></tr>
-    <tr><td style="padding:8px 32px"><h2 style="font-family:'Barlow Condensed';color:#1F2429">Pai Indica</h2>{{#reviews}}<p><a href="https://vocacaodepai.com.br/pai-indica/{{slug}}?utm_source=newsletter" style="color:#14505C;font-weight:600">{{title}}</a></p>{{/reviews}}</td></tr>
-    <tr><td style="padding:8px 32px"><h2 style="font-family:'Barlow Condensed';color:#1F2429">Loja do Pai — o pai também quer desconto</h2><p><strong>{{produto.name}}</strong> — faixa consultada na internet: {{produto.faixa}}.<br><a href="{{produto.affiliate_url}}" rel="sponsored nofollow" style="display:inline-block;background:#D9822B;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:700">Comprar agora na Amazon</a></p></td></tr>
-    <tr><td style="padding:8px 32px"><h2 style="font-family:'Barlow Condensed';color:#1F2429">Mercado do pai</h2><p><a href="https://vocacaodepai.com.br/post/{{noticia.slug}}?utm_source=newsletter" style="color:#14505C">{{noticia.title}}</a></p></td></tr>
-    <tr><td style="padding:8px 32px"><h2 style="font-family:'Barlow Condensed';color:#1F2429">Pai Indica Pai</h2><p>{{vaga.title}} — {{vaga.company}} ({{vaga.city}}/{{vaga.uf}}) · <a href="https://vocacaodepai.com.br/pai-indica-pai/vagas/{{vaga.slug}}" style="color:#14505C">ver vaga</a></p></td></tr>
-    <tr><td style="padding:24px 32px;font-size:12px;color:#777;border-top:1px solid #eee">Você recebe este e-mail porque se cadastrou em vocacaodepai.com.br. <a href="{{unsubscribe_url}}" style="color:#777">Cancelar inscrição</a> · Links da Amazon são de afiliado (Amazon Associados BR). Preços são faixas pesquisadas na internet, não o preço da Amazon.</td></tr>
-  </table>
-</body>
+<tr><td style="padding:8px 32px"><h2 style="font-family:'Barlow Condensed',Arial;color:#1F2429;margin:16px 0 8px">Sua formação</h2>
+  <!-- assinante com user_id: trilha em andamento (track_progress) e próximo passo; desafio ativo (challenge_progress) e dia atual.
+       sem user_id ou sem progresso: a trilha publicada em destaque (tracks.status='published' order by sort_order limit 1). -->
+  <p><strong>{{trilha.title}}</strong> — próximo passo: <a href="https://vocacaodepai.com.br/formacao/{{trilha.slug}}?utm_source=newsletter&utm_medium=email&utm_campaign=semanal" style="color:#14505C;font-weight:600">{{passo.title}}</a></p>
+  {{#desafio}}<p>Desafio <strong>{{desafio.title}}</strong>: dia {{desafio.dia}} de {{desafio.days}} · <a href="https://vocacaodepai.com.br/desafios/{{desafio.slug}}?utm_source=newsletter" style="color:#14505C">continuar</a></p>{{/desafio}}
+</td></tr>
+<tr><td style="padding:8px 32px"><h2 style="font-family:'Barlow Condensed',Arial;color:#1F2429;margin:16px 0 8px">Pai Indica da semana</h2>
+  <!-- até 2 posts kind in ('review','comparativo','lista') publicados nos últimos 7 dias, maior product_score primeiro -->
+  {{#reviews}}<p><a href="https://vocacaodepai.com.br/pai-indica/{{slug}}?utm_source=newsletter&utm_medium=email&utm_campaign=semanal" style="color:#14505C;font-weight:600">{{title}}</a> · nota {{product_score}}<br><span style="color:#555">{{excerpt}}</span></p>{{/reviews}}
+  <p style="font-size:12px;color:#777">Links da Amazon são de afiliado (Amazon Associados BR). Preços são faixas pesquisadas na internet, não o preço da Amazon.</p>
+</td></tr>
 ```
 
-### 8.3 Workflow `.github/workflows/newsletter-weekly.yml`
+Também entra no resumo semanal um bloco "Jogadas da semana" com os posts `jogada-do-dia-*` dos últimos 7 dias (título + link), para quem tem `frequencia:semanal`. Consultas (service_role, dentro da função; colunas do doc 02 §4.6): trilha = `select t.slug, t.title, s.title as passo from tracks t join track_steps s on s.track_id = t.id where t.status='published' and s.position = (select coalesce(max(s2.position),0)+1 from track_steps s2 join track_progress tp on tp.step_id = s2.id where tp.user_id = $1 and s2.track_id = t.id) order by t.sort_order limit 1`; desafio = `select c.slug, c.title, c.days, max(cp.day) as dia from challenges c join challenge_progress cp on cp.challenge_id = c.id where cp.user_id = $1 and c.status='published' group by c.id, c.slug, c.title, c.days limit 1`. Registro, idempotência, lotes de 100 e `moderation_log` ficam como no doc 07 §6.6. Depois da mudança: `supabase functions deploy weekly-digest` (ou `mcp__Supabase__deploy_edge_function`).
+
+### 8.3 Disparo manual e fallback (sem schedule próprio)
+
+- `src/routes/api/newsletter/weekly.ts` (listada no doc 02 §1.3): **disparo manual** da `weekly-digest`, mesmo padrão de `api/cron/expire-jobs.ts` do doc 02. `POST`, `Authorization: Bearer CRON_SECRET` (comparação em tempo constante), faz `fetch` na edge function com `x-internal-secret: INTERNAL_FN_SECRET` (doc 07 §6.6) e devolve o JSON dela; `?dry_run=true` é repassado e a função só conta. Nenhum agendamento aqui: quem agenda é o pg_cron do doc 07.
+- `src/routes/api/newsletter/unsubscribe.ts` (doc 02 §1.3): alvo do cabeçalho `List-Unsubscribe`; recebe `?token=<confirm_token>` e chama a função de descadastro por token do doc 07 §2.2 (nunca `UPDATE` direto), redirecionando para `/newsletter/sair`.
+- `.github/workflows/newsletter-weekly.yml` (listado no doc 02 §1): **só `workflow_dispatch`** (input `dry_run`, default `true`), **sem `schedule`**, chamando `/api/newsletter/weekly` com `Authorization: Bearer ${{ secrets.CRON_SECRET }}`. Serve para o dono testar e para reenviar se o pg_cron falhar (conferir com `select * from cron.job_run_details where jobid = (select jobid from cron.job where jobname='weekly-digest') order by start_time desc limit 5`).
 
 ```yaml
-name: Newsletter semanal
+name: Newsletter semanal — disparo manual (o agendamento é o pg_cron weekly-digest)
 on:
-  schedule:
-    - cron: "41 10 * * 6"   # sábado 07:41 America/Sao_Paulo (10:41 UTC)
   workflow_dispatch:
     inputs:
       dry_run:
@@ -776,20 +797,78 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Disparar envio
+      - name: Disparar weekly-digest via /api/newsletter/weekly
         env:
           URL: https://vocacaodepai.com.br/api/newsletter/weekly
-          SECRET: ${{ secrets.NEWSLETTER_CRON_SECRET }}
-          DRY: ${{ github.event.inputs.dry_run || 'false' }}
+          SECRET: ${{ secrets.CRON_SECRET }}
+          DRY: ${{ github.event.inputs.dry_run || 'true' }}
         run: |
           set -e
           code=$(curl -sS -o /tmp/out.json -w "%{http_code}" -X POST "$URL?dry_run=$DRY" \
-            -H "x-newsletter-secret: $SECRET" --max-time 300)
+            -H "Authorization: Bearer $SECRET" --max-time 300)
           echo "HTTP $code"; cat /tmp/out.json; echo
           test "$code" = "200"
 ```
 
-Aceite: `workflow_dispatch` com `dry_run=true` devolve `{segmentos:{bebe:N,…}, posts:…}`; envio real com 1 assinante de teste (e-mail do dono) chega com todos os links funcionando e o cancelamento muda `status='unsubscribed'`.
+### 8.4 Envio diário — `/api/newsletter/daily` (07:07 BRT, workflow `newsletter-daily.yml`, mesmo segredo `CRON_SECRET`)
+
+`src/routes/api/newsletter/daily.ts` (`POST`, `Authorization: Bearer CRON_SECRET`, service_role no servidor):
+
+1. Busca a jogada do dia: `select slug, title, body, excerpt from posts where kind='noticia' and slug = 'jogada-do-dia-' || to_char(now() at time zone 'America/Sao_Paulo','YYYY-MM-DD') and status='published' limit 1`. Sem jogada → responde `{ok:true, enviados:0, motivo:'sem jogada'}` e registra em `moderation_log` (`entity='newsletter'`, `action='daily_skipped'`).
+2. Seleciona assinantes `status='confirmed' and segments @> '["frequencia:diaria"]'::jsonb`, em páginas de 100.
+3. Monta o e-mail curto (doc 00 §8 item 3: cabeçalho petróleo sobre areia, título "Jogada do Dia" em Barlow Condensed, o texto de 80–120 palavras, 1 botão âmbar "Ver no site" → `/post/<slug>?utm_source=newsletter&utm_medium=email&utm_campaign=jogada`, rodapé com `List-Unsubscribe` → `/api/newsletter/unsubscribe?token=…`). O template `jogadaDoDia()` fica em `supabase/functions/_shared/email-templates.ts` e é importado pela rota por caminho relativo (um único arquivo de templates; sem segundo sistema).
+4. Envia por Resend Batch (`from: "Vocação de Pai <nao-responda@vocacaodepai.com.br>"`, `reply_to: contato@vocacaodepai.com.br`), grava `moderation_log` (`action='daily_sent'`, `note='jogada <slug>: N e-mails, M falhas'`).
+5. Idempotência: antes de enviar, confere `moderation_log` por `action='daily_sent'` com a mesma jogada no dia; se existir, responde `{ok:true, enviados:0, motivo:'já enviado'}`.
+
+A semanal (§8.2) inclui as jogadas da semana para quem tem `frequencia:semanal`; quem tem `frequencia:diaria` recebe as duas (a diária e o resumo de domingo).
+
+Workflow `.github/workflows/newsletter-daily.yml` (também abriga o resumo semanal ao dono do §13b-b):
+
+```yaml
+name: Newsletter diária (Jogada do Dia) e resumo ao dono
+on:
+  schedule:
+    - cron: "7 10 * * *"    # 07:07 America/Sao_Paulo — Jogada do Dia
+    - cron: "0 21 * * 5"    # sexta 18:00 America/Sao_Paulo — resumo semanal ao dono (§13b-b)
+  workflow_dispatch:
+    inputs:
+      alvo:
+        description: "daily | owner-weekly"
+        default: "daily"
+permissions:
+  contents: read
+jobs:
+  daily:
+    if: github.event.schedule == '7 10 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.alvo == 'daily')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Enviar Jogada do Dia
+        env:
+          URL: https://vocacaodepai.com.br/api/newsletter/daily
+          SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -e
+          code=$(curl -sS -o /tmp/out.json -w "%{http_code}" -X POST "$URL" -H "Authorization: Bearer $SECRET" --max-time 300)
+          echo "HTTP $code"; cat /tmp/out.json; echo
+          test "$code" = "200"
+  owner-weekly:
+    if: github.event.schedule == '0 21 * * 5' || (github.event_name == 'workflow_dispatch' && github.event.inputs.alvo == 'owner-weekly')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Enviar resumo da semana ao dono
+        env:
+          URL: https://vocacaodepai.com.br/api/newsletter/owner-weekly
+          SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -e
+          code=$(curl -sS -o /tmp/out.json -w "%{http_code}" -X POST "$URL" -H "Authorization: Bearer $SECRET" --max-time 120)
+          echo "HTTP $code"; cat /tmp/out.json; echo
+          test "$code" = "200"
+```
+
+Aceite: `workflow_dispatch` de `newsletter-weekly.yml` com `dry_run=true` devolve a contagem por segmento (`{segmentos:{"fase:bebe":N,…}, posts:…}`) e o template renderiza "Sua formação" e "Pai Indica da semana"; um envio real para o e-mail do dono chega com os links funcionando e o cancelamento muda `status='unsubscribed'`; `newsletter-daily.yml` (job `daily`) com uma jogada publicada para hoje e 1 assinante `frequencia:diaria` entrega o e-mail e grava `daily_sent` em `moderation_log`; sem jogada, responde 200 com `motivo:'sem jogada'`.
 
 ---
 
@@ -890,7 +969,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - name: Lint
@@ -924,7 +1003,8 @@ jobs:
 ```
 
 ### 10.3 `market-refresh.yml` — ver §7 (YAML completo).
-### 10.4 `newsletter-weekly.yml` — ver §8.3.
+### 10.4 `newsletter-weekly.yml` (só `workflow_dispatch`; o agendamento semanal é o pg_cron `weekly-digest` do doc 07 §6.6) — ver §8.3.
+### 10.4b `newsletter-daily.yml` (Jogada do Dia 07:07 BRT + resumo ao dono sexta 18:00 BRT) — ver §8.4.
 ### 10.5 `jobs-expire.yml` — ver §9.
 
 ---
@@ -950,10 +1030,10 @@ O painel do grupo (`/home/user/grupovdp`, repositório `grupovdp`) coleta GA4, S
 6. **AdSense**: nada a configurar no código; quando o domínio for aprovado no AdSense, o relatório por `DOMAIN_NAME` passa a trazer `vocacaodepai.com.br` e o painel mostra. Até lá, aparece "conta conectada, mas sem dados para este domínio ainda".
 7. Em `escritorio/data.js`, constante `ROUTINES`, acrescentar a linha (formato `[id, nome, função, empresa, blog, subagentes, agentes por execução, como trabalha]`):
    ```js
-   ["rt-vocacaodepai", "Bruno", "Editor · artigos, Pai Indica e Loja do Pai", "f3", null, ["Redator","Redator","Redator","Redator","Redator"], 16, "editor + 15 subagentes, até 5 ao mesmo tempo (Padrão A, Pai Indica e reviews)"],
+   ["rt-vocacaodepai", "Bruno", "Editor · artigos, Pai Indica e Loja do Pai", "<COMPANY_ID_VDP>", null, ["Redator","Redator","Redator","Redator","Redator"], 16, "editor + 15 subagentes, até 5 ao mesmo tempo (Padrão A, Pai Indica e reviews)"],
    ```
-   (`f3` é a empresa do Vocação de Mãe no painel; se o painel tiver uma empresa própria para o Vocação de Pai, usar o id dela — conferir `COMPANIES` no mesmo arquivo.)
-8. Abrir PR `claude/vocacaodepai-no-painel` no grupovdp e conferir, após o merge e o próximo run, que `data/metrics.json` tem `sites.vocacaodepai` com `ga4`/`searchConsole` ou mensagens de erro honestas.
+   (`<COMPANY_ID_VDP>` = o id da empresa do Vocação de Pai no painel. Em `escritorio/data.js`, `COMPANY_IDS` tem `chefia`, `f1`…`f9` e `central`, e `rt-vocacaodemae` usa `"f3"`; hoje não existe entrada própria do Vocação de Pai. Os docs 00 §9.2 e 01 §3.9 usam `"f1"`. Regra: conferir `COMPANIES`/`SEED_TEAM` no arquivo; se já houver empresa do Vocação de Pai, usar o id dela; se não houver, criar a entrada própria em `COMPANIES` (id livre entre `f1`…`f9`, nome "Vocação de Pai") no mesmo PR e usar esse id em todos os pontos (§2.3 E0, §11.2, §11.3, §13 E0). Registrar o id escolhido em `docs/plano/PROGRESSO.md` → "Decisões tomadas durante a execução".)
+8. Incluir no mesmo PR as métricas internas do §11.4 (`metricsUrl`, `metricsKeyEnv`, secret `HUB_API_KEY_VOCACAODEPAI`). Abrir PR `claude/vocacaodepai-no-painel` no grupovdp e conferir, após o merge e o próximo run, que `data/metrics.json` tem `sites.vocacaodepai` com `ga4`/`searchConsole`/`internal` ou mensagens de erro honestas.
 
 ### 11.2 Como a rotina reporta status com `scripts/agente.mjs`
 
@@ -969,7 +1049,7 @@ Copiar `/home/user/grupovdp/scripts/agente.mjs` para `/home/user/vocacaodepai/sc
 Comandos exatos:
 
 ```bash
-node scripts/agente.mjs inicio rt-vocacaodepai "Rotina diária: E1 Search Console" vocacaodepai
+node scripts/agente.mjs inicio rt-vocacaodepai "Rotina diária: E1 Search Console" <COMPANY_ID_VDP>   # 4º argumento = id da empresa (§11.1 item 7)
 node scripts/agente.mjs inicio rt-vocacaodepai "E5: Pai Indica 2/5"          # a cada etapa (renova os 90 min)
 node scripts/agente.mjs fim rt-vocacaodepai
 node scripts/agente.mjs status                                               # lista todos
@@ -984,12 +1064,36 @@ Com `mcp__Supabase__execute_sql` no projeto `<REF_SUPABASE_DO_VOCACAODEMAE>`:
 ```sql
 select agent_id from public.lisieux_set_status(
   (select value from public.lisieux_secrets where name = 'writer'),
-  'rt-vocacaodepai', 'work', 'Rotina diária: início', 'f3', null);
+  'rt-vocacaodepai', 'work', 'Rotina diária: início', '<COMPANY_ID_VDP>', null);   -- id da empresa, §11.1 item 7
 -- ... no fim:
 select agent_id from public.lisieux_set_status(
   (select value from public.lisieux_secrets where name = 'writer'),
-  'rt-vocacaodepai', 'rest', '', 'f3', null);
+  'rt-vocacaodepai', 'rest', '', '<COMPANY_ID_VDP>', null);
 ```
+
+### 11.4 Métricas internas para o painel — `GET /api/hub/metrics`
+
+O doc 02 §7 prevê `src/lib/hub.functions.ts` (copiado do VDM) expondo métricas internas para o grupovdp consumir; sem isso os KPIs semanais do doc 11 §11 (usos por ferramenta, vagas pendentes e tempo de moderação, membros ativos, RSVPs, perguntas sem resposta) não têm fonte no painel. Entregas:
+
+1. **Rota** `src/routes/api/hub/metrics.ts` (`GET`, header `Authorization: Bearer HUB_API_KEY` — doc 02 §7 e §8; comparação em tempo constante; 401 sem/erro; cache de 5 min em memória). Devolve, via `hub.functions.ts` com service_role:
+   ```json
+   {
+     "site": "vocacaodepai", "generated_at": "2026-11-01T10:00:00Z",
+     "posts_published": 0, "posts_7d": 0,
+     "products_active": 0,
+     "affiliate_clicks_7d": null,
+     "tool_usage_stats": [ { "tool_slug": "conversor-de-moedas", "uses": 0 } ],
+     "jobs": { "pending": 0, "approved_7d": 0, "avg_moderation_hours": 0 },
+     "members": { "total": 0, "active_7d": 0 },
+     "newsletter_confirmed": 0,
+     "rsvps_next_30d": 0,
+     "questions_unanswered_48h": 0,
+     "rotina_last_run": "2026-11-01"
+   }
+   ```
+   Fontes (colunas do doc 02): `posts` (`status='published'`; `publish_at > now() - interval '7 days'`); `products.active`; `affiliate_clicks_7d` = GA4 Data API (evento `click_afiliado`) quando `GA4_PROPERTY_VOCACAODEPAI` + service account estiverem no servidor, senão `null` (a tabela `post_view_events` do doc 02 §4.2 só guarda views, não cliques — não usar como fallback); `public.tool_usage_stats(7)` (doc 02 §4.7); `jobs` (`status='pending'`; `status='approved' and moderated_at > now() - interval '7 days'`; `avg(extract(epoch from moderated_at - created_at))/3600` dos moderados em 30 dias); `profiles` (`count(*)`; `active_7d` = `auth.users.last_sign_in_at > now() - interval '7 days'` lido com service_role); `newsletter_subscribers` (`status='confirmed'`); `event_rsvps` com `status='going'` de `events` com `starts_at` nos próximos 30 dias; `questions` com `status='approved'`, `answers_count = 0` e `created_at < now() - interval '48 hours'`; `rotina_last_run` = campo `last_run` do JSON em `_tmp_post_staging` com `k='rotina:status'` (§13b-a).
+2. **grupovdp**: em `scripts/refresh-sites.mjs`, a entrada do §11.1 ganha `metricsUrl: "https://vocacaodepai.com.br/api/hub/metrics"` e `metricsKeyEnv: "HUB_API_KEY_VOCACAODEPAI"`; o loop `for (const s of SITES)` faz `fetch(s.metricsUrl, { headers: { Authorization: "Bearer " + process.env[s.metricsKeyEnv] } })` quando os dois campos existem e grava o JSON em `data/metrics.json` → `sites.vocacaodepai.internal` (erro → `errors.internal` honesto, sem derrubar o restante). Secret `HUB_API_KEY_VOCACAODEPAI` no repositório grupovdp (Settings → Secrets → Actions) e no passo "Buscar GA4, Search Console e AdSense dos sites" de `.github/workflows/refresh-youtube.yml`. Tudo no mesmo PR `claude/vocacaodepai-no-painel` do §11.1.
+3. Aceite: `curl -s -H "Authorization: Bearer $HUB_API_KEY" https://vocacaodepai.com.br/api/hub/metrics | jq .jobs` devolve os três campos; sem header → 401; após o próximo run do grupovdp, `data/metrics.json` tem `sites.vocacaodepai.internal.tool_usage_stats`.
 
 ---
 
@@ -999,11 +1103,14 @@ select agent_id from public.lisieux_set_status(
 | --- | --- | --- |
 | `SUPABASE_URL` | GitHub Actions (vocacaodepai), Vercel, Routine | URL `https://<SUPABASE_PROJECT_REF>.supabase.co` (pública) |
 | `SUPABASE_ANON_KEY` / `VITE_SUPABASE_PUBLISHABLE_KEY` | GitHub Actions, Vercel, Routine, scripts | Leitura pública (REST) para geradores e validador |
-| `SUPABASE_SERVICE_ROLE_KEY` | Vercel (server functions) somente | Upsert em `market_cache`, envio de newsletter, expiração de vagas |
+| `SUPABASE_SERVICE_ROLE_KEY` | Vercel (server functions) somente; também no Supabase Vault para o pg_cron da `weekly-digest` (doc 07 §6.6) | Upsert em `market_cache`, disparo manual/diário da newsletter (§8.3, §8.4), métricas do hub (§11.4), expiração de vagas |
 | `MARKET_REFRESH_SECRET` | Vercel + GitHub Actions | Header `x-market-secret` de `/api/market/refresh` |
-| `NEWSLETTER_CRON_SECRET` | Vercel + GitHub Actions | Header `x-newsletter-secret` de `/api/newsletter/weekly` |
+| `CRON_SECRET` | Vercel (server) + GitHub Actions + Supabase Vault (doc 02 §8) | `Authorization: Bearer` das rotas `/api/newsletter/weekly` (disparo manual), `/api/newsletter/daily` e `/api/newsletter/owner-weekly` (§8.3, §8.4, §13b-b) |
+| `INTERNAL_FN_SECRET` | Supabase Vault + Vercel (server) | Header `x-internal-secret` da edge function `weekly-digest` (doc 07 §6.6); a rota manual `/api/newsletter/weekly` repassa |
+| `HUB_API_KEY` | Vercel (server) + grupovdp (lá como `HUB_API_KEY_VOCACAODEPAI`) | Autoriza o Painel Lisieux a ler `GET /api/hub/metrics` (§11.4; doc 02 §7 e §8) |
+| `VDM_SUPABASE_URL`, `VDM_SUPABASE_ANON_KEY` | GitHub Actions + Routine (valores públicos do Vocação de Mãe) | `validate-content.mjs --similaridade` lê títulos/excerpts publicados do VDM pela REST anon (§13b-c) |
 | `JOBS_CRON_SECRET` | Vercel + GitHub Actions | Header `x-jobs-secret` de `/api/jobs/expire` |
-| `RESEND_API_KEY` | Vercel | Envio de e-mails (newsletter, contato, avisos de vaga) |
+| `RESEND_API_KEY` | Vercel + Supabase Vault (edge functions) | Envio de e-mails (newsletter semanal e diária, resumo ao dono, contato, avisos de vaga) |
 | `PEXELS_API_KEY`, `PIXABAY_API_KEY` | Supabase Vault | Edge function `stock-photos` |
 | `GOOGLE_CSE_API_KEY`, `GOOGLE_CSE_CX` | Supabase Vault (inativos) | Fonte Google Imagens (bloqueada; não usar) |
 | `GOOGLE_SEARCH_CONSOLE_SA_JSON` | Supabase Vault | Edge function `seo-search-console` (sync + Indexing API) |
@@ -1035,42 +1142,97 @@ REGRAS DURAS
 - Não crie vagas, indicações ou histórias de exemplo. Só modere a fila pending.
 
 PASSO A PASSO (tetos de tempo entre parênteses; estourou, registre e siga)
-E0 (2 min) git fetch; git checkout -b claude/rotina-$(date +%F) origin/main; mkdir -p /tmp/rotina-pai supabase/rotina/$(date +%F); node scripts/agente.mjs inicio rt-vocacaodepai "Rotina diária: início" vocacaodepai. Carregue com ToolSearch: select:mcp__Supabase__execute_sql e, se precisar, WebSearch, WebFetch, mcp__Unsplash__search_photos.
+E0 (2 min) git fetch; git checkout -b claude/rotina-$(date +%F) origin/main; mkdir -p /tmp/rotina-pai supabase/rotina/$(date +%F). Salvaguarda: select data from public._tmp_post_staging where k='rotina:status' — se contiver "rotina_pausada":true, NÃO produza nada: registre "rotina pausada pelo guard (doc 10 §13b-a); o dono precisa liberar" no resumo e encerre. node scripts/agente.mjs inicio rt-vocacaodepai "Rotina diária: início" <COMPANY_ID_VDP>. Carregue com ToolSearch: select:mcp__Supabase__execute_sql e, se precisar, WebSearch, WebFetch, mcp__Unsplash__search_photos.
 E1 (5 min) Search Console: POST na edge function seo-search-console {"action":"sync","site_url":"sc-domain:vocacaodepai.com.br","days":28} com o header x-seo-sync-secret. Leia seo_search_stats: páginas com muitas impressões e CTR baixo → candidatas a reforma; consultas sem página → temas.
 E2 (8 min) Temas em alta: WebSearch pt-BR dos últimos 14 dias (paternidade, homem, família, trabalho, finanças domésticas, churrasco, ferramentas, saúde do homem, datas). Escolha ≥2 temas com fonte datada; sem fonte não é tema em alta.
 E3 (5 min) Plano em /tmp/rotina-pai/plano.json: 3 temas Padrão A (categorias diferentes), 2 reformas (query "Artigos finos" da seção 2.5), 3 comparativos e 2 reviews únicas com produtos reais (ASIN conferido, não cobertos nos últimos 60 dias — query da seção 2.5). Ao menos 2 itens marcados tema_em_alta.
 E4 (35 min) Loja primeiro: para cada produto dos itens de Pai Indica rode python3 scripts/rotina/amz.py <ASIN>; pesquise a faixa (price_range.py --slug … --lojas …); grave galeria oficial; escreva a review longa pelo BRIEF_REVIEW.md e aplique com review_gen.py (novo: true se não existir). Complete até 5 produtos novos no dia. Aplique cada SQL com mcp__Supabase__execute_sql, conteúdo inteiro.
 E5 (35 min) Pai Indica: abra até 5 subagentes em paralelo (Agent tool), um por artigo, cada um lendo BRIEF_COMPARATIVO.md ou BRIEF_REVIEW_UNICA.md. Cada um: cover_cmp.py → JSON em /tmp/rotina-pai/ → cmp_gen.py ou rev_art_gen.py até "OK" → INSERT → SELECT de conferência → relatório de até 12 linhas. Atualize o Lisieux: node scripts/agente.mjs inicio rt-vocacaodepai "E5: Pai Indica".
 E6 (30 min) Blog Padrão A do Pai: até 5 subagentes (3 novos + 2 reformas) com BRIEF_ARTIGO_PAI.md e art_gen.py. Atualize o Lisieux.
-E7 (6 min) Notícia "Mercado do pai": BRIEF_NOTICIA.md + news_gen.py, 1 item com fonte ≤48h.
+E7 (6 min) Notícia "Mercado do pai": BRIEF_NOTICIA.md + news_gen.py, 1 item com fonte ≤48h, categoria noticias + tag serie:mercado-do-pai. Na 1ª rodada do mês (ou se não houver jogada-do-dia-<AAAA-MM>-* no banco): BRIEF_JOGADA.md + jogada_gen.py geram as 30 Jogadas do Dia do mês (+10 min), um INSERT por dia com publish_at escalonado; aplique os 30 INSERTs.
 E8 (20 min) Reviews longas de 10 produtos antigos (query da seção 2.5), review_gen.py, staging + UPDATE curto. Atualize o Lisieux.
 E9 (10 min) Faixa de preço de até 15 produtos (price_range.py --fila 15; WebSearch por produto; grave só com 2 lojas).
 E10 (8 min) python3 scripts/rotina/photo_upgrade.py 20; aplique photo_upgrade_out.sql linha a linha.
 E11 (5 min) Moderação: fila pending de jobs, job_referrals, stories, questions com as regras da seção 2.6; um UPDATE curto por registro + moderation_log. Em dúvida, deixe pending e liste no resumo.
-E12 (6 min) node scripts/validate-content.mjs --since 24h --images. O que reprovar: corrija, ou despublique (update posts set status='draft' where slug='…') e registre. Confira: select count(*) from posts where status='published' and (seo_description is null or btrim(seo_description)='') deve ser 0.
+E12 (6 min) node scripts/validate-content.mjs --since 24h --images --similaridade | tee /tmp/rotina-pai/validate.log. O que reprovar: corrija, ou despublique (update posts set status='draft' where slug='…') e registre. Depois: node scripts/rotina/guard.mjs /tmp/rotina-pai/validate.log '<json atual de rotina:status>' e aplique guard_out.sql (3 reprovações seguidas pausam a rotina — doc 10 §13b-a). Confira: select count(*) from posts where status='published' and (seo_description is null or btrim(seo_description)='') deve ser 0.
 E13 (2 min) Search Console notify_index com as URLs novas e reformadas.
 E14 (3 min) Copie os .sql para supabase/rotina/<data>/; git add public/images/covers supabase/rotina; commit "rotina: <data>"; git push -u origin HEAD; gh pr create --base main --title "rotina: <data>" --body "<resumo>". O auto-merge mescla após o deploy da Vercel. Se o check ficar vermelho, corrija e empurre.
-E15 (1 min) node scripts/agente.mjs fim rt-vocacaodepai.
+E15 (1 min) Grave o resumo final em _tmp_post_staging (insert into public._tmp_post_staging (k, data) values ('rotina:resumo:<data>', $r$<resumo>$r$) on conflict (k) do update set data = excluded.data) — alimenta o e-mail semanal ao dono; node scripts/agente.mjs fim rt-vocacaodepai.
 
 RESUMO FINAL (≤40 linhas, PT-BR): artigos novos (slug, categoria, palavras, links, tema em alta + fonte); reformas; comparativos e reviews únicas (slug, produtos, faixa real ou estimativa); produtos novos e reviews longas (slugs); faixas de preço gravadas/puladas; fotos atualizadas; notícia; moderação (aprovados/rejeitados/pendentes); validador (ok/erros); Search Console (ok/erro); link do PR; pendências e erros com o motivo. Não inclua segredo nenhum.
 ```
 
 ---
 
+## 13b. Salvaguardas e entregas extras da Fase 8
+
+Itens previstos em outros docs e atribuídos à Fase 8 (doc 00 §9.1 item 4 e riscos 3/6/15; doc 01 §3.9, §4.1 ideia 30 e ideia 18; doc 02 §1.3; doc 11 §1 ordem 7; doc 13 item 8.10) que não estavam neste documento. Todos entram na mesma branch `claude/fase-8-automacao`, depois dos itens 1–8 do §15.
+
+### 13b-a. Pausa automática da rotina — `scripts/rotina/guard.mjs`
+
+- Estado da rotina em `_tmp_post_staging` com `k = 'rotina:status'` e `data` = JSON `{"last_run":"AAAA-MM-DD","falhas_seguidas":N,"rotina_pausada":false,"motivo":""}` (tabela interna do doc 02 §4.1, `k text primary key, data text`; escrita só via `mcp__Supabase__execute_sql`, nunca pelo anon).
+- `node scripts/rotina/guard.mjs /tmp/rotina-pai/validate.log '<json do status atual>'` lê o log do validador (E12) e o status: cada item que **continua reprovado** depois das correções (linha `✗` cujo slug não voltou como `✓` nem foi despublicado) soma 1 em `falhas_seguidas`; um item aprovado zera o contador; ao chegar a **3**, grava `rotina_pausada=true` e `motivo` com os 3 slugs. Saída: `guard_out.sql` com `insert into public._tmp_post_staging (k, data) values ('rotina:status', $g$…$g$) on conflict (k) do update set data = excluded.data;`, que a rotina aplica em E12.
+- Na E0 a Routine lê `select data from public._tmp_post_staging where k='rotina:status'`; com `"rotina_pausada":true` ela **não produz nada**: registra no resumo e encerra (§13 E0). O dono libera no SQL Editor com um UPDATE curto: `update public._tmp_post_staging set data = '{"last_run":null,"falhas_seguidas":0,"rotina_pausada":false,"motivo":""}' where k='rotina:status';`. Nunca `DELETE`.
+- Aceite: `guard.mjs` com um log de 3 `✗` seguidos gera SQL com `"rotina_pausada":true`; com `✗ ✓ ✗` deixa `falhas_seguidas=1`.
+
+### 13b-b. E-mail semanal "o que publiquei" para o dono — `/api/newsletter/owner-weekly`
+
+- Rota `src/routes/api/newsletter/owner-weekly.ts` (`POST`, `Authorization: Bearer CRON_SECRET`), disparada pelo job `owner-weekly` de `newsletter-daily.yml` (sexta 18:00 BRT, §8.4). Envia via Resend para `CONTACT_TO_EMAIL` (doc 02 §8), assunto "Vocação de Pai — semana de <dd/mm> a <dd/mm>".
+- Corpo (texto simples + lista de links): publicados nos últimos 7 dias por `kind` (`select kind, count(*) from posts where status='published' and publish_at > now() - interval '7 days' group by kind`) com título e link; produtos novos e reviews longas (`products.created_at`/`updated_at` em 7 dias); fila `pending` (`jobs`, `job_referrals`, `stories`, `questions`) com link para `/admin`; itens que a rotina deixou em dúvida e posts despublicados pelo validador (`status='draft'` com `updated_at` em 7 dias); os 7 resumos diários (`_tmp_post_staging` com `k like 'rotina:resumo:%'` dos últimos 7 dias, gravados em §13 E15); o status do guard (`rotina:status`) com aviso em destaque se `rotina_pausada=true`. Sem segredo no corpo.
+- Aceite: `curl -X POST … -H "Authorization: Bearer $CRON_SECRET"` entrega o e-mail ao dono com as contagens batendo com o SQL acima.
+
+### 13b-c. Similaridade com o Vocação de Mãe — `validate-content.mjs --similaridade`
+
+- Risco documentado (doc 00 §9.1 item 4 e riscos 3/6): a rotina do VDP reaproveitar pauta do VDM e os dois sites competirem no Google. Com `--similaridade`, o validador baixa uma vez por execução `slug,title,excerpt` dos posts publicados do VDM pela REST anon pública (`${VDM_SUPABASE_URL}/rest/v1/posts?select=slug,title,excerpt&status=eq.published&limit=5000`, header `apikey: VDM_SUPABASE_ANON_KEY`; valores públicos, lidos de env — §12) e, para cada post validado, compara `title + " " + primeiros 300 caracteres do texto do body` com `title + " " + excerpt` de cada post do VDM pelo coeficiente de Dice sobre bigramas de palavras (minúsculas, sem acento, sem stopwords). Similaridade **> 0,60** reprova (`✗ … similar a vocacaodemae:/post/<slug> (0,72)`).
+- Sem `VDM_SUPABASE_URL` no ambiente, o validador avisa em uma linha e pula a checagem (não derruba o CI). A rotina roda com a flag em E12; o `validate.yml` roda com a flag no domingo (`--all`).
+- Aceite: um post de teste com o título e a abertura copiados de um artigo do VDM é reprovado; um artigo próprio sobre o mesmo tema (texto diferente) passa.
+
+### 13b-d. `/loja/ofertas` — faixas pesquisadas nos últimos 7 dias
+
+- Rota `src/routes/_site/loja/ofertas.tsx` (listada no doc 02 §1.3 como rota extra da Loja do Pai; doc 01 ideia 18). Sem tabela nova: a esteira de faixa de preço (E9) já grava `products.price_range_checked_at` e `product_price_checks`. A página mostra **até 10** produtos ativos com pesquisa de até 7 dias, priorizando os que ficaram mais baratos. Como `product_price_checks` só tem leitura de staff (doc 02 §4.3), criar em `supabase/migrations/00NN_loja_ofertas.sql` a função `public.get_loja_ofertas()` (`security definer`, `grant execute to anon, authenticated`) que devolve:
+  ```sql
+  select p.slug, p.name, p.image_url, p.price_min, p.price_max, p.price_range_checked_at,
+         (select min(c.price) from public.product_price_checks c where c.product_id = p.id and c.checked_at > now() - interval '7 days') as menor_7d,
+         (select min(c.price) from public.product_price_checks c where c.product_id = p.id and c.checked_at between now() - interval '60 days' and now() - interval '7 days') as menor_anterior
+  from public.products p
+  where p.active and p.price_range_checked_at > now() - interval '7 days' and p.price_min is not null
+  order by (case when (select min(c.price) from public.product_price_checks c where c.product_id = p.id and c.checked_at between now() - interval '60 days' and now() - interval '7 days') >
+                      (select min(c.price) from public.product_price_checks c where c.product_id = p.id and c.checked_at > now() - interval '7 days') then 0 else 1 end),
+           p.price_range_checked_at desc
+  limit 10;
+  ```
+- Cada card usa os mesmos componentes da loja (faixa "Faixa de preço pesquisada em <data>: R$ X a R$ Y", botão "Comprar agora na Amazon", aviso de afiliado); selo "caiu de preço" só quando `menor_7d < menor_anterior`. Nunca preço exato, nunca "oferta da Amazon". Título: "Ofertas que valem — faixas pesquisadas esta semana". Entra no sitemap e no menu da Loja.
+- Aceite: com 3 produtos pesquisados hoje, a página lista os 3; com nenhum, mostra "Nenhuma faixa pesquisada nos últimos 7 dias" e link para `/loja`.
+
+### 13b-e. `/anuncie` — mídia kit
+
+- Rota `src/routes/_site/anuncie.tsx` (doc 02 §1.3, Institucional; doc 01 §3.9 e ideia 30; doc 11 §1 ordem 7). Página estática em PT-BR: quem é o leitor (pai, 25–45 anos, decisor de compra da casa), números públicos atualizados à mão pelo dono (visitas/mês, assinantes, seguidores — placeholders até o GA4 ter 30 dias), formatos oferecidos em **faixas** de investimento (post patrocinado, Pai Indica patrocinado com selo "conteúdo pago", banner na newsletter, menção na Jogada do Dia), regras editoriais (linha editorial do §1; nada de bet, bebida para menores, conteúdo adulto) e formulário "Quero anunciar" com nome, e-mail, empresa, mensagem e Turnstile (mesmo widget e verificação server-side do doc 07 §4.4), gravando em `contact_messages` com `subject='anuncie'` (tabela do doc 02 §4.1) e disparando a edge function `notify-contact-message` já existente.
+- `seo_title` "Anuncie no Vocação de Pai"; página pública (sem `noindex`); link no rodapé ao lado de "Política de afiliados".
+- Aceite: envio do formulário cria a linha em `contact_messages` e o dono recebe o e-mail; sem token Turnstile → 400.
+
+### 13b-f. Backlog pós-Fase 8 (não executar sem doc próprio)
+
+`/podcast` (episódios + transcrição) e push de novo artigo no PWA (PLANO-MESTRE §8 ideias 14 e 15; doc 02 §1.3 "Futuro") ficam **fora** da Fase 8: não criar rota, tabela nem workflow para eles. Registrar em `PROGRESSO.md` → "Backlog" quando a fase fechar.
+
+---
+
 ## 14. Critérios de aceite da Fase 8
 
-1. `scripts/rotina/` contém: `art_gen.py`, `cmp_gen.py`, `rev_art_gen.py`, `review_gen.py`, `cover_cmp.py`, `amz.py`, `photo_upgrade.py`, `price_range.py`, `news_gen.py`, `slugs.sh`, `proibidos.json`, `exemplo_artigo.json`, `README.md`, `BRIEF_ARTIGO_PAI.md`, `BRIEF_COMPARATIVO.md`, `BRIEF_REVIEW_UNICA.md`, `BRIEF_REVIEW.md`, `BRIEF_NOTICIA.md`. Nenhum contém `<REF_SUPABASE_DO_VOCACAODEMAE>`, "mãe" ou "Review de Mãe".
+1. `scripts/rotina/` contém: `art_gen.py`, `cmp_gen.py`, `rev_art_gen.py`, `review_gen.py`, `cover_cmp.py`, `amz.py`, `photo_upgrade.py`, `price_range.py`, `news_gen.py`, `jogada_gen.py`, `guard.mjs`, `slugs.sh`, `proibidos.json`, `exemplo_artigo.json`, `README.md`, `BRIEF_ARTIGO_PAI.md`, `BRIEF_COMPARATIVO.md`, `BRIEF_REVIEW_UNICA.md`, `BRIEF_REVIEW.md`, `BRIEF_NOTICIA.md`, `BRIEF_JOGADA.md`. Nenhum contém `<REF_SUPABASE_DO_VOCACAODEMAE>`, "mãe" ou "Review de Mãe".
 2. `python3 scripts/rotina/art_gen.py scripts/rotina/exemplo_artigo.json` imprime "OK" e gera um `.insert.sql` com `kind='artigo'`, ≥1100 palavras, ≥10 links, semáforo "Sinal verde/atenção/alerta".
 3. `python3 scripts/rotina/cover_cmp.py teste "A=<url>" "B=<url>"` gera `public/images/covers/teste.jpg` 1280×720 com degradê areia e faixa azul-petróleo/âmbar (apagar depois).
 4. `node scripts/validate-content.mjs --all` roda sem exceção e reprova corretamente um post de teste com "R$ 10" no texto ou com 2 callouts.
-5. Os 5 workflows existem, têm YAML válido (`actionlint` ou `gh workflow list`) e `market-refresh` executou com sucesso via `workflow_dispatch`; `market_cache.fetched_at` < 35 min.
-6. `newsletter-weekly` em `dry_run=true` devolve contagem por segmento; um envio de teste chegou ao e-mail do dono.
+5. Os 6 workflows existem (`validate.yml` com `node-version: 22`), têm YAML válido (`actionlint` ou `gh workflow list`) e `market-refresh` executou com sucesso via `workflow_dispatch`; `market_cache.fetched_at` < 35 min.
+6. `newsletter-weekly.yml` (`workflow_dispatch`, `dry_run=true`) devolve contagem por segmento `fase:*` e o template da `weekly-digest` traz "Sua formação" e "Pai Indica da semana"; um envio de teste chegou ao e-mail do dono; `newsletter-daily.yml` (job `daily`) entregou uma Jogada do Dia de teste e gravou `daily_sent` em `moderation_log` (§8.4).
 7. `jobs-expire` expirou uma vaga de teste vencida.
 8. Edge functions `stock-photos` e `seo-search-console` deployadas no projeto novo; `{"action":"list_sites"}` devolve `sc-domain:vocacaodepai.com.br`.
 9. PR aberto no grupovdp com `SITES` + `ROUTINES` + secret `GA4_PROPERTY_VOCACAODEPAI`; `node scripts/agente.mjs status` lista `rt-vocacaodepai`.
 10. A Routine "Vocação de Pai: rotina diária" existe em claude.ai/code com o prompt do §13 e as variáveis do §11.2, e a primeira execução real abriu um PR `claude/rotina-*` mesclado sozinho, com o resumo em PT-BR e sem segredo exposto.
 11. Depois da primeira rodada: `select kind, count(*) from posts where publish_at > now() - interval '1 day' group by kind` mostra artigo ≥3, comparativo ≥3, review ≥2, noticia ≥1; `select count(*) from products where created_at > now() - interval '1 day'` ≥ 5; `select count(*) from products where review is not null and updated_at > now() - interval '1 day'` ≥ 15.
 12. `CLAUDE.md` do vocacaodepai ganhou as seções "Rotina diária", "Como escrever no banco", "Padrão A do Pai", "Pai Indica", "Faixa de preço", "Imagens" (adaptadas do VDM), e `docs/plano/PROGRESSO.md` marca a Fase 8 como concluída.
+13. Jogada do Dia: `python3 scripts/rotina/jogada_gen.py` com o JSON do mês gera um `.insert.sql` por dia (80–120 palavras, 1 link, tag `serie:jogada-do-dia`); `select count(*) from posts where slug like 'jogada-do-dia-<AAAA-MM>-%'` = dias do mês; `validate-content.mjs` aprova as jogadas (exceção §5.1) e reprova uma com 2 links.
+14. `GET /api/hub/metrics` com `HUB_API_KEY` devolve o JSON do §11.4; sem header → 401; `validate-content.mjs --similaridade` reprova um post copiado do VDM (§13b-c).
+15. Salvaguardas e extras do §13b: `guard.mjs` pausa a rotina após 3 reprovações seguidas e a Routine encerra em E0 com `rotina_pausada=true`; `/api/newsletter/owner-weekly` entregou o resumo ao dono; `/loja/ofertas` e `/anuncie` no ar (formulário gravando em `contact_messages`); `/podcast` e push PWA registrados como backlog, sem código.
 
 ---
 
@@ -1082,12 +1244,13 @@ leia docs/plano/10-fase-8-automacao-rotinas-e-painel.md inteiro e, se existir, d
 Repositórios de referência, só leitura: /home/user/vocacaodemae (scripts/rotina/*, CLAUDE.md, .github/workflows/auto-merge.yml, supabase/functions/stock-photos e seo-search-console) e /home/user/grupovdp (scripts/agente.mjs, scripts/refresh-sites.mjs, escritorio/data.js).
 
 Faça, nesta ordem, em uma branch claude/fase-8-automacao, com commits pequenos e PT-BR:
-1. Copie scripts/rotina/ do vocacaodemae e aplique as adaptações da seção 4 (tabela 4.1 e substituições 4.3): art_gen.py novo (une gen/rgen/helpers; semáforo "Sinal verde/atenção/alerta"; kind='artigo'), cmp_gen.py e rev_art_gen.py com kind/comparison/review/product_category/product_score, review_gen.py com as colunas do BRIEF, cover_cmp.py com as cores do Vocação de Pai (4.5), price_range.py e news_gen.py novos (4.6 e 4.4), slugs.sh, proibidos.json, exemplo_artigo.json, README.md. Grave BRIEF_ARTIGO_PAI.md exatamente como está na seção 4.2 e BRIEF_NOTICIA.md como na 4.4; copie e adapte os outros três BRIEFs. Nenhum arquivo pode conter o ref do Supabase do VDM, "mãe" ou "Review de Mãe".
-2. Escreva scripts/validate-content.mjs conforme a seção 5 (regras por kind, R$, termos proibidos, capa única e ≠ inline, review/comparison válidos, produtos existem, --images) e adicione "validate:content" ao package.json.
-3. Crie src/routes/api/market/refresh.ts, src/routes/api/newsletter/weekly.ts (+ src/emails/weekly.ts com o template da 8.2), src/routes/api/newsletter/unsubscribe.ts e src/routes/api/jobs/expire.ts, protegidos pelos headers de segredo das seções 7, 8 e 9. Sem segredo no código.
-4. Crie os 5 workflows da seção 10 (auto-merge.yml, validate.yml, market-refresh.yml, newsletter-weekly.yml, jobs-expire.yml) com o YAML exatamente como está no documento.
+1. Copie scripts/rotina/ do vocacaodemae e aplique as adaptações da seção 4 (tabela 4.1 e substituições 4.3): art_gen.py novo (une gen/rgen/helpers; semáforo "Sinal verde/atenção/alerta"; kind='artigo'), cmp_gen.py e rev_art_gen.py com kind/comparison/review/product_category/product_score, review_gen.py com as colunas do BRIEF, cover_cmp.py com as cores do Vocação de Pai (4.5), price_range.py, news_gen.py e jogada_gen.py novos (4.6, 4.4 e 4.7), guard.mjs (13b-a), slugs.sh (slugs de ferramenta lidos de src/lib/tools/registry.ts), proibidos.json, exemplo_artigo.json, README.md. Grave BRIEF_ARTIGO_PAI.md exatamente como está na seção 4.2, BRIEF_NOTICIA.md como na 4.4 e BRIEF_JOGADA.md como na 4.7; copie e adapte os outros três BRIEFs. Categorias e tags: só os slugs do doc 02 §4.2 (categoria `noticias` + tag `serie:mercado-do-pai` para a notícia; tags `fase-*`). Nenhum arquivo pode conter o ref do Supabase do VDM, "mãe" ou "Review de Mãe".
+2. Escreva scripts/validate-content.mjs conforme a seção 5 (regras por kind, R$, termos proibidos, capa única e ≠ inline, review/comparison válidos, produtos existem, ferramentas conferidas em TOOLS de src/lib/tools/registry.ts, exceção da Jogada do Dia, --images, --similaridade da 13b-c) e adicione "validate:content" ao package.json.
+3. Crie src/routes/api/market/refresh.ts (seção 7) e src/routes/api/jobs/expire.ts (seção 9). Newsletter (seção 8): NÃO crie outra implementação do envio semanal — ele é a edge function weekly-digest + pg_cron da Fase 5 (doc 07 §6.6); acrescente ao template de supabase/functions/_shared/email-templates.ts os blocos "Sua formação" e "Pai Indica da semana" (8.2) e faça o redeploy da função; crie src/routes/api/newsletter/weekly.ts como disparo manual (8.3), src/routes/api/newsletter/unsubscribe.ts (8.3), src/routes/api/newsletter/daily.ts (8.4, Jogada do Dia) e src/routes/api/newsletter/owner-weekly.ts (13b-b), todas com Authorization: Bearer CRON_SECRET. Crie src/routes/api/hub/metrics.ts com HUB_API_KEY (11.4). Sem segredo no código.
+4. Crie os 6 workflows da seção 10 (auto-merge.yml, validate.yml com node-version 22, market-refresh.yml, newsletter-weekly.yml só com workflow_dispatch, newsletter-daily.yml, jobs-expire.yml) com o YAML exatamente como está no documento.
 5. Copie supabase/functions/stock-photos e supabase/functions/seo-search-console do vocacaodemae; troque o domínio para vocacaodepai.com.br; faça o deploy com mcp__Supabase__deploy_edge_function no projeto <SUPABASE_PROJECT_REF>; crie os secrets do Vault listados na seção 12 com os valores que o dono fornecer (se não fornecer, deixe um TODO claro no resumo, nunca invente).
-6. Copie /home/user/grupovdp/scripts/agente.mjs para scripts/agente.mjs sem alterar. Prepare (em /tmp/grupovdp-pr/) o diff da seção 11.1 para o repositório grupovdp (SITES, workflow, ROUTINES) e descreva no resumo como abrir esse PR.
+6. Copie /home/user/grupovdp/scripts/agente.mjs para scripts/agente.mjs sem alterar. Prepare (em /tmp/grupovdp-pr/) o diff das seções 11.1 e 11.4 para o repositório grupovdp (SITES com metricsUrl/metricsKeyEnv, workflow com GA4_PROPERTY_VOCACAODEPAI e HUB_API_KEY_VOCACAODEPAI, ROUTINES com o id de empresa conferido em COMPANIES — registre o id em PROGRESSO.md) e descreva no resumo como abrir esse PR.
+6b. Entregas extras da seção 13b: guard.mjs, /api/newsletter/owner-weekly, --similaridade, /loja/ofertas (função get_loja_ofertas em migration nova), /anuncie (Turnstile → contact_messages). /podcast e push PWA ficam no backlog, sem código.
 7. Atualize CLAUDE.md com as seções da seção 14 item 12 e docs/plano/PROGRESSO.md.
 8. Rode os critérios de aceite 1 a 5 da seção 14 (gere e apague a capa de teste; valide YAML com gh workflow list após o push). Abra o PR contra main com o resumo em PT-BR.
 9. Entregue no final: o texto da seção 13 (prompt da Routine) pronto para colar em claude.ai/code → Routines, a lista de variáveis de ambiente da Routine (seção 11.2) e a tabela de secrets que ainda faltam ser preenchidos pelo dono.
@@ -1103,14 +1266,16 @@ Regras: nunca DROP/DELETE; nunca commitar segredo; nunca "Ver preço na Amazon";
 - [ ] `cmp_gen.py` / `rev_art_gen.py` preenchem `kind`, `comparison`/`review`, `product_category`, `product_subcategory`, `product_score`
 - [ ] `review_gen.py` grava `products` com `asin`, `affiliate_network`, `price_min/max`, `review`, `pros`, `cons`
 - [ ] `cover_cmp.py` nas cores do Vocação de Pai (areia → faixa petróleo/âmbar)
-- [ ] `price_range.py` e `news_gen.py` funcionando
-- [ ] `BRIEF_ARTIGO_PAI.md`, `BRIEF_NOTICIA.md` gravados como no documento; outros 3 BRIEFs adaptados
-- [ ] `scripts/validate-content.mjs` com todas as regras da seção 5 e `--images`
-- [ ] Server functions `/api/market/refresh`, `/api/newsletter/weekly`, `/api/newsletter/unsubscribe`, `/api/jobs/expire` protegidas por segredo
-- [ ] 5 workflows criados e válidos; `validate` marcado como required check em `main`
-- [ ] Edge functions `stock-photos` e `seo-search-console` deployadas no projeto novo
+- [ ] `price_range.py`, `news_gen.py`, `jogada_gen.py` e `guard.mjs` funcionando
+- [ ] `BRIEF_ARTIGO_PAI.md`, `BRIEF_NOTICIA.md`, `BRIEF_JOGADA.md` gravados como no documento; outros 3 BRIEFs adaptados
+- [ ] `scripts/validate-content.mjs` com todas as regras da seção 5, `--images` e `--similaridade`; ferramentas conferidas em `src/lib/tools/registry.ts`
+- [ ] Server functions `/api/market/refresh`, `/api/newsletter/weekly` (disparo manual), `/api/newsletter/unsubscribe`, `/api/newsletter/daily`, `/api/newsletter/owner-weekly`, `/api/jobs/expire` protegidas por segredo; `/api/hub/metrics` por `HUB_API_KEY`
+- [ ] 6 workflows criados e válidos (`validate.yml` com Node 22; `newsletter-weekly.yml` sem schedule); `validate` marcado como required check em `main`
+- [ ] Edge functions `stock-photos` e `seo-search-console` deployadas no projeto novo; `weekly-digest` redeployada com os blocos "Sua formação" e "Pai Indica da semana"
 - [ ] Secrets do Vault, da Vercel e do GitHub preenchidos (ou TODO explícito no resumo)
-- [ ] `scripts/agente.mjs` copiado; diff do grupovdp preparado (SITES, workflow, ROUTINES, GA4 secret)
+- [ ] `scripts/agente.mjs` copiado; diff do grupovdp preparado (SITES com `metricsUrl`, workflow, ROUTINES com id de empresa conferido, secrets `GA4_PROPERTY_VOCACAODEPAI` e `HUB_API_KEY_VOCACAODEPAI`)
+- [ ] Jogadas do Dia do mês corrente no banco (`jogada-do-dia-AAAA-MM-*`); e-mail diário de teste entregue
+- [ ] §13b: `guard.mjs` testado; e-mail semanal ao dono entregue; `--similaridade` reprovando cópia do VDM; `/loja/ofertas` e `/anuncie` no ar; `/podcast` e push PWA só no backlog
 - [ ] Service account adicionada no GA4 e no Search Console do Vocação de Pai
 - [ ] Routine "Vocação de Pai: rotina diária" criada com o prompt da seção 13 e variáveis da 11.2 (05:37 America/Sao_Paulo)
 - [ ] Primeira rodada real: PR `claude/rotina-*` mesclado sozinho, resumo em PT-BR, contagens do aceite 11 batendo
