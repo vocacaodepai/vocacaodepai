@@ -2,16 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const BUCKET = "post-images";
+// Bucket público `covers` (doc 02 §4.1; policy "covers: staff write").
+const BUCKET = "covers";
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = /^data:(image\/(webp|png|jpeg));base64,(.+)$/;
 
 const STAFF_FOLDERS = new Set(["covers", "inline"]);
 
+// `public.is_admin()` = profiles.role in ('editor','admin') (doc 03 §3.1).
 async function isStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
 }) {
-  const { data, error } = await supabase.rpc("is_staff");
+  const { data, error } = await supabase.rpc("is_admin");
   return !error && data === true;
 }
 
@@ -43,8 +45,9 @@ export const uploadImageFn = createServerFn({ method: "POST" })
       .upload(path, bytes, { contentType: mime });
     if (error) throw new Error(error.message);
 
-    // Bucket é privado; imagens são servidas pela rota pública /api/img.
-    return { url: `/api/img/${path}` };
+    // Bucket público: a URL da CDN do Supabase vai direto para `cover_image_url`.
+    const pub = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
+    return { url: pub.data.publicUrl };
   });
 
 const searchSchema = z.object({

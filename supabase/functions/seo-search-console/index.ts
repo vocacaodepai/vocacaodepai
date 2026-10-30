@@ -1,18 +1,20 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// Consulta a Google Search Console API e a Indexing API usando a service
-// account guardada no Supabase Vault (secret GOOGLE_SEARCH_CONSOLE_SA_JSON),
-// nunca exposta ao cliente. Chamar autenticado (JWT ou segredo interno), com
-// body JSON:
+// Vocação de Pai — consulta a Google Search Console API e a Indexing API com a
+// service account `GSC_SERVICE_ACCOUNT_JSON` (secret da edge function, doc 02
+// §8; Vault `public.get_secret` como fallback), nunca exposta ao cliente.
+// Grava em `public.seo_search_stats` (doc 02 §4.1). Autenticação: JWT de
+// service_role ou o segredo `CRON_SECRET` no header `x-cron-secret`
+// (agendamento na Fase 8). Body JSON:
 //   { "action": "list_sites" }
-//   { "action": "sync", "site_url": "https://vocacaodemae.com.br/", "days": 28 }
-//   { "action": "notify_index", "urls": ["https://vocacaodemae.com.br/post/slug", ...] }
+//   { "action": "sync", "site_url": "https://vocacaodepai.com.br/", "days": 28 }
+//   { "action": "notify_index", "urls": ["https://vocacaodepai.com.br/post/slug", ...] }
 //
 // "list_sites" serve para diagnosticar quais propriedades a service account
 // enxerga (confirma se foi adicionada como usuária no Search Console) e o
 // formato exato do site_url a usar (URL-prefix "https://.../" ou
-// domain-property "sc-domain:vocacaodemae.com.br").
+// domain-property "sc-domain:vocacaodepai.com.br").
 //
 // "notify_index" pede ao Google para rastrear/atualizar cada URL o quanto
 // antes (Indexing API), em vez de esperar o crawl natural — usado logo após
@@ -20,6 +22,17 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SCOPE_SEARCH_CONSOLE = "https://www.googleapis.com/auth/webmasters.readonly";
 const SCOPE_INDEXING = "https://www.googleapis.com/auth/indexing";
+
+// Secret da edge function primeiro; Vault (`public.get_secret`) como fallback.
+async function readSecret(
+  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message?: string } | null }> },
+  name: string,
+): Promise<{ value: string | null; error?: string }> {
+  const fromEnv = Deno.env.get(name);
+  if (fromEnv) return { value: fromEnv };
+  const { data, error } = await supabase.rpc("get_secret", { secret_name: name });
+  return { value: typeof data === "string" && data ? data : null, error: error?.message };
+}
 
 function base64url(input: Uint8Array | string): string {
   const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
@@ -83,7 +96,7 @@ async function getAccessToken(sa: any, scope: string): Promise<string> {
 // Decodifica (sem verificar assinatura — o gateway do Supabase já validou o
 // JWT antes de chamar a função, graças a verify_jwt: true) o payload do JWT
 // recebido para checar a role. Endpoint interno: só service_role, ou quem
-// conhecer o segredo compartilhado SEO_SYNC_INTERNAL_SECRET, pode disparar
+// conhecer o segredo compartilhado CRON_SECRET, pode disparar
 // sync/list_sites — nunca a chave anon pública, para não deixar qualquer
 // visitante do site consumir a cota da API do Google nem ver a config do
 // Search Console.
@@ -126,11 +139,9 @@ Deno.serve(async (req: Request) => {
 
     const isServiceRole = getJwtRole(req.headers.get("Authorization")) === "service_role";
     let isValidInternalSecret = false;
-    const providedSecret = req.headers.get("x-seo-sync-secret");
+    const providedSecret = req.headers.get("x-cron-secret");
     if (!isServiceRole && providedSecret) {
-      const { data: expectedSecret } = await supabase.rpc("get_secret", {
-        secret_name: "SEO_SYNC_INTERNAL_SECRET",
-      });
+      const { value: expectedSecret } = await readSecret(supabase, "CRON_SECRET");
       isValidInternalSecret = !!expectedSecret && timingSafeEqual(providedSecret, expectedSecret);
     }
 
@@ -144,13 +155,14 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const action = ["list_sites", "notify_index"].includes(body.action) ? body.action : "sync";
 
-    const { data: saJson, error: secretError } = await supabase.rpc("get_secret", {
-      secret_name: "GOOGLE_SEARCH_CONSOLE_SA_JSON",
-    });
+    const { value: saJson, error: secretError } = await readSecret(
+      supabase,
+      "GSC_SERVICE_ACCOUNT_JSON",
+    );
 
     if (secretError || !saJson) {
       return new Response(
-        JSON.stringify({ error: "Não foi possível obter a credencial", details: secretError?.message }),
+        JSON.stringify({ error: "Não foi possível obter GSC_SERVICE_ACCOUNT_JSON", details: secretError }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -176,11 +188,11 @@ Deno.serve(async (req: Request) => {
 
     if (action === "notify_index") {
       const urls: string[] = Array.isArray(body.urls)
-        ? body.urls.filter((u: unknown) => typeof u === "string" && u.startsWith("https://vocacaodemae.com.br/"))
+        ? body.urls.filter((u: unknown) => typeof u === "string" && u.startsWith("https://vocacaodepai.com.br/"))
         : [];
       if (urls.length === 0) {
         return new Response(
-          JSON.stringify({ error: "urls precisa ser uma lista não vazia de URLs de vocacaodemae.com.br" }),
+          JSON.stringify({ error: "urls precisa ser uma lista não vazia de URLs de vocacaodepai.com.br" }),
           { status: 400, headers: { "Content-Type": "application/json" } },
         );
       }
@@ -207,7 +219,7 @@ Deno.serve(async (req: Request) => {
     const accessToken = await getAccessToken(sa, SCOPE_SEARCH_CONSOLE);
     const siteUrl = typeof body.site_url === "string" && body.site_url.length > 0
       ? body.site_url
-      : "https://vocacaodemae.com.br/";
+      : "https://vocacaodepai.com.br/";
     const days = Math.min(Math.max(Number(body.days) || 28, 1), 90);
 
     const endDate = new Date();

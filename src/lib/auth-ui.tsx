@@ -5,10 +5,34 @@ import type { Author } from "@/lib/types";
 import { AuthContext } from "@/lib/auth-context";
 import { toast } from "sonner";
 
-// Login com Google: ativado em 24/08/2026 (Enter Cloud já possui a
-// configuração do provedor). Se voltar a dar erro "forbidden", conferir
-// no Google Cloud se o app OAuth está publicado e com a URL de retorno certa.
-const GOOGLE_LOGIN_ENABLED = true;
+// Login com Google: fica desligado até o dono configurar o provedor no
+// Supabase Auth (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET — pendência da Fase 5).
+const GOOGLE_LOGIN_ENABLED = false;
+
+// `profiles` do Vocação de Pai tem `display_name` (doc 02 §4.1); o resto do
+// site lê `full_name` no tipo `Author`, então mapeamos aqui.
+async function loadMyProfile(userId: string): Promise<Author | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, display_name, avatar_url, bio, role")
+    .eq("id", userId)
+    .maybeSingle();
+  const row = data as unknown as {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+    bio: string | null;
+    role: Author["role"];
+  } | null;
+  if (!row) return null;
+  return {
+    id: row.id,
+    full_name: row.display_name,
+    avatar_url: row.avatar_url,
+    bio: row.bio,
+    role: row.role,
+  };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -22,9 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const loadProfile = (userId: string) => {
       setTimeout(async () => {
         try {
-          void userId;
-          const { data } = await supabase.rpc("get_my_profile");
-          if (mounted) setProfile((data as unknown as Author) ?? null);
+          const data = await loadMyProfile(userId);
+          if (mounted) setProfile(data);
         } catch {
           if (mounted) setProfile(null);
         }
@@ -70,8 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       return;
     }
-    const { data } = await supabase.rpc("get_my_profile");
-    setProfile((data as unknown as Author) ?? null);
+    setProfile(await loadMyProfile(u.id));
   }, []);
 
   return (
@@ -124,9 +146,7 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
         options: { redirectTo: `${window.location.origin}/` },
       });
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Ops, não foi possível assinar. Tente novamente.",
-      );
+      toast.error(err instanceof Error ? err.message : "Não foi possível entrar. Tente novamente.");
       setLoading(false);
     }
   };
@@ -160,7 +180,7 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           "Este e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de confirmação.",
         );
       } else {
-        toast.error(message || "Ops, não foi possível assinar. Tente novamente.");
+        toast.error(message || "Não foi possível entrar. Tente novamente.");
       }
     } finally {
       setLoading(false);
@@ -187,9 +207,7 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
               {mode === "login" ? "Que bom ter você de volta!" : "Crie sua conta"}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {
-                "Entre para comentar, curtir, responder aos quizzes, ler histórias e compartilhar a sua."
-              }
+              {"Entre para comentar, curtir e responder aos quizzes do Vocação de Pai."}
             </p>
           </div>
           <button

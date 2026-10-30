@@ -1,14 +1,26 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// Notifica contato@vocacaodemae.com.br por e-mail quando alguém envia o
-// formulário de contato do site. Disparada por um trigger AFTER INSERT na
-// tabela public.contact_messages (via pg_net), nunca chamada direto pelo
-// cliente — por isso a autenticação é só o segredo interno, não JWT de
-// usuário. Body esperado: { name, email, subject, message }.
+// Vocação de Pai — notifica contato@vocacaodepai.com.br por e-mail quando
+// alguém envia o formulário de contato (`public.contact_messages`, doc 02 §4.1).
+// Disparada por trigger AFTER INSERT (pg_net) ou por `/api/contato`, nunca
+// pelo cliente: a autenticação é o segredo `CRON_SECRET` (doc 02 §8, único
+// segredo de crons/integrações) no header `x-cron-secret`. `RESEND_API_KEY`
+// e `CRON_SECRET` vêm dos secrets da edge function (`Deno.env`) ou do Vault
+// (`public.get_secret`). Body esperado: { name, email, subject, message }.
 
-const RESEND_FROM = "Vocação de Mãe <contato@vocacaodemae.com.br>";
-const NOTIFY_TO = "contato@vocacaodemae.com.br";
+const RESEND_FROM = "Vocação de Pai <contato@vocacaodepai.com.br>";
+const NOTIFY_TO = "contato@vocacaodepai.com.br";
+
+async function readSecret(
+  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message?: string } | null }> },
+  name: string,
+): Promise<{ value: string | null; error?: string }> {
+  const fromEnv = Deno.env.get(name);
+  if (fromEnv) return { value: fromEnv };
+  const { data, error } = await supabase.rpc("get_secret", { secret_name: name });
+  return { value: typeof data === "string" && data ? data : null, error: error?.message };
+}
 
 function escapeHtml(s: string): string {
   return s
@@ -43,10 +55,8 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: expectedSecret } = await supabase.rpc("get_secret", {
-      secret_name: "CONTACT_NOTIFY_SECRET",
-    });
-    const providedSecret = req.headers.get("x-notify-secret");
+    const { value: expectedSecret } = await readSecret(supabase, "CRON_SECRET");
+    const providedSecret = req.headers.get("x-cron-secret");
     if (!expectedSecret || !providedSecret || !timingSafeEqual(providedSecret, expectedSecret)) {
       return new Response(JSON.stringify({ error: "Acesso restrito" }), {
         status: 403,
@@ -67,12 +77,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { data: resendKey, error: keyError } = await supabase.rpc("get_secret", {
-      secret_name: "RESEND_API_KEY",
-    });
+    const { value: resendKey, error: keyError } = await readSecret(supabase, "RESEND_API_KEY");
     if (keyError || !resendKey) {
       return new Response(
-        JSON.stringify({ error: "Não foi possível obter a credencial de e-mail", details: keyError?.message }),
+        JSON.stringify({ error: "Não foi possível obter RESEND_API_KEY", details: keyError }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
