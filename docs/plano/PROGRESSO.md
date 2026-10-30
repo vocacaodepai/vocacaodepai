@@ -33,6 +33,7 @@
 | F7 Irmandade e Formação | — | em andamento | 2026-10-30 | claude/fase-7-irmandade-formacao | 7.1–7.9 prontas em código (0015 + seeds 0016 não aplicadas: banco não existe); 7.9b, 7.10, 7.11 pendentes; detalhes em `progresso-fase-7.md` |
 | F7 Irmandade e Formação | 7.1–7.9 | concluída | 2026-10-30 | claude/fase-7-irmandade-formacao | Hub, histórias, perguntas, eventos, admin de moderação/eventos/formação, trilhas (8/107), desafios (3×30), insígnias (BadgeGrid + motor), seeds e sitemap |
 | F8 Automação, rotinas e painel | — | pendente | 2026-10-24 | | Depende de F1 a F7 |
+| F9 Pai Indica Mídia | 9.1–9.9 | concluída (código) | 2026-10-30 | claude/fase-9-pai-indica-midia (sem push) | `media_reviews` (0017) + seed de 12 títulos (0018) não aplicadas (banco não existe); `/pai-indica/midia`, ficha, admin, validador, menu e sitemap prontos; 9.10 (aplicar SQL, conferir ClassInd, ASIN) é do dono; detalhes em `progresso-fase-9.md` |
 
 ## Decisões tomadas durante a execução
 

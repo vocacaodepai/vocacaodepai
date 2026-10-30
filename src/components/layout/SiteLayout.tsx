@@ -50,6 +50,8 @@ export function SiteLayout() {
   const [showSearch, setShowSearch] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [blogOpen, setBlogOpen] = useState(false);
+  // Dropdown genérico dos itens com `children` (Fase 9: Pai Indica → Reviews / Mídia).
+  const [subOpen, setSubOpen] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const isStaff = profile?.role === "admin" || profile?.role === "editor";
@@ -64,6 +66,7 @@ export function SiteLayout() {
   useEffect(() => {
     setOpen(false);
     setBlogOpen(false);
+    setSubOpen(null);
     setUserMenuOpen(false);
   }, [location.pathname]);
 
@@ -174,6 +177,65 @@ export function SiteLayout() {
                             className="block rounded-md px-3 py-1.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-primary/10 hover:text-primary"
                           >
                             {cat.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : item.children ? (
+                /* Item com subitens (Pai Indica → Reviews de produtos / Mídia) */
+                <div
+                  key={item.to}
+                  className="relative"
+                  onMouseEnter={() => setSubOpen(item.to)}
+                  onMouseLeave={() => setSubOpen(null)}
+                >
+                  <div className="inline-flex items-center">
+                    <NavLink
+                      to={item.to}
+                      end={item.end}
+                      className={({ isActive }) => navItemClass(isActive, item.store)}
+                    >
+                      {item.label}
+                    </NavLink>
+                    <button
+                      type="button"
+                      onClick={() => setSubOpen((v) => (v === item.to ? null : item.to))}
+                      aria-expanded={subOpen === item.to}
+                      aria-haspopup="menu"
+                      aria-label={`Abrir submenu de ${item.label}`}
+                      className="-ml-2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 transition-transform",
+                          subOpen === item.to && "rotate-180",
+                        )}
+                        aria-hidden
+                      />
+                    </button>
+                  </div>
+                  {subOpen === item.to && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setSubOpen(null)}
+                        aria-hidden
+                      />
+                      <div
+                        role="menu"
+                        className="absolute left-1/2 top-full z-50 mt-2 w-60 -translate-x-1/2 rounded-lg border border-border bg-card p-2 shadow-elegant"
+                      >
+                        {item.children.map((sub) => (
+                          <Link
+                            key={sub.to}
+                            to={sub.to}
+                            role="menuitem"
+                            onClick={() => setSubOpen(null)}
+                            className="block rounded-md px-3 py-2 text-sm font-semibold text-foreground/80 transition-colors hover:bg-primary/10 hover:text-primary"
+                          >
+                            {sub.label}
                           </Link>
                         ))}
                       </div>

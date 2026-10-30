@@ -74,6 +74,9 @@ import { Route as ApiNewsletterWeeklyRouteImport } from './routes/api/newsletter
 import { Route as AdminAdminEditorIndexRouteImport } from './routes/_admin/admin/editor/index'
 import { Route as AdminAdminEditorIdRouteImport } from './routes/_admin/admin/editor/$id'
 import { Route as AdminAdminIrmandadeIndexRouteImport } from './routes/_admin/admin/irmandade/index'
+import { Route as AdminAdminMidiaIndexRouteImport } from './routes/_admin/admin/midia/index'
+import { Route as AdminAdminMidiaIdRouteImport } from './routes/_admin/admin/midia/$id'
+import { Route as AdminAdminMidiaNovoRouteImport } from './routes/_admin/admin/midia/novo'
 import { Route as AdminAdminProdutosIndexRouteImport } from './routes/_admin/admin/produtos/index'
 import { Route as AdminAdminProdutosIdRouteImport } from './routes/_admin/admin/produtos/$id'
 import { Route as AdminAdminProdutosFilaFotosRouteImport } from './routes/_admin/admin/produtos/fila-fotos'
@@ -90,6 +93,8 @@ import { Route as SitePaiIndicaPaiVagasIndexRouteImport } from './routes/_site/p
 import { Route as SitePaiIndicaPaiVagasSlugRouteImport } from './routes/_site/pai-indica-pai/vagas/$slug'
 import { Route as SitePaiIndicaPaiVagasNovaRouteImport } from './routes/_site/pai-indica-pai/vagas/nova'
 import { Route as SitePaiIndicaPaiVagasRssDotxmlRouteImport } from './routes/_site/pai-indica-pai/vagas/rss[.]xml'
+import { Route as SitePaiIndicaMidiaIndexRouteImport } from './routes/_site/pai-indica/midia/index'
+import { Route as SitePaiIndicaMidiaSlugRouteImport } from './routes/_site/pai-indica/midia/$slug'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
@@ -416,6 +421,21 @@ const AdminAdminIrmandadeIndexRoute =
     path: '/admin/irmandade/',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminAdminMidiaIndexRoute = AdminAdminMidiaIndexRouteImport.update({
+  id: '/admin/midia/',
+  path: '/admin/midia/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminMidiaIdRoute = AdminAdminMidiaIdRouteImport.update({
+  id: '/admin/midia/$id',
+  path: '/admin/midia/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminMidiaNovoRoute = AdminAdminMidiaNovoRouteImport.update({
+  id: '/admin/midia/novo',
+  path: '/admin/midia/novo',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdminProdutosIndexRoute = AdminAdminProdutosIndexRouteImport.update({
   id: '/admin/produtos/',
   path: '/admin/produtos/',
@@ -508,6 +528,16 @@ const SitePaiIndicaPaiVagasRssDotxmlRoute =
     path: '/pai-indica-pai/vagas/rss.xml',
     getParentRoute: () => SiteRoute,
   } as any)
+const SitePaiIndicaMidiaIndexRoute = SitePaiIndicaMidiaIndexRouteImport.update({
+  id: '/pai-indica/midia/',
+  path: '/pai-indica/midia/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SitePaiIndicaMidiaSlugRoute = SitePaiIndicaMidiaSlugRouteImport.update({
+  id: '/pai-indica/midia/$slug',
+  path: '/pai-indica/midia/$slug',
+  getParentRoute: () => SiteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof SiteIndexRoute
@@ -571,6 +601,8 @@ export interface FileRoutesByFullPath {
   '/pai-indica/': typeof SitePaiIndicaIndexRoute
   '/perguntas/': typeof SitePerguntasIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
+  '/admin/midia/$id': typeof AdminAdminMidiaIdRoute
+  '/admin/midia/novo': typeof AdminAdminMidiaNovoRoute
   '/admin/produtos/$id': typeof AdminAdminProdutosIdRoute
   '/admin/produtos/fila-fotos': typeof AdminAdminProdutosFilaFotosRoute
   '/admin/produtos/fila-precos': typeof AdminAdminProdutosFilaPrecosRoute
@@ -582,13 +614,16 @@ export interface FileRoutesByFullPath {
   '/pai-indica-pai/vagas/$slug': typeof SitePaiIndicaPaiVagasSlugRoute
   '/pai-indica-pai/vagas/nova': typeof SitePaiIndicaPaiVagasNovaRoute
   '/pai-indica-pai/vagas/rss.xml': typeof SitePaiIndicaPaiVagasRssDotxmlRoute
+  '/pai-indica/midia/$slug': typeof SitePaiIndicaMidiaSlugRoute
   '/admin/editor/': typeof AdminAdminEditorIndexRoute
   '/admin/irmandade/': typeof AdminAdminIrmandadeIndexRoute
+  '/admin/midia/': typeof AdminAdminMidiaIndexRoute
   '/admin/produtos/': typeof AdminAdminProdutosIndexRoute
   '/pai-indica-pai/indicacoes/': typeof SitePaiIndicaPaiIndicacoesIndexRoute
   '/pai-indica-pai/mentoria/': typeof SitePaiIndicaPaiMentoriaIndexRoute
   '/pai-indica-pai/profissionais/': typeof SitePaiIndicaPaiProfissionaisIndexRoute
   '/pai-indica-pai/vagas/': typeof SitePaiIndicaPaiVagasIndexRoute
+  '/pai-indica/midia/': typeof SitePaiIndicaMidiaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof SiteIndexRoute
@@ -651,6 +686,8 @@ export interface FileRoutesByTo {
   '/pai-indica': typeof SitePaiIndicaIndexRoute
   '/perguntas': typeof SitePerguntasIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
+  '/admin/midia/$id': typeof AdminAdminMidiaIdRoute
+  '/admin/midia/novo': typeof AdminAdminMidiaNovoRoute
   '/admin/produtos/$id': typeof AdminAdminProdutosIdRoute
   '/admin/produtos/fila-fotos': typeof AdminAdminProdutosFilaFotosRoute
   '/admin/produtos/fila-precos': typeof AdminAdminProdutosFilaPrecosRoute
@@ -662,13 +699,16 @@ export interface FileRoutesByTo {
   '/pai-indica-pai/vagas/$slug': typeof SitePaiIndicaPaiVagasSlugRoute
   '/pai-indica-pai/vagas/nova': typeof SitePaiIndicaPaiVagasNovaRoute
   '/pai-indica-pai/vagas/rss.xml': typeof SitePaiIndicaPaiVagasRssDotxmlRoute
+  '/pai-indica/midia/$slug': typeof SitePaiIndicaMidiaSlugRoute
   '/admin/editor': typeof AdminAdminEditorIndexRoute
   '/admin/irmandade': typeof AdminAdminIrmandadeIndexRoute
+  '/admin/midia': typeof AdminAdminMidiaIndexRoute
   '/admin/produtos': typeof AdminAdminProdutosIndexRoute
   '/pai-indica-pai/indicacoes': typeof SitePaiIndicaPaiIndicacoesIndexRoute
   '/pai-indica-pai/mentoria': typeof SitePaiIndicaPaiMentoriaIndexRoute
   '/pai-indica-pai/profissionais': typeof SitePaiIndicaPaiProfissionaisIndexRoute
   '/pai-indica-pai/vagas': typeof SitePaiIndicaPaiVagasIndexRoute
+  '/pai-indica/midia': typeof SitePaiIndicaMidiaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -735,6 +775,8 @@ export interface FileRoutesById {
   '/_site/pai-indica/': typeof SitePaiIndicaIndexRoute
   '/_site/perguntas/': typeof SitePerguntasIndexRoute
   '/_admin/admin/editor/$id': typeof AdminAdminEditorIdRoute
+  '/_admin/admin/midia/$id': typeof AdminAdminMidiaIdRoute
+  '/_admin/admin/midia/novo': typeof AdminAdminMidiaNovoRoute
   '/_admin/admin/produtos/$id': typeof AdminAdminProdutosIdRoute
   '/_admin/admin/produtos/fila-fotos': typeof AdminAdminProdutosFilaFotosRoute
   '/_admin/admin/produtos/fila-precos': typeof AdminAdminProdutosFilaPrecosRoute
@@ -746,13 +788,16 @@ export interface FileRoutesById {
   '/_site/pai-indica-pai/vagas/$slug': typeof SitePaiIndicaPaiVagasSlugRoute
   '/_site/pai-indica-pai/vagas/nova': typeof SitePaiIndicaPaiVagasNovaRoute
   '/_site/pai-indica-pai/vagas/rss.xml': typeof SitePaiIndicaPaiVagasRssDotxmlRoute
+  '/_site/pai-indica/midia/$slug': typeof SitePaiIndicaMidiaSlugRoute
   '/_admin/admin/editor/': typeof AdminAdminEditorIndexRoute
   '/_admin/admin/irmandade/': typeof AdminAdminIrmandadeIndexRoute
+  '/_admin/admin/midia/': typeof AdminAdminMidiaIndexRoute
   '/_admin/admin/produtos/': typeof AdminAdminProdutosIndexRoute
   '/_site/pai-indica-pai/indicacoes/': typeof SitePaiIndicaPaiIndicacoesIndexRoute
   '/_site/pai-indica-pai/mentoria/': typeof SitePaiIndicaPaiMentoriaIndexRoute
   '/_site/pai-indica-pai/profissionais/': typeof SitePaiIndicaPaiProfissionaisIndexRoute
   '/_site/pai-indica-pai/vagas/': typeof SitePaiIndicaPaiVagasIndexRoute
+  '/_site/pai-indica/midia/': typeof SitePaiIndicaMidiaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -818,6 +863,8 @@ export interface FileRouteTypes {
     | '/pai-indica/'
     | '/perguntas/'
     | '/admin/editor/$id'
+    | '/admin/midia/$id'
+    | '/admin/midia/novo'
     | '/admin/produtos/$id'
     | '/admin/produtos/fila-fotos'
     | '/admin/produtos/fila-precos'
@@ -829,13 +876,16 @@ export interface FileRouteTypes {
     | '/pai-indica-pai/vagas/$slug'
     | '/pai-indica-pai/vagas/nova'
     | '/pai-indica-pai/vagas/rss.xml'
+    | '/pai-indica/midia/$slug'
     | '/admin/editor/'
     | '/admin/irmandade/'
+    | '/admin/midia/'
     | '/admin/produtos/'
     | '/pai-indica-pai/indicacoes/'
     | '/pai-indica-pai/mentoria/'
     | '/pai-indica-pai/profissionais/'
     | '/pai-indica-pai/vagas/'
+    | '/pai-indica/midia/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -898,6 +948,8 @@ export interface FileRouteTypes {
     | '/pai-indica'
     | '/perguntas'
     | '/admin/editor/$id'
+    | '/admin/midia/$id'
+    | '/admin/midia/novo'
     | '/admin/produtos/$id'
     | '/admin/produtos/fila-fotos'
     | '/admin/produtos/fila-precos'
@@ -909,13 +961,16 @@ export interface FileRouteTypes {
     | '/pai-indica-pai/vagas/$slug'
     | '/pai-indica-pai/vagas/nova'
     | '/pai-indica-pai/vagas/rss.xml'
+    | '/pai-indica/midia/$slug'
     | '/admin/editor'
     | '/admin/irmandade'
+    | '/admin/midia'
     | '/admin/produtos'
     | '/pai-indica-pai/indicacoes'
     | '/pai-indica-pai/mentoria'
     | '/pai-indica-pai/profissionais'
     | '/pai-indica-pai/vagas'
+    | '/pai-indica/midia'
   id:
     | '__root__'
     | '/_admin'
@@ -981,6 +1036,8 @@ export interface FileRouteTypes {
     | '/_site/pai-indica/'
     | '/_site/perguntas/'
     | '/_admin/admin/editor/$id'
+    | '/_admin/admin/midia/$id'
+    | '/_admin/admin/midia/novo'
     | '/_admin/admin/produtos/$id'
     | '/_admin/admin/produtos/fila-fotos'
     | '/_admin/admin/produtos/fila-precos'
@@ -992,13 +1049,16 @@ export interface FileRouteTypes {
     | '/_site/pai-indica-pai/vagas/$slug'
     | '/_site/pai-indica-pai/vagas/nova'
     | '/_site/pai-indica-pai/vagas/rss.xml'
+    | '/_site/pai-indica/midia/$slug'
     | '/_admin/admin/editor/'
     | '/_admin/admin/irmandade/'
+    | '/_admin/admin/midia/'
     | '/_admin/admin/produtos/'
     | '/_site/pai-indica-pai/indicacoes/'
     | '/_site/pai-indica-pai/mentoria/'
     | '/_site/pai-indica-pai/profissionais/'
     | '/_site/pai-indica-pai/vagas/'
+    | '/_site/pai-indica/midia/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1473,6 +1533,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminIrmandadeIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/midia/': {
+      id: '/_admin/admin/midia/'
+      path: '/admin/midia'
+      fullPath: '/admin/midia/'
+      preLoaderRoute: typeof AdminAdminMidiaIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/midia/$id': {
+      id: '/_admin/admin/midia/$id'
+      path: '/admin/midia/$id'
+      fullPath: '/admin/midia/$id'
+      preLoaderRoute: typeof AdminAdminMidiaIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/midia/novo': {
+      id: '/_admin/admin/midia/novo'
+      path: '/admin/midia/novo'
+      fullPath: '/admin/midia/novo'
+      preLoaderRoute: typeof AdminAdminMidiaNovoRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/admin/produtos/': {
       id: '/_admin/admin/produtos/'
       path: '/admin/produtos'
@@ -1585,6 +1666,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitePaiIndicaPaiVagasRssDotxmlRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/pai-indica/midia/': {
+      id: '/_site/pai-indica/midia/'
+      path: '/pai-indica/midia'
+      fullPath: '/pai-indica/midia/'
+      preLoaderRoute: typeof SitePaiIndicaMidiaIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica/midia/$slug': {
+      id: '/_site/pai-indica/midia/$slug'
+      path: '/pai-indica/midia/$slug'
+      fullPath: '/pai-indica/midia/$slug'
+      preLoaderRoute: typeof SitePaiIndicaMidiaSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
   }
 }
 
@@ -1596,12 +1691,15 @@ interface AdminRouteChildren {
   AdminAdminPaiIndicaPaiRoute: typeof AdminAdminPaiIndicaPaiRoute
   AdminAdminIndexRoute: typeof AdminAdminIndexRoute
   AdminAdminEditorIdRoute: typeof AdminAdminEditorIdRoute
+  AdminAdminMidiaIdRoute: typeof AdminAdminMidiaIdRoute
+  AdminAdminMidiaNovoRoute: typeof AdminAdminMidiaNovoRoute
   AdminAdminProdutosIdRoute: typeof AdminAdminProdutosIdRoute
   AdminAdminProdutosFilaFotosRoute: typeof AdminAdminProdutosFilaFotosRoute
   AdminAdminProdutosFilaPrecosRoute: typeof AdminAdminProdutosFilaPrecosRoute
   AdminAdminProdutosNovoRoute: typeof AdminAdminProdutosNovoRoute
   AdminAdminEditorIndexRoute: typeof AdminAdminEditorIndexRoute
   AdminAdminIrmandadeIndexRoute: typeof AdminAdminIrmandadeIndexRoute
+  AdminAdminMidiaIndexRoute: typeof AdminAdminMidiaIndexRoute
   AdminAdminProdutosIndexRoute: typeof AdminAdminProdutosIndexRoute
 }
 
@@ -1613,12 +1711,15 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminPaiIndicaPaiRoute: AdminAdminPaiIndicaPaiRoute,
   AdminAdminIndexRoute: AdminAdminIndexRoute,
   AdminAdminEditorIdRoute: AdminAdminEditorIdRoute,
+  AdminAdminMidiaIdRoute: AdminAdminMidiaIdRoute,
+  AdminAdminMidiaNovoRoute: AdminAdminMidiaNovoRoute,
   AdminAdminProdutosIdRoute: AdminAdminProdutosIdRoute,
   AdminAdminProdutosFilaFotosRoute: AdminAdminProdutosFilaFotosRoute,
   AdminAdminProdutosFilaPrecosRoute: AdminAdminProdutosFilaPrecosRoute,
   AdminAdminProdutosNovoRoute: AdminAdminProdutosNovoRoute,
   AdminAdminEditorIndexRoute: AdminAdminEditorIndexRoute,
   AdminAdminIrmandadeIndexRoute: AdminAdminIrmandadeIndexRoute,
+  AdminAdminMidiaIndexRoute: AdminAdminMidiaIndexRoute,
   AdminAdminProdutosIndexRoute: AdminAdminProdutosIndexRoute,
 }
 
@@ -1688,10 +1789,12 @@ interface SiteRouteChildren {
   SitePaiIndicaPaiVagasSlugRoute: typeof SitePaiIndicaPaiVagasSlugRoute
   SitePaiIndicaPaiVagasNovaRoute: typeof SitePaiIndicaPaiVagasNovaRoute
   SitePaiIndicaPaiVagasRssDotxmlRoute: typeof SitePaiIndicaPaiVagasRssDotxmlRoute
+  SitePaiIndicaMidiaSlugRoute: typeof SitePaiIndicaMidiaSlugRoute
   SitePaiIndicaPaiIndicacoesIndexRoute: typeof SitePaiIndicaPaiIndicacoesIndexRoute
   SitePaiIndicaPaiMentoriaIndexRoute: typeof SitePaiIndicaPaiMentoriaIndexRoute
   SitePaiIndicaPaiProfissionaisIndexRoute: typeof SitePaiIndicaPaiProfissionaisIndexRoute
   SitePaiIndicaPaiVagasIndexRoute: typeof SitePaiIndicaPaiVagasIndexRoute
+  SitePaiIndicaMidiaIndexRoute: typeof SitePaiIndicaMidiaIndexRoute
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
@@ -1739,11 +1842,13 @@ const SiteRouteChildren: SiteRouteChildren = {
   SitePaiIndicaPaiVagasSlugRoute: SitePaiIndicaPaiVagasSlugRoute,
   SitePaiIndicaPaiVagasNovaRoute: SitePaiIndicaPaiVagasNovaRoute,
   SitePaiIndicaPaiVagasRssDotxmlRoute: SitePaiIndicaPaiVagasRssDotxmlRoute,
+  SitePaiIndicaMidiaSlugRoute: SitePaiIndicaMidiaSlugRoute,
   SitePaiIndicaPaiIndicacoesIndexRoute: SitePaiIndicaPaiIndicacoesIndexRoute,
   SitePaiIndicaPaiMentoriaIndexRoute: SitePaiIndicaPaiMentoriaIndexRoute,
   SitePaiIndicaPaiProfissionaisIndexRoute:
     SitePaiIndicaPaiProfissionaisIndexRoute,
   SitePaiIndicaPaiVagasIndexRoute: SitePaiIndicaPaiVagasIndexRoute,
+  SitePaiIndicaMidiaIndexRoute: SitePaiIndicaMidiaIndexRoute,
 }
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)

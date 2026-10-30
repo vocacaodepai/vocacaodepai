@@ -61,6 +61,28 @@ export default function PaiIndicaListPage({ posts }: { posts: PaiIndicaPost[] })
 
       <ScoreScaleNote className="mt-6" />
 
+      {/* Fase 9: atalho para o Pai Indica Mídia (filmes, séries, jogos, apps e livros por idade) */}
+      <Link
+        to="/pai-indica/midia"
+        className="group mt-6 flex flex-col gap-3 rounded-2xl border-2 border-primary/30 bg-primary/5 p-5 transition-colors hover:border-primary sm:flex-row sm:items-center sm:justify-between"
+      >
+        <span>
+          <span className="block text-xs font-bold uppercase tracking-[0.2em] text-accent">
+            Pai Indica Mídia
+          </span>
+          <span className="mt-1 block font-display text-xl font-bold group-hover:text-primary">
+            Esse filme, série, jogo, app ou livro é para o seu filho?
+          </span>
+          <span className="mt-1 block text-sm text-muted-foreground">
+            Selo oficial ClassInd, nota tripla do pai (qualidade, moral e idade), conteúdo em
+            bolinhas e perguntas para conversar depois.
+          </span>
+        </span>
+        <span className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
+          Ver as fichas →
+        </span>
+      </Link>
+
       <AdSlot format="leaderboard" className="mt-6" />
 
       {posts.length > 0 && (

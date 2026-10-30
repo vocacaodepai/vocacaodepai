@@ -134,3 +134,16 @@
 - [ ] 8.10 Página `/podcast` (episódios + transcrição) e push de novo artigo no PWA
 - [ ] 8.11 Checklist de SEO/AdSense/Amazon Associados do doc 11 cumprido (política de afiliados, aviso, robots, Core Web Vitals verdes)
 - [ ] 8.12 Validar, abrir PR "Fase 8 — Automação, rotinas e painel", atualizar `PROGRESSO.md`; marcar o projeto como "em operação"
+
+## Fase 9 — Pai Indica Mídia (`14-fase-9-pai-indica-midia.md`)
+
+- [x] 9.1 `supabase/migrations/0017_pai_indica_midia.sql`: tabela `media_reviews` (tipo, selo ClassInd, nota tripla, 10 categorias em `content_scores`, pôster licenciado, afiliado só livro/jogo), índices, triggers `updated_at` e `search_content`, RLS (anônimo lê published; `is_admin()` tudo), função `search_media`
+- [x] 9.2 Lib `src/lib/pai-indica-midia/{types,taxonomia,queries,jsonld}.ts` e `src/lib/pai-indica-midia.functions.ts`
+- [x] 9.3 Componentes `src/components/pai-indica-midia/{PosterFrame,MediaBadge,ContentDots,MediaCard,MediaFilter,TalkWithKids}.tsx`
+- [x] 9.4 Rotas `/pai-indica/midia` (listagem, régua tripla, filtro tipo → idade do pai → plataforma) e `/pai-indica/midia/$slug` (ficha completa, JSON-LD Movie/TVSeries/VideoGame/MobileApplication/Book + Review, botão "Comprar agora na Amazon" só livro/jogo)
+- [x] 9.5 Menu: subitem "Mídia" no Pai Indica (`nav.ts`, dropdown no `SiteLayout`, chips no `MobileMenu`); card de atalho em `/pai-indica`; sitemap com `/pai-indica/midia` e os slugs
+- [x] 9.6 Admin `/admin/midia` (lista, `novo`, `$id`) com validação igual à do validador; link "Mídia" no `AdminLayout`
+- [x] 9.7 `scripts/validate-content.mjs`: regras de `media_reviews` em `--files` e `--media`
+- [x] 9.8 `0018_seed_midia.sql`: 12 títulos reais (4 filmes, 3 séries, 2 jogos, 1 app, 2 livros), body ≥ 500 palavras, validados
+- [x] 9.9 `npx tsc --noEmit && npm run lint && npm run build` verdes; `progresso-fase-9.md`; PLANO-MESTRE §3/§6 e este checklist atualizados
+- [ ] 9.10 Dono: aplicar 0017/0018 no Supabase (`apply_migration` / `execute_sql`), conferir os selos ClassInd no portal (`classindportal.mj.gov.br`), informar ASIN dos livros/jogos para o botão de afiliado, decidir sobre pôsteres (Wikimedia CC/PD ou cartão tipográfico)

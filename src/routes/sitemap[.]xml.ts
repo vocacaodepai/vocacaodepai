@@ -31,6 +31,8 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: "/eventos", changefreq: "weekly", priority: "0.6" },
   { path: "/formacao", changefreq: "weekly", priority: "0.8" },
   { path: "/desafios", changefreq: "weekly", priority: "0.7" },
+  // Fase 9 — Pai Indica Mídia (doc 14 §5.3)
+  { path: "/pai-indica/midia", changefreq: "daily", priority: "0.8" },
 ];
 
 function escapeXml(value: string): string {
@@ -89,6 +91,7 @@ async function buildSitemap(): Promise<string> {
     eventsRes,
     tracksRes,
     challengesRes,
+    mediaRes,
   ] = await Promise.all([
     supabase
       .from("posts")
@@ -131,6 +134,13 @@ async function buildSitemap(): Promise<string> {
       .select("slug, updated_at")
       .eq("status", "published")
       .order("sort_order"),
+    // Fase 9 — Pai Indica Mídia (RLS já filtra published).
+    supabase
+      .from("media_reviews")
+      .select("slug, updated_at")
+      .eq("status", PUBLISHED)
+      .lte("publish_at", nowIso())
+      .order("publish_at", { ascending: false }),
   ]);
 
   const today = toLastmod(null);
@@ -216,6 +226,11 @@ async function buildSitemap(): Promise<string> {
   for (const c of (challengesRes.data ?? []) as unknown as SlugRow[]) {
     entries.push(
       urlEntry(`${SITE_URL}/desafios/${c.slug}`, toLastmod(c.updated_at), "monthly", "0.7"),
+    );
+  }
+  for (const m of (mediaRes.data ?? []) as unknown as SlugRow[]) {
+    entries.push(
+      urlEntry(`${SITE_URL}/pai-indica/midia/${m.slug}`, toLastmod(m.updated_at), "weekly", "0.7"),
     );
   }
 
