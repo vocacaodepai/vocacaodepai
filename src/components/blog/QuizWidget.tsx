@@ -24,7 +24,12 @@ interface Answered {
   explanation?: string;
 }
 
-export function QuizWidget({ quiz, postId }: { quiz: QuizQuestion[]; postId: string }) {
+export function QuizWidget({ quiz: rawQuiz, postId }: { quiz: QuizQuestion[]; postId: string }) {
+  // Seeds e editor gravam `correct` (CLAUDE.md §6); conteúdo antigo pode trazer `answer`.
+  const quiz = rawQuiz.map((q) => {
+    const c = (q as unknown as { correct?: number }).correct;
+    return typeof q.answer === "number" ? q : { ...q, answer: typeof c === "number" ? c : 0 };
+  });
   const { user, openLogin } = useAuth();
   const [attempt, setAttempt] = useState<{ score: number; total: number } | null | undefined>(
     undefined,
