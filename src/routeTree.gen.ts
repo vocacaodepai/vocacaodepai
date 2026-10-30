@@ -27,19 +27,35 @@ import { Route as SiteTermosDeUsoRouteImport } from './routes/_site/termos-de-us
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiNewsletterRouteImport } from './routes/api/newsletter'
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
+import { Route as AdminAdminEventosRouteImport } from './routes/_admin/admin/eventos'
+import { Route as AdminAdminFormacaoRouteImport } from './routes/_admin/admin/formacao'
+import { Route as AdminAdminModeracaoRouteImport } from './routes/_admin/admin/moderacao'
 import { Route as SiteCategoriaSlugRouteImport } from './routes/_site/categoria/$slug'
+import { Route as SiteDesafiosIndexRouteImport } from './routes/_site/desafios/index'
+import { Route as SiteDesafiosSlugRouteImport } from './routes/_site/desafios/$slug'
+import { Route as SiteEventosIndexRouteImport } from './routes/_site/eventos/index'
+import { Route as SiteEventosSlugRouteImport } from './routes/_site/eventos/$slug'
 import { Route as SiteFerramentasIndexRouteImport } from './routes/_site/ferramentas/index'
 import { Route as SiteFormacaoIndexRouteImport } from './routes/_site/formacao/index'
+import { Route as SiteFormacaoSlugRouteImport } from './routes/_site/formacao/$slug'
+import { Route as SiteHistoriasIndexRouteImport } from './routes/_site/historias/index'
+import { Route as SiteHistoriasIdRouteImport } from './routes/_site/historias/$id'
+import { Route as SiteHistoriasNovaRouteImport } from './routes/_site/historias/nova'
 import { Route as SiteLojaIndexRouteImport } from './routes/_site/loja/index'
 import { Route as SiteLojaSlugRouteImport } from './routes/_site/loja/$slug'
 import { Route as SitePaiIndicaPaiIndexRouteImport } from './routes/_site/pai-indica-pai/index'
 import { Route as SitePaiIndicaIndexRouteImport } from './routes/_site/pai-indica/index'
 import { Route as SitePaiIndicaSlugRouteImport } from './routes/_site/pai-indica/$slug'
+import { Route as SitePerguntasIndexRouteImport } from './routes/_site/perguntas/index'
+import { Route as SitePerguntasSlugRouteImport } from './routes/_site/perguntas/$slug'
+import { Route as SitePerguntasNovaRouteImport } from './routes/_site/perguntas/nova'
 import { Route as SitePostSlugRouteImport } from './routes/_site/post/$slug'
+import { Route as ApiCronEventReminderRouteImport } from './routes/api/cron.event-reminder'
 import { Route as ApiImgSplatRouteImport } from './routes/api/img/$'
 import { Route as ApiNewsletterConfirmarRouteImport } from './routes/api/newsletter.confirmar'
 import { Route as AdminAdminEditorIndexRouteImport } from './routes/_admin/admin/editor/index'
 import { Route as AdminAdminEditorIdRouteImport } from './routes/_admin/admin/editor/$id'
+import { Route as AdminAdminIrmandadeIndexRouteImport } from './routes/_admin/admin/irmandade/index'
 import { Route as AdminAdminProdutosIndexRouteImport } from './routes/_admin/admin/produtos/index'
 import { Route as AdminAdminProdutosIdRouteImport } from './routes/_admin/admin/produtos/$id'
 import { Route as AdminAdminProdutosFilaFotosRouteImport } from './routes/_admin/admin/produtos/fila-fotos'
@@ -136,9 +152,44 @@ const AdminAdminIndexRoute = AdminAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminEventosRoute = AdminAdminEventosRouteImport.update({
+  id: '/admin/eventos',
+  path: '/admin/eventos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminFormacaoRoute = AdminAdminFormacaoRouteImport.update({
+  id: '/admin/formacao',
+  path: '/admin/formacao',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminModeracaoRoute = AdminAdminModeracaoRouteImport.update({
+  id: '/admin/moderacao',
+  path: '/admin/moderacao',
+  getParentRoute: () => AdminRoute,
+} as any)
 const SiteCategoriaSlugRoute = SiteCategoriaSlugRouteImport.update({
   id: '/categoria/$slug',
   path: '/categoria/$slug',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteDesafiosIndexRoute = SiteDesafiosIndexRouteImport.update({
+  id: '/desafios/',
+  path: '/desafios/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteDesafiosSlugRoute = SiteDesafiosSlugRouteImport.update({
+  id: '/desafios/$slug',
+  path: '/desafios/$slug',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteEventosIndexRoute = SiteEventosIndexRouteImport.update({
+  id: '/eventos/',
+  path: '/eventos/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteEventosSlugRoute = SiteEventosSlugRouteImport.update({
+  id: '/eventos/$slug',
+  path: '/eventos/$slug',
   getParentRoute: () => SiteRoute,
 } as any)
 const SiteFerramentasIndexRoute = SiteFerramentasIndexRouteImport.update({
@@ -149,6 +200,26 @@ const SiteFerramentasIndexRoute = SiteFerramentasIndexRouteImport.update({
 const SiteFormacaoIndexRoute = SiteFormacaoIndexRouteImport.update({
   id: '/formacao/',
   path: '/formacao/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteFormacaoSlugRoute = SiteFormacaoSlugRouteImport.update({
+  id: '/formacao/$slug',
+  path: '/formacao/$slug',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteHistoriasIndexRoute = SiteHistoriasIndexRouteImport.update({
+  id: '/historias/',
+  path: '/historias/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteHistoriasIdRoute = SiteHistoriasIdRouteImport.update({
+  id: '/historias/$id',
+  path: '/historias/$id',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteHistoriasNovaRoute = SiteHistoriasNovaRouteImport.update({
+  id: '/historias/nova',
+  path: '/historias/nova',
   getParentRoute: () => SiteRoute,
 } as any)
 const SiteLojaIndexRoute = SiteLojaIndexRouteImport.update({
@@ -176,10 +247,30 @@ const SitePaiIndicaSlugRoute = SitePaiIndicaSlugRouteImport.update({
   path: '/pai-indica/$slug',
   getParentRoute: () => SiteRoute,
 } as any)
+const SitePerguntasIndexRoute = SitePerguntasIndexRouteImport.update({
+  id: '/perguntas/',
+  path: '/perguntas/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SitePerguntasSlugRoute = SitePerguntasSlugRouteImport.update({
+  id: '/perguntas/$slug',
+  path: '/perguntas/$slug',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SitePerguntasNovaRoute = SitePerguntasNovaRouteImport.update({
+  id: '/perguntas/nova',
+  path: '/perguntas/nova',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SitePostSlugRoute = SitePostSlugRouteImport.update({
   id: '/post/$slug',
   path: '/post/$slug',
   getParentRoute: () => SiteRoute,
+} as any)
+const ApiCronEventReminderRoute = ApiCronEventReminderRouteImport.update({
+  id: '/api/cron/event-reminder',
+  path: '/api/cron/event-reminder',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiImgSplatRoute = ApiImgSplatRouteImport.update({
   id: '/api/img/$',
@@ -201,6 +292,12 @@ const AdminAdminEditorIdRoute = AdminAdminEditorIdRouteImport.update({
   path: '/admin/editor/$id',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminIrmandadeIndexRoute =
+  AdminAdminIrmandadeIndexRouteImport.update({
+    id: '/admin/irmandade/',
+    path: '/admin/irmandade/',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminAdminProdutosIndexRoute = AdminAdminProdutosIndexRouteImport.update({
   id: '/admin/produtos/',
   path: '/admin/produtos/',
@@ -250,18 +347,33 @@ export interface FileRoutesByFullPath {
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
+  '/admin/eventos': typeof AdminAdminEventosRoute
+  '/admin/formacao': typeof AdminAdminFormacaoRoute
+  '/admin/moderacao': typeof AdminAdminModeracaoRoute
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/desafios/$slug': typeof SiteDesafiosSlugRoute
+  '/eventos/$slug': typeof SiteEventosSlugRoute
+  '/formacao/$slug': typeof SiteFormacaoSlugRoute
+  '/historias/$id': typeof SiteHistoriasIdRoute
+  '/historias/nova': typeof SiteHistoriasNovaRoute
   '/loja/$slug': typeof SiteLojaSlugRoute
   '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
+  '/perguntas/$slug': typeof SitePerguntasSlugRoute
+  '/perguntas/nova': typeof SitePerguntasNovaRoute
   '/post/$slug': typeof SitePostSlugRoute
+  '/api/cron/event-reminder': typeof ApiCronEventReminderRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/admin/': typeof AdminAdminIndexRoute
+  '/desafios/': typeof SiteDesafiosIndexRoute
+  '/eventos/': typeof SiteEventosIndexRoute
   '/ferramentas/': typeof SiteFerramentasIndexRoute
   '/formacao/': typeof SiteFormacaoIndexRoute
+  '/historias/': typeof SiteHistoriasIndexRoute
   '/loja/': typeof SiteLojaIndexRoute
   '/pai-indica-pai/': typeof SitePaiIndicaPaiIndexRoute
   '/pai-indica/': typeof SitePaiIndicaIndexRoute
+  '/perguntas/': typeof SitePerguntasIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
   '/admin/produtos/$id': typeof AdminAdminProdutosIdRoute
   '/admin/produtos/fila-fotos': typeof AdminAdminProdutosFilaFotosRoute
@@ -269,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/admin/produtos/novo': typeof AdminAdminProdutosNovoRoute
   '/loja/categoria/$slug': typeof SiteLojaCategoriaSlugRoute
   '/admin/editor/': typeof AdminAdminEditorIndexRoute
+  '/admin/irmandade/': typeof AdminAdminIrmandadeIndexRoute
   '/admin/produtos/': typeof AdminAdminProdutosIndexRoute
 }
 export interface FileRoutesByTo {
@@ -287,18 +400,33 @@ export interface FileRoutesByTo {
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
+  '/admin/eventos': typeof AdminAdminEventosRoute
+  '/admin/formacao': typeof AdminAdminFormacaoRoute
+  '/admin/moderacao': typeof AdminAdminModeracaoRoute
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/desafios/$slug': typeof SiteDesafiosSlugRoute
+  '/eventos/$slug': typeof SiteEventosSlugRoute
+  '/formacao/$slug': typeof SiteFormacaoSlugRoute
+  '/historias/$id': typeof SiteHistoriasIdRoute
+  '/historias/nova': typeof SiteHistoriasNovaRoute
   '/loja/$slug': typeof SiteLojaSlugRoute
   '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
+  '/perguntas/$slug': typeof SitePerguntasSlugRoute
+  '/perguntas/nova': typeof SitePerguntasNovaRoute
   '/post/$slug': typeof SitePostSlugRoute
+  '/api/cron/event-reminder': typeof ApiCronEventReminderRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/admin': typeof AdminAdminIndexRoute
+  '/desafios': typeof SiteDesafiosIndexRoute
+  '/eventos': typeof SiteEventosIndexRoute
   '/ferramentas': typeof SiteFerramentasIndexRoute
   '/formacao': typeof SiteFormacaoIndexRoute
+  '/historias': typeof SiteHistoriasIndexRoute
   '/loja': typeof SiteLojaIndexRoute
   '/pai-indica-pai': typeof SitePaiIndicaPaiIndexRoute
   '/pai-indica': typeof SitePaiIndicaIndexRoute
+  '/perguntas': typeof SitePerguntasIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
   '/admin/produtos/$id': typeof AdminAdminProdutosIdRoute
   '/admin/produtos/fila-fotos': typeof AdminAdminProdutosFilaFotosRoute
@@ -306,6 +434,7 @@ export interface FileRoutesByTo {
   '/admin/produtos/novo': typeof AdminAdminProdutosNovoRoute
   '/loja/categoria/$slug': typeof SiteLojaCategoriaSlugRoute
   '/admin/editor': typeof AdminAdminEditorIndexRoute
+  '/admin/irmandade': typeof AdminAdminIrmandadeIndexRoute
   '/admin/produtos': typeof AdminAdminProdutosIndexRoute
 }
 export interface FileRoutesById {
@@ -327,18 +456,33 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/_site/': typeof SiteIndexRoute
+  '/_admin/admin/eventos': typeof AdminAdminEventosRoute
+  '/_admin/admin/formacao': typeof AdminAdminFormacaoRoute
+  '/_admin/admin/moderacao': typeof AdminAdminModeracaoRoute
   '/_site/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/_site/desafios/$slug': typeof SiteDesafiosSlugRoute
+  '/_site/eventos/$slug': typeof SiteEventosSlugRoute
+  '/_site/formacao/$slug': typeof SiteFormacaoSlugRoute
+  '/_site/historias/$id': typeof SiteHistoriasIdRoute
+  '/_site/historias/nova': typeof SiteHistoriasNovaRoute
   '/_site/loja/$slug': typeof SiteLojaSlugRoute
   '/_site/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
+  '/_site/perguntas/$slug': typeof SitePerguntasSlugRoute
+  '/_site/perguntas/nova': typeof SitePerguntasNovaRoute
   '/_site/post/$slug': typeof SitePostSlugRoute
+  '/api/cron/event-reminder': typeof ApiCronEventReminderRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/_admin/admin/': typeof AdminAdminIndexRoute
+  '/_site/desafios/': typeof SiteDesafiosIndexRoute
+  '/_site/eventos/': typeof SiteEventosIndexRoute
   '/_site/ferramentas/': typeof SiteFerramentasIndexRoute
   '/_site/formacao/': typeof SiteFormacaoIndexRoute
+  '/_site/historias/': typeof SiteHistoriasIndexRoute
   '/_site/loja/': typeof SiteLojaIndexRoute
   '/_site/pai-indica-pai/': typeof SitePaiIndicaPaiIndexRoute
   '/_site/pai-indica/': typeof SitePaiIndicaIndexRoute
+  '/_site/perguntas/': typeof SitePerguntasIndexRoute
   '/_admin/admin/editor/$id': typeof AdminAdminEditorIdRoute
   '/_admin/admin/produtos/$id': typeof AdminAdminProdutosIdRoute
   '/_admin/admin/produtos/fila-fotos': typeof AdminAdminProdutosFilaFotosRoute
@@ -346,6 +490,7 @@ export interface FileRoutesById {
   '/_admin/admin/produtos/novo': typeof AdminAdminProdutosNovoRoute
   '/_site/loja/categoria/$slug': typeof SiteLojaCategoriaSlugRoute
   '/_admin/admin/editor/': typeof AdminAdminEditorIndexRoute
+  '/_admin/admin/irmandade/': typeof AdminAdminIrmandadeIndexRoute
   '/_admin/admin/produtos/': typeof AdminAdminProdutosIndexRoute
 }
 export interface FileRouteTypes {
@@ -366,18 +511,33 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/admin/login'
     | '/api/newsletter'
+    | '/admin/eventos'
+    | '/admin/formacao'
+    | '/admin/moderacao'
     | '/categoria/$slug'
+    | '/desafios/$slug'
+    | '/eventos/$slug'
+    | '/formacao/$slug'
+    | '/historias/$id'
+    | '/historias/nova'
     | '/loja/$slug'
     | '/pai-indica/$slug'
+    | '/perguntas/$slug'
+    | '/perguntas/nova'
     | '/post/$slug'
+    | '/api/cron/event-reminder'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
     | '/admin/'
+    | '/desafios/'
+    | '/eventos/'
     | '/ferramentas/'
     | '/formacao/'
+    | '/historias/'
     | '/loja/'
     | '/pai-indica-pai/'
     | '/pai-indica/'
+    | '/perguntas/'
     | '/admin/editor/$id'
     | '/admin/produtos/$id'
     | '/admin/produtos/fila-fotos'
@@ -385,6 +545,7 @@ export interface FileRouteTypes {
     | '/admin/produtos/novo'
     | '/loja/categoria/$slug'
     | '/admin/editor/'
+    | '/admin/irmandade/'
     | '/admin/produtos/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -403,18 +564,33 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/admin/login'
     | '/api/newsletter'
+    | '/admin/eventos'
+    | '/admin/formacao'
+    | '/admin/moderacao'
     | '/categoria/$slug'
+    | '/desafios/$slug'
+    | '/eventos/$slug'
+    | '/formacao/$slug'
+    | '/historias/$id'
+    | '/historias/nova'
     | '/loja/$slug'
     | '/pai-indica/$slug'
+    | '/perguntas/$slug'
+    | '/perguntas/nova'
     | '/post/$slug'
+    | '/api/cron/event-reminder'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
     | '/admin'
+    | '/desafios'
+    | '/eventos'
     | '/ferramentas'
     | '/formacao'
+    | '/historias'
     | '/loja'
     | '/pai-indica-pai'
     | '/pai-indica'
+    | '/perguntas'
     | '/admin/editor/$id'
     | '/admin/produtos/$id'
     | '/admin/produtos/fila-fotos'
@@ -422,6 +598,7 @@ export interface FileRouteTypes {
     | '/admin/produtos/novo'
     | '/loja/categoria/$slug'
     | '/admin/editor'
+    | '/admin/irmandade'
     | '/admin/produtos'
   id:
     | '__root__'
@@ -442,18 +619,33 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/newsletter'
     | '/_site/'
+    | '/_admin/admin/eventos'
+    | '/_admin/admin/formacao'
+    | '/_admin/admin/moderacao'
     | '/_site/categoria/$slug'
+    | '/_site/desafios/$slug'
+    | '/_site/eventos/$slug'
+    | '/_site/formacao/$slug'
+    | '/_site/historias/$id'
+    | '/_site/historias/nova'
     | '/_site/loja/$slug'
     | '/_site/pai-indica/$slug'
+    | '/_site/perguntas/$slug'
+    | '/_site/perguntas/nova'
     | '/_site/post/$slug'
+    | '/api/cron/event-reminder'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
     | '/_admin/admin/'
+    | '/_site/desafios/'
+    | '/_site/eventos/'
     | '/_site/ferramentas/'
     | '/_site/formacao/'
+    | '/_site/historias/'
     | '/_site/loja/'
     | '/_site/pai-indica-pai/'
     | '/_site/pai-indica/'
+    | '/_site/perguntas/'
     | '/_admin/admin/editor/$id'
     | '/_admin/admin/produtos/$id'
     | '/_admin/admin/produtos/fila-fotos'
@@ -461,6 +653,7 @@ export interface FileRouteTypes {
     | '/_admin/admin/produtos/novo'
     | '/_site/loja/categoria/$slug'
     | '/_admin/admin/editor/'
+    | '/_admin/admin/irmandade/'
     | '/_admin/admin/produtos/'
   fileRoutesById: FileRoutesById
 }
@@ -471,6 +664,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AdminLoginRoute: typeof AdminLoginRoute
   ApiNewsletterRoute: typeof ApiNewsletterRouteWithChildren
+  ApiCronEventReminderRoute: typeof ApiCronEventReminderRoute
   ApiImgSplatRoute: typeof ApiImgSplatRoute
 }
 
@@ -602,11 +796,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/eventos': {
+      id: '/_admin/admin/eventos'
+      path: '/admin/eventos'
+      fullPath: '/admin/eventos'
+      preLoaderRoute: typeof AdminAdminEventosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/formacao': {
+      id: '/_admin/admin/formacao'
+      path: '/admin/formacao'
+      fullPath: '/admin/formacao'
+      preLoaderRoute: typeof AdminAdminFormacaoRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/moderacao': {
+      id: '/_admin/admin/moderacao'
+      path: '/admin/moderacao'
+      fullPath: '/admin/moderacao'
+      preLoaderRoute: typeof AdminAdminModeracaoRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_site/categoria/$slug': {
       id: '/_site/categoria/$slug'
       path: '/categoria/$slug'
       fullPath: '/categoria/$slug'
       preLoaderRoute: typeof SiteCategoriaSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/desafios/': {
+      id: '/_site/desafios/'
+      path: '/desafios'
+      fullPath: '/desafios/'
+      preLoaderRoute: typeof SiteDesafiosIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/desafios/$slug': {
+      id: '/_site/desafios/$slug'
+      path: '/desafios/$slug'
+      fullPath: '/desafios/$slug'
+      preLoaderRoute: typeof SiteDesafiosSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/eventos/': {
+      id: '/_site/eventos/'
+      path: '/eventos'
+      fullPath: '/eventos/'
+      preLoaderRoute: typeof SiteEventosIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/eventos/$slug': {
+      id: '/_site/eventos/$slug'
+      path: '/eventos/$slug'
+      fullPath: '/eventos/$slug'
+      preLoaderRoute: typeof SiteEventosSlugRouteImport
       parentRoute: typeof SiteRoute
     }
     '/_site/ferramentas/': {
@@ -621,6 +864,34 @@ declare module '@tanstack/react-router' {
       path: '/formacao'
       fullPath: '/formacao/'
       preLoaderRoute: typeof SiteFormacaoIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/formacao/$slug': {
+      id: '/_site/formacao/$slug'
+      path: '/formacao/$slug'
+      fullPath: '/formacao/$slug'
+      preLoaderRoute: typeof SiteFormacaoSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/historias/': {
+      id: '/_site/historias/'
+      path: '/historias'
+      fullPath: '/historias/'
+      preLoaderRoute: typeof SiteHistoriasIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/historias/$id': {
+      id: '/_site/historias/$id'
+      path: '/historias/$id'
+      fullPath: '/historias/$id'
+      preLoaderRoute: typeof SiteHistoriasIdRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/historias/nova': {
+      id: '/_site/historias/nova'
+      path: '/historias/nova'
+      fullPath: '/historias/nova'
+      preLoaderRoute: typeof SiteHistoriasNovaRouteImport
       parentRoute: typeof SiteRoute
     }
     '/_site/loja/': {
@@ -658,12 +929,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitePaiIndicaSlugRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/perguntas/': {
+      id: '/_site/perguntas/'
+      path: '/perguntas'
+      fullPath: '/perguntas/'
+      preLoaderRoute: typeof SitePerguntasIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/perguntas/$slug': {
+      id: '/_site/perguntas/$slug'
+      path: '/perguntas/$slug'
+      fullPath: '/perguntas/$slug'
+      preLoaderRoute: typeof SitePerguntasSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/perguntas/nova': {
+      id: '/_site/perguntas/nova'
+      path: '/perguntas/nova'
+      fullPath: '/perguntas/nova'
+      preLoaderRoute: typeof SitePerguntasNovaRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/post/$slug': {
       id: '/_site/post/$slug'
       path: '/post/$slug'
       fullPath: '/post/$slug'
       preLoaderRoute: typeof SitePostSlugRouteImport
       parentRoute: typeof SiteRoute
+    }
+    '/api/cron/event-reminder': {
+      id: '/api/cron/event-reminder'
+      path: '/api/cron/event-reminder'
+      fullPath: '/api/cron/event-reminder'
+      preLoaderRoute: typeof ApiCronEventReminderRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/img/$': {
       id: '/api/img/$'
@@ -691,6 +990,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/editor/$id'
       fullPath: '/admin/editor/$id'
       preLoaderRoute: typeof AdminAdminEditorIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/irmandade/': {
+      id: '/_admin/admin/irmandade/'
+      path: '/admin/irmandade'
+      fullPath: '/admin/irmandade/'
+      preLoaderRoute: typeof AdminAdminIrmandadeIndexRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/admin/produtos/': {
@@ -739,6 +1045,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAdminEventosRoute: typeof AdminAdminEventosRoute
+  AdminAdminFormacaoRoute: typeof AdminAdminFormacaoRoute
+  AdminAdminModeracaoRoute: typeof AdminAdminModeracaoRoute
   AdminAdminIndexRoute: typeof AdminAdminIndexRoute
   AdminAdminEditorIdRoute: typeof AdminAdminEditorIdRoute
   AdminAdminProdutosIdRoute: typeof AdminAdminProdutosIdRoute
@@ -746,10 +1055,14 @@ interface AdminRouteChildren {
   AdminAdminProdutosFilaPrecosRoute: typeof AdminAdminProdutosFilaPrecosRoute
   AdminAdminProdutosNovoRoute: typeof AdminAdminProdutosNovoRoute
   AdminAdminEditorIndexRoute: typeof AdminAdminEditorIndexRoute
+  AdminAdminIrmandadeIndexRoute: typeof AdminAdminIrmandadeIndexRoute
   AdminAdminProdutosIndexRoute: typeof AdminAdminProdutosIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminEventosRoute: AdminAdminEventosRoute,
+  AdminAdminFormacaoRoute: AdminAdminFormacaoRoute,
+  AdminAdminModeracaoRoute: AdminAdminModeracaoRoute,
   AdminAdminIndexRoute: AdminAdminIndexRoute,
   AdminAdminEditorIdRoute: AdminAdminEditorIdRoute,
   AdminAdminProdutosIdRoute: AdminAdminProdutosIdRoute,
@@ -757,6 +1070,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminProdutosFilaPrecosRoute: AdminAdminProdutosFilaPrecosRoute,
   AdminAdminProdutosNovoRoute: AdminAdminProdutosNovoRoute,
   AdminAdminEditorIndexRoute: AdminAdminEditorIndexRoute,
+  AdminAdminIrmandadeIndexRoute: AdminAdminIrmandadeIndexRoute,
   AdminAdminProdutosIndexRoute: AdminAdminProdutosIndexRoute,
 }
 
@@ -775,14 +1089,25 @@ interface SiteRouteChildren {
   SiteTermosDeUsoRoute: typeof SiteTermosDeUsoRoute
   SiteIndexRoute: typeof SiteIndexRoute
   SiteCategoriaSlugRoute: typeof SiteCategoriaSlugRoute
+  SiteDesafiosSlugRoute: typeof SiteDesafiosSlugRoute
+  SiteEventosSlugRoute: typeof SiteEventosSlugRoute
+  SiteFormacaoSlugRoute: typeof SiteFormacaoSlugRoute
+  SiteHistoriasIdRoute: typeof SiteHistoriasIdRoute
+  SiteHistoriasNovaRoute: typeof SiteHistoriasNovaRoute
   SiteLojaSlugRoute: typeof SiteLojaSlugRoute
   SitePaiIndicaSlugRoute: typeof SitePaiIndicaSlugRoute
+  SitePerguntasSlugRoute: typeof SitePerguntasSlugRoute
+  SitePerguntasNovaRoute: typeof SitePerguntasNovaRoute
   SitePostSlugRoute: typeof SitePostSlugRoute
+  SiteDesafiosIndexRoute: typeof SiteDesafiosIndexRoute
+  SiteEventosIndexRoute: typeof SiteEventosIndexRoute
   SiteFerramentasIndexRoute: typeof SiteFerramentasIndexRoute
   SiteFormacaoIndexRoute: typeof SiteFormacaoIndexRoute
+  SiteHistoriasIndexRoute: typeof SiteHistoriasIndexRoute
   SiteLojaIndexRoute: typeof SiteLojaIndexRoute
   SitePaiIndicaPaiIndexRoute: typeof SitePaiIndicaPaiIndexRoute
   SitePaiIndicaIndexRoute: typeof SitePaiIndicaIndexRoute
+  SitePerguntasIndexRoute: typeof SitePerguntasIndexRoute
   SiteLojaCategoriaSlugRoute: typeof SiteLojaCategoriaSlugRoute
 }
 
@@ -799,14 +1124,25 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteTermosDeUsoRoute: SiteTermosDeUsoRoute,
   SiteIndexRoute: SiteIndexRoute,
   SiteCategoriaSlugRoute: SiteCategoriaSlugRoute,
+  SiteDesafiosSlugRoute: SiteDesafiosSlugRoute,
+  SiteEventosSlugRoute: SiteEventosSlugRoute,
+  SiteFormacaoSlugRoute: SiteFormacaoSlugRoute,
+  SiteHistoriasIdRoute: SiteHistoriasIdRoute,
+  SiteHistoriasNovaRoute: SiteHistoriasNovaRoute,
   SiteLojaSlugRoute: SiteLojaSlugRoute,
   SitePaiIndicaSlugRoute: SitePaiIndicaSlugRoute,
+  SitePerguntasSlugRoute: SitePerguntasSlugRoute,
+  SitePerguntasNovaRoute: SitePerguntasNovaRoute,
   SitePostSlugRoute: SitePostSlugRoute,
+  SiteDesafiosIndexRoute: SiteDesafiosIndexRoute,
+  SiteEventosIndexRoute: SiteEventosIndexRoute,
   SiteFerramentasIndexRoute: SiteFerramentasIndexRoute,
   SiteFormacaoIndexRoute: SiteFormacaoIndexRoute,
+  SiteHistoriasIndexRoute: SiteHistoriasIndexRoute,
   SiteLojaIndexRoute: SiteLojaIndexRoute,
   SitePaiIndicaPaiIndexRoute: SitePaiIndicaPaiIndexRoute,
   SitePaiIndicaIndexRoute: SitePaiIndicaIndexRoute,
+  SitePerguntasIndexRoute: SitePerguntasIndexRoute,
   SiteLojaCategoriaSlugRoute: SiteLojaCategoriaSlugRoute,
 }
 
@@ -831,6 +1167,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AdminLoginRoute: AdminLoginRoute,
   ApiNewsletterRoute: ApiNewsletterRouteWithChildren,
+  ApiCronEventReminderRoute: ApiCronEventReminderRoute,
   ApiImgSplatRoute: ApiImgSplatRoute,
 }
 export const routeTree = rootRouteImport

@@ -29,7 +29,8 @@
 | F4 Caixa de Ferramentas | — | pendente | 2026-10-24 | | Depende de F1 |
 | F5 Área do Pai | — | pendente | 2026-10-24 | | Depende de F1, F3, F4 |
 | F6 Pai Indica Pai | — | pendente | 2026-10-24 | | Depende de F5 |
-| F7 Irmandade e Formação | — | pendente | 2026-10-24 | | Depende de F5 |
+| F7 Irmandade e Formação | — | em andamento | 2026-10-30 | claude/fase-7-irmandade-formacao | 7.1–7.9 prontas em código (0015 + seeds 0016 não aplicadas: banco não existe); 7.9b, 7.10, 7.11 pendentes; detalhes em `progresso-fase-7.md` |
+| F7 Irmandade e Formação | 7.1–7.9 | concluída | 2026-10-30 | claude/fase-7-irmandade-formacao | Hub, histórias, perguntas, eventos, admin de moderação/eventos/formação, trilhas (8/107), desafios (3×30), insígnias (BadgeGrid + motor), seeds e sitemap |
 | F8 Automação, rotinas e painel | — | pendente | 2026-10-24 | | Depende de F1 a F7 |
 
 ## Decisões tomadas durante a execução
