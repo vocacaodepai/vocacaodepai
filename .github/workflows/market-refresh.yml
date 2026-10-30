@@ -1,0 +1,35 @@
+name: Mercado do pai — atualizar cotações
+
+# Atualiza market_cache a cada 30 min chamando POST /api/market/refresh (doc 06 §2.6; doc 10 §7).
+# Padrão dos crons da Fase 8: segredo único CRON_SECRET (Authorization: Bearer), URL base na variável de
+# repositório PUBLIC_SITE_URL (Settings → Secrets and variables → Actions → Variables) e workflow_dispatch.
+# Sem auto-merge aqui: este workflow só faz a chamada HTTP.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *" # UTC; atrasos do GitHub são cobertos pelo cache stale-while-error
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Chamar /api/market/refresh
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ vars.PUBLIC_SITE_URL || 'https://vocacaodepai.com.br' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET}" ]; then echo "Secret CRON_SECRET não configurado no repositório." >&2; exit 1; fi
+          code=$(curl -sS -o /tmp/out.json -w '%{http_code}' --max-time 60 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" "${SITE_URL%/}/api/market/refresh")
+          echo "HTTP ${code}"; cat /tmp/out.json; echo
+          if [ "$code" != "200" ] && [ "$code" != "207" ]; then exit 1; fi

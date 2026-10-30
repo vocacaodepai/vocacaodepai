@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Supabase__apply_migration",
+      "mcp__Supabase__deploy_edge_function",
+      "mcp__Supabase__get_edge_function",
+      "mcp__Supabase__list_edge_functions",
+      "mcp__Supabase__list_migrations",
+      "mcp__Supabase__get_advisors",
+      "mcp__Supabase__query_logs",
+      "mcp__Supabase__execute_sql",
+      "mcp__Supabase__list_tables",
+      "mcp__Unsplash__search_photos",
+      "WebSearch",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git fetch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git push origin claude/:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(curl -s -X POST https://<SUPABASE_PROJECT_REF>.supabase.co/functions/v1/seo-search-console:*)",
+      "Bash(python3:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(cp:*)",
+      "mcp__github__create_pull_request",
+      "mcp__github__pull_request_read"
+    ],
+    "deny": [
+      "mcp__github__merge_pull_request",
+      "mcp__Lovable__send_message",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)"
+    ]
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "churrasco-e-cozinha": [
+    {
+      "name": "Desempenho",
+      "weight": 30
+    },
+    {
+      "name": "Material e acabamento",
+      "weight": 20
+    },
+    {
+      "name": "Facilidade de uso e limpeza",
+      "weight": 15
+    },
+    {
+      "name": "Durabilidade e garantia",
+      "weight": 15
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 20
+    }
+  ],
+  "ferramentas": [
+    {
+      "name": "Desempenho",
+      "weight": 30
+    },
+    {
+      "name": "Ergonomia e peso",
+      "weight": 15
+    },
+    {
+      "name": "Durabilidade",
+      "weight": 20
+    },
+    {
+      "name": "Acessórios e garantia",
+      "weight": 15
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 20
+    }
+  ],
+  "carro-e-moto": [
+    {
+      "name": "Funcionalidade",
+      "weight": 30
+    },
+    {
+      "name": "Instalação e praticidade",
+      "weight": 15
+    },
+    {
+      "name": "Qualidade de construção",
+      "weight": 20
+    },
+    {
+      "name": "Segurança e certificação",
+      "weight": 15
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 20
+    }
+  ],
+  "tecnologia": [
+    {
+      "name": "Desempenho",
+      "weight": 25
+    },
+    {
+      "name": "Recursos e conectividade",
+      "weight": 20
+    },
+    {
+      "name": "Bateria e autonomia",
+      "weight": 15
+    },
+    {
+      "name": "Construção e conforto",
+      "weight": 15
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 25
+    }
+  ],
+  "esporte-e-outdoor": [
+    {
+      "name": "Desempenho no uso",
+      "weight": 30
+    },
+    {
+      "name": "Conforto",
+      "weight": 20
+    },
+    {
+      "name": "Resistência e materiais",
+      "weight": 20
+    },
+    {
+      "name": "Praticidade",
+      "weight": 10
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 20
+    }
+  ],
+  "bebe-e-crianca": [
+    {
+      "name": "Segurança e certificação",
+      "weight": 35
+    },
+    {
+      "name": "Praticidade para o pai",
+      "weight": 20
+    },
+    {
+      "name": "Conforto da criança",
+      "weight": 15
+    },
+    {
+      "name": "Durabilidade",
+      "weight": 10
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 20
+    }
+  ],
+  "casa-e-jardim": [
+    {
+      "name": "Eficiência",
+      "weight": 30
+    },
+    {
+      "name": "Praticidade",
+      "weight": 20
+    },
+    {
+      "name": "Ruído e consumo",
+      "weight": 15
+    },
+    {
+      "name": "Durabilidade",
+      "weight": 15
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 20
+    }
+  ],
+  "saude-do-homem": [
+    {
+      "name": "Eficácia percebida",
+      "weight": 30
+    },
+    {
+      "name": "Precisão e confiabilidade",
+      "weight": 20
+    },
+    {
+      "name": "Conforto e praticidade",
+      "weight": 15
+    },
+    {
+      "name": "Segurança e materiais",
+      "weight": 15
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 20
+    }
+  ],
+  "estilo-e-barba": [
+    {
+      "name": "Resultado",
+      "weight": 30
+    },
+    {
+      "name": "Conforto na pele",
+      "weight": 20
+    },
+    {
+      "name": "Bateria e manutenção",
+      "weight": 15
+    },
+    {
+      "name": "Acabamento e durabilidade",
+      "weight": 15
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 20
+    }
+  ],
+  "livros-e-formacao": [
+    {
+      "name": "Profundidade do conteúdo",
+      "weight": 30
+    },
+    {
+      "name": "Aplicação prática",
+      "weight": 25
+    },
+    {
+      "name": "Clareza e escrita",
+      "weight": 20
+    },
+    {
+      "name": "Alinhamento com a formação do pai",
+      "weight": 15
+    },
+    {
+      "name": "Custo-benefício",
+      "weight": 10
+    }
+  ]
+}

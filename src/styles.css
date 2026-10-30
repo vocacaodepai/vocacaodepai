@@ -1,0 +1,843 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-glow: hsl(var(--primary-glow));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  /* Semáforo do Pai: Sinal verde / Sinal de atenção / Sinal de alerta */
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-danger: hsl(var(--danger));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
+
+  --shadow-soft: 0 10px 30px -12px hsl(var(--primary) / 0.18);
+  --shadow-elegant: 0 18px 50px -20px hsl(var(--primary) / 0.35);
+  --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.35);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.5s ease-out both;
+  --animate-float-soft: float-soft 6s ease-in-out infinite;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes float-soft {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+}
+
+@utility container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  @media (width >= 1280px) {
+    max-width: 1280px;
+  }
+}
+
+@utility bg-gradient-primary {
+  background-image: var(--gradient-primary);
+}
+@utility bg-gradient-soft {
+  background-image: var(--gradient-soft);
+}
+@utility bg-gradient-hero {
+  background-image: var(--gradient-hero);
+}
+
+@layer base {
+  :root {
+    /* Vocação de Pai — areia + petróleo + couro (doc 03 §4.1 / doc 00 §7.5) */
+    --background: 39 39% 93%; /* #F4EFE6 */
+    --foreground: 210 13% 12%; /* #1B1F23 */
+
+    --card: 40 40% 97%;
+    --card-foreground: 210 13% 12%;
+
+    --popover: 40 40% 97%;
+    --popover-foreground: 210 13% 12%;
+
+    --primary: 190 64% 22%; /* #14505C */
+    --primary-foreground: 0 0% 100%;
+
+    --primary-glow: 190 50% 36%;
+
+    --secondary: 210 14% 14%; /* #1F2429 */
+    --secondary-foreground: 39 39% 93%;
+
+    --muted: 39 25% 88%;
+    --muted-foreground: 210 10% 38%;
+
+    --accent: 30 70% 51%; /* #D9822B */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 51% 46%; /* #B23A3A */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Semáforo do Pai */
+    --success: 145 45% 34%; /* #2F7D4F */
+    --warning: 43 78% 48%; /* #D9A21B */
+    --danger: 0 51% 46%; /* #B23A3A */
+
+    --border: 39 20% 82%;
+    --input: 39 20% 80%;
+    --ring: 190 64% 22%;
+
+    --radius: 0.5rem; /* mais reto, masculino */
+
+    --sidebar-background: 40 40% 96%;
+    --sidebar-foreground: 210 13% 18%;
+    --sidebar-primary: 190 64% 22%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 39 25% 90%;
+    --sidebar-accent-foreground: 210 13% 12%;
+    --sidebar-border: 39 20% 82%;
+    --sidebar-ring: 190 64% 22%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(190 64% 22%), hsl(190 50% 32%));
+    --gradient-soft: linear-gradient(160deg, hsl(40 40% 97%) 0%, hsl(39 30% 90%) 100%);
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(190 30% 90%) 0%,
+      hsl(39 39% 93%) 55%,
+      hsl(30 60% 90%) 100%
+    );
+  }
+
+  .dark {
+    /* Vocação de Pai — modo escuro: fundo #14181C, cartões #1F2429 */
+    --background: 210 17% 9%; /* #14181C */
+    --foreground: 39 30% 92%;
+
+    --card: 210 14% 14%; /* #1F2429 */
+    --card-foreground: 39 30% 92%;
+
+    --popover: 210 14% 14%;
+    --popover-foreground: 39 30% 92%;
+
+    --primary: 190 45% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --primary-glow: 190 50% 50%;
+
+    --secondary: 210 12% 20%;
+    --secondary-foreground: 39 30% 92%;
+
+    --muted: 210 12% 18%;
+    --muted-foreground: 39 12% 68%;
+
+    --accent: 30 70% 55%;
+    --accent-foreground: 210 17% 9%;
+
+    --destructive: 0 51% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 145 40% 42%;
+    --warning: 43 70% 55%;
+    --danger: 0 51% 52%;
+
+    --border: 210 12% 22%;
+    --input: 210 12% 24%;
+    --ring: 190 45% 40%;
+
+    --sidebar-background: 210 15% 11%;
+    --sidebar-foreground: 39 30% 88%;
+    --sidebar-primary: 190 45% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 12% 18%;
+    --sidebar-accent-foreground: 39 30% 92%;
+    --sidebar-border: 210 12% 22%;
+    --sidebar-ring: 190 45% 40%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(190 45% 34%), hsl(190 45% 44%));
+    --gradient-soft: linear-gradient(160deg, hsl(210 17% 10%) 0%, hsl(210 14% 14%) 100%);
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(190 30% 14%) 0%,
+      hsl(210 17% 10%) 55%,
+      hsl(30 30% 14%) 100%
+    );
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+
+  /* Títulos em Barlow Condensed (peso 600/700, tracking-tight, caixa normal);
+     texto em Inter. Caixa alta só em rótulos pequenos de seção (doc 00 §7.6). */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h1,
+  h2 {
+    font-weight: 700;
+  }
+
+  table,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.25);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Soft paper texture overlay for atmosphere */
+.site-texture {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background-image: radial-gradient(hsl(var(--primary) / 0.06) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+/* ---------- Article typography (TipTap rendered content) ---------- */
+.article-content {
+  font-size: 1.075rem;
+  line-height: 1.85;
+  color: hsl(var(--foreground));
+}
+
+.article-content h2 {
+  font-size: 1.7rem;
+  line-height: 1.3;
+  font-weight: 700;
+  margin: 2.4rem 0 1rem;
+  color: hsl(var(--foreground));
+  scroll-margin-top: 6rem;
+}
+
+.article-content h3 {
+  font-size: 1.3rem;
+  line-height: 1.35;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+  color: hsl(var(--foreground));
+  scroll-margin-top: 6rem;
+}
+
+.article-content p {
+  margin: 1.1rem 0;
+}
+
+.article-content a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: hsl(var(--primary) / 0.4);
+  transition: color 0.2s ease;
+}
+
+.article-content a:hover {
+  text-decoration-color: hsl(var(--primary));
+}
+
+.article-content ul,
+.article-content ol {
+  margin: 1.2rem 0;
+  padding-left: 1.6rem;
+}
+
+.article-content ul {
+  list-style: disc;
+}
+
+.article-content ol {
+  list-style: decimal;
+}
+
+.article-content li {
+  margin: 0.45rem 0;
+  padding-left: 0.25rem;
+}
+
+.article-content li::marker {
+  color: hsl(var(--primary));
+}
+
+.article-content blockquote {
+  margin: 1.8rem 0;
+  padding: 1.2rem 1.6rem;
+  border-left: 4px solid hsl(var(--primary));
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: hsl(var(--secondary) / 0.35);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-style: italic;
+  color: hsl(var(--secondary-foreground));
+}
+
+.article-content blockquote p {
+  margin: 0;
+}
+
+.article-content strong {
+  font-weight: 800;
+  color: hsl(var(--foreground));
+}
+
+.article-content img {
+  border-radius: var(--radius);
+  margin: 1.6rem auto;
+  width: 100%;
+  height: auto;
+  box-shadow: var(--shadow-soft);
+}
+
+.article-content hr {
+  margin: 2rem 0;
+  border-color: hsl(var(--border));
+}
+
+/* ---------- Widget "Decisor rápido" (interativo) ---------- */
+.decisor-rapido-placeholder {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+}
+
+.article-content .decisor-rapido h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.article-content .decisor-rapido a,
+.article-content .tiptap .decisor-rapido a {
+  color: hsl(var(--primary-foreground));
+  font-weight: 700;
+  text-decoration: none;
+  text-underline-offset: 0;
+  text-decoration-color: transparent;
+}
+
+.article-content .decisor-rapido a:hover,
+.article-content .tiptap .decisor-rapido a:hover {
+  color: hsl(var(--primary-foreground));
+  opacity: 0.92;
+  text-decoration: none;
+  text-decoration-color: transparent;
+}
+
+/* ---------- Widget "Fotos dos modelos" (faixa 5 colunas) ---------- */
+.fotos-modelos-placeholder,
+.buy-card-placeholder,
+.galeria-produto-placeholder {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+}
+
+/* Botão "Comprar agora na Amazon" dentro dos comparativos e reviews (link com class="btn-comprar") */
+.article-content a.btn-comprar,
+.article-content .tiptap a.btn-comprar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  box-shadow: var(--shadow-soft, 0 8px 24px -8px rgb(0 0 0 / 0.25));
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.article-content a.btn-comprar:hover,
+.article-content .tiptap a.btn-comprar:hover {
+  transform: scale(1.02);
+  background-color: hsl(var(--accent) / 0.9);
+  color: hsl(var(--accent-foreground));
+  text-decoration: none;
+}
+
+.article-content p.btn-comprar-wrap {
+  margin: 1.25rem 0;
+}
+
+.article-content .fotos-modelos a,
+.article-content .tiptap .fotos-modelos a {
+  color: hsl(var(--primary-foreground));
+  font-weight: 700;
+  text-decoration: none;
+  text-underline-offset: 0;
+  text-decoration-color: transparent;
+}
+
+.article-content .fotos-modelos a:hover,
+.article-content .tiptap .fotos-modelos a:hover {
+  color: hsl(var(--primary-foreground));
+  opacity: 0.92;
+  text-decoration: none;
+  text-decoration-color: transparent;
+}
+
+/* Neutraliza as regras globais do artigo dentro da faixa de fotos */
+.article-content .fotos-modelos img {
+  margin: 0;
+  width: auto;
+  height: 100%;
+  box-shadow: none;
+  border-radius: 0.5rem;
+}
+
+/* ---------- TipTap editor styling ---------- */
+.tiptap {
+  min-height: 320px;
+  outline: none;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.tiptap p {
+  margin: 0.6rem 0;
+}
+
+.tiptap h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1.4rem 0 0.5rem;
+}
+
+.tiptap h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 1.2rem 0 0.4rem;
+}
+
+.tiptap ul,
+.tiptap ol {
+  padding-left: 1.5rem;
+  margin: 0.6rem 0;
+}
+
+.tiptap ul {
+  list-style: disc;
+}
+
+.tiptap ol {
+  list-style: decimal;
+}
+
+.tiptap blockquote {
+  border-left: 3px solid hsl(var(--primary));
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.tiptap img {
+  max-width: 100%;
+  border-radius: var(--radius);
+  margin: 1rem 0;
+}
+
+.tiptap .ProseMirror-selectednode {
+  outline: 2px solid hsl(var(--primary));
+  border-radius: var(--radius);
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  height: 0;
+}
+
+/* ---------- Blocos ricos de artigo (tabelas, checklist, callouts) ---------- */
+.article-content .tiptap table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.9rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+.article-content .tiptap table th {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  font-weight: 700;
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid hsl(var(--border));
+}
+.article-content .tiptap table td {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid hsl(var(--border));
+}
+.article-content .tiptap table tr:nth-child(even) td {
+  background: hsl(var(--muted) / 0.4);
+}
+
+/* Celular: tabela vira lista de cartões (nada cortado, sem rolagem lateral) */
+.article-content .tiptap .table-wrap {
+  max-width: 100%;
+}
+@media (max-width: 767px) {
+  .article-content .tiptap table,
+  .article-content .tiptap table tbody {
+    display: block;
+    width: 100%;
+    border: 0;
+  }
+  .article-content .tiptap table tr:first-child {
+    display: none;
+  }
+  .article-content .tiptap table tr {
+    display: block;
+    margin: 0 0 0.9rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: hsl(var(--card, var(--background)));
+  }
+  .article-content .tiptap table td {
+    display: block;
+    border: 0;
+    border-bottom: 1px solid hsl(var(--border));
+    padding: 0.55rem 0.85rem;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    background: transparent !important;
+  }
+  .article-content .tiptap table td:last-child {
+    border-bottom: 0;
+  }
+  .article-content .tiptap table td:first-child {
+    background: hsl(var(--secondary)) !important;
+    color: hsl(var(--secondary-foreground));
+    font-weight: 700;
+  }
+  .article-content .tiptap table td[data-label]:not(:first-child)::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 0.15rem;
+  }
+  .article-content .tiptap table td p {
+    margin: 0;
+  }
+}
+
+.article-content .tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+.article-content .tiptap ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.article-content .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  pointer-events: none;
+  cursor: pointer;
+  margin-top: 0.3rem;
+  accent-color: hsl(var(--primary));
+}
+.article-content .tiptap ul[data-type="taskList"] li {
+  cursor: pointer;
+}
+.article-content .tiptap ul[data-type="taskList"] li p {
+  margin: 0;
+}
+
+/* Links internos do artigo */
+.article-content .tiptap a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+.article-content .tiptap a:hover {
+  opacity: 0.8;
+}
+
+/* Imagens dentro do artigo */
+.article-content .tiptap img {
+  display: block;
+  max-width: 100%;
+  margin: 1.5rem auto;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.18);
+}
+
+/* ---------- Callout (semáforo) ---------- */
+.article-content .callout-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 1rem 0;
+  border-radius: 0 0.75rem 0.75rem 0;
+  padding: 0.85rem 1rem;
+  border-left-width: 4px;
+  border-left-style: solid;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.article-content .callout-box .callout-label-wrap {
+  flex-shrink: 0;
+}
+.article-content .callout-box .callout-label {
+  display: inline-block;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.75);
+  padding: 0.15rem 0.65rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+}
+.article-content .callout-box .callout-body {
+  flex: 1;
+  min-width: 0;
+}
+.article-content .callout-box .callout-body > p {
+  margin: 0;
+}
+/* Semáforo do Pai: borda esquerda de 6 px nas cores sucesso/atenção/alerta (doc 00 §7.7) */
+.article-content .callout-box.callout-ok {
+  border-left-width: 6px;
+  border-left-color: hsl(var(--success));
+  background: hsl(var(--success) / 0.1);
+}
+.article-content .callout-box.callout-warn {
+  border-left-width: 6px;
+  border-left-color: hsl(var(--warning));
+  background: hsl(var(--warning) / 0.14);
+}
+.article-content .callout-box.callout-bad {
+  border-left-width: 6px;
+  border-left-color: hsl(var(--danger));
+  background: hsl(var(--danger) / 0.1);
+}
+.article-content .callout-box.callout-tip {
+  border-left-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+}
+.article-content .callout-box .callout-label {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+/* Animações da manobra de engasgo (setas de direção) */
+@keyframes engasgoArrowDown {
+  0% {
+    transform: translateY(-6px);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-6px);
+    opacity: 0.4;
+  }
+}
+@keyframes engasgoArrowUp {
+  0% {
+    transform: translateY(6px) rotate(180deg);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-6px) rotate(180deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(6px) rotate(180deg);
+    opacity: 0.4;
+  }
+}
+.engasgo-arrow-down {
+  animation: engasgoArrowDown 0.9s ease-in-out infinite;
+}
+.engasgo-arrow-up {
+  animation: engasgoArrowUp 0.9s ease-in-out infinite;
+}
+
+/* Impressão do checklist da ferramenta de saltos (mostra só a área .print-saltos) */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-saltos,
+  .print-saltos * {
+    visibility: visible;
+  }
+  .print-saltos {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ---------- Pai Indica: cartão "Onde comprar", galeria e fotos em tamanho padrão ---------- */
+.article-content .tiptap .buy-card a.buy-card-btn,
+.buy-card-btn {
+  color: hsl(var(--primary-foreground));
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.article-content .tiptap .buy-card a.buy-card-btn:hover,
+.buy-card-btn:hover {
+  color: hsl(var(--primary-foreground));
+  opacity: 0.92;
+  text-decoration: none;
+}
+
+/* Todas as imagens soltas do artigo (qualquer categoria): mesmo retângulo 4:3, inteiras (sem cortar) */
+.article-content .tiptap > img,
+.article-content .tiptap p > img {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  object-fit: contain;
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
+}
+/* Foto de produto (review): fundo branco e respiro, como na galeria */
+.article-content.review-article .tiptap > img,
+.article-content.review-article .tiptap p > img {
+  background: #fff;
+  padding: 0.75rem;
+}
+
+.article-content .galeria-produto img,
+.article-content .buy-card img {
+  margin: 0;
+  width: 100%;
+  box-shadow: none;
+  border-radius: 0;
+}

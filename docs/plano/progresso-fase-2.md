@@ -1,0 +1,46 @@
+# Progresso — Fase 2 (Pai Indica)
+
+> Sessão de 2026-10-30, branch `claude/fase-2-pai-indica` (worktree). Doc da fase: `04-fase-2-pai-indica-reviews.md`.
+> Banco ainda não existe (placeholder `<SUPABASE_PROJECT_REF>`): nada foi aplicado no Supabase; tudo está em
+> migrations/seeds commitados e o site renderiza com estados vazios.
+
+## Feito
+
+| Bloco (doc 04) | Arquivos | Estado |
+|---|---|---|
+| §2.5/§2.6 tipos e nota | `src/lib/pai-indica/types.ts`, `score.ts` (SCORE_BANDS, weightedScore, bandOf, validateCriteria) | pronto |
+| §3 taxonomia e pesos | `src/lib/pai-indica/taxonomia.ts` (10 × 6–10 subcategorias), `criterios.ts` (5 × 100); `scripts/export-taxonomia.mjs` → `scripts/lib/{taxonomia,criterios}.json` (`npm run taxonomia:json`) | pronto |
+| §4 componentes | `src/components/pai-indica/`: `filterVisibility.ts`, `ReviewBadge`, `ScoreScaleNote` (retrátil, fechada), `ProductCategoryFilter`, `PaiIndicaFilter` (Todos / Review individual / Comparativo / Lista → categoria → subcategoria, no navegador via `data-kind`/`data-product-category`/`data-product-subcategory`), `AffiliateButton` ("Comprar agora na Amazon" / "Comprar <produto> agora na Amazon", `btn-comprar`, `rel="sponsored nofollow noopener"`, `target="_blank"`, `?tag=` garantido, GA4 `affiliate_click`), `AffiliateDisclosure`, `PriceRange`, `CriteriaScores`, `ProsCons`, `ComparisonTable`, `VerdictByProfile`, `PaiIndicaCard` | pronto |
+| §5.1 `/pai-indica` | `src/lib/pai-indica.functions.ts` (`getPaiIndicaList`, `getProductsBySlugs`, `getRelatedPaiIndica`), `src/lib/pai-indica/queries.ts` (consultas por kind/categoria + `products_for_post`/`posts_for_product` da 0003), `src/routes/_site/pai-indica/index.tsx`, `src/pages/PaiIndicaListPage.tsx` (sem paginação, filtro em duas camadas, `ScoreScaleNote`, seção "Como avaliamos" `#como-avaliamos` com régua e pesos vindos de `score.ts`/`criterios.ts`) | pronto |
+| §5.2 `/pai-indica/$slug` | `src/routes/_site/pai-indica/$slug.tsx`, `src/pages/PaiIndicaPostPage.tsx`, `src/lib/pai-indica/body.ts` (`prepareBody`: enriquece `fotosModelos`/`galeriaProduto`/`buyCard` com foto, `affiliate_url` e faixa de `products`; troca `{FAIXA:slug}` e `{AMAZON:slug}`; `splitPoints`/`sliceDoc` para inserir os blocos React). Review: abertura → "Em 3 pontos" → fotos → caixa de veredito (ideal_for/not_ideal_for/faixa/botão) → `CriteriaScores` → corpo → `ProsCons` → "Variação de preço"… → FAQ → quiz → `StickyBuyBar` → "Continue no Pai Indica". Comparativo/lista: abertura → "Em 3 pontos" → `fotosModelos` → `ComparisonTable` (remove a 1ª `table` do body) → seções por produto → "Por que importa" → "Variação de preço" → `VerdictByProfile` + "Qual comprar" → "Como avaliamos" + critérios/pesos → FAQ/quiz → "Onde comprar" (`enhanceReviewBody`) → "Continue no Pai Indica" | pronto |
+| §5.3 redirects, cards, home, sitemap | `/post/$slug` de Pai Indica → 301 `/pai-indica/$slug`; `/categoria/pai-indica` → 301 `/pai-indica`; `PostCard` e `PaiIndicaTeaser` com `ReviewBadge` e link `/pai-indica/<slug>`; home com 6 cards + `ScoreScaleNote`; sitemap com `/pai-indica` e `/pai-indica/<slug>` (os 3 kinds saem de `/post/`) | pronto (menu já tinha "Pai Indica" na Fase 1) |
+| §7 JSON-LD | `src/lib/pai-indica/jsonld.ts`: Article + Review/Product (review) ou ItemList de Product (comparativo/lista) + BreadcrumbList + FAQPage; sem `aggregateRating`, sem `price` | pronto |
+| §11 validador | `scripts/validate-content.mjs` estendido: taxonomia/par válido, pesos da categoria, média ponderada ±0,15, capa composta `/images/covers/<slug>.jpg` existente, title 20–100, subtitle 50–220, excerpt ≤155, termos de promoção/teste físico, ≥6 H2, headings obrigatórios ("Em 3 pontos", "Como avaliamos", "Variação de preço", "O que dizem outros compradores" em review, "Como escolhemos"/"O que não recomendamos" em lista), ≥4 `/post/`, `/loja/<slug>` por produto, botões (texto, `rel` exato, `target`, `/dp/` + `tag=`, sem `linkCode`, mínimo por kind), `fotosModelos` com os mesmos slugs, roles por kind, 1 vencedor, selos únicos, tabela coerente, `verdict_by_profile` ≥2, ≥120 palavras por produto em lista, faq ≥4, produtos com foto/affiliate/review longa. `npm run validate:content` | pronto |
+| §6/§9 rotina | `scripts/rotina/cover_cmp.py` (degradê areia→petróleo, sombra petróleo, nome em grafite, rótulo "PAI INDICA", barra âmbar; testado: 1280×720), `amz.py` (cache `/tmp/amzcache-vocacaodepai`), `BRIEF_COMPARATIVO_PAI.md`, `BRIEF_REVIEW_UNICA_PAI.md`, `BRIEF_REVIEW_LOJA_PAI.md` (texto literal do doc 04 §9) | pronto |
+| §10 seed | `supabase/migrations/0011_seed_pai_indica.sql` (gerada por `scripts/rotina/seed_pai_indica/gen.mjs` a partir de `posts/*.mjs` + `products.mjs`): 3 reviews (OneBlade QP2724, Xiaomi Scale 2, Schulz Air Plus 12 V), 2 comparativos (parafusadeiras 12 V; Bip 5 × Band 9 × Fit3), 1 lista (5 livros de finanças) + 14 produtos; capas em `public/images/covers/`. `node scripts/validate-content.mjs --files supabase/migrations/0011_seed_pai_indica.sql` → 6/6 posts e 14/14 produtos válidos (com avisos PENDENTE) | pronto, **não aplicada** |
+
+Validação: `npx tsc --noEmit`, `npm run lint`, `npm run build` verdes; validador verde nas seeds 0009–0011.
+
+## Decisões tomadas durante a execução
+
+- 2026-10-30 · F2 · **Botões no body usam `href = "{AMAZON:slug}"`** (classe `btn-comprar`, `rel="sponsored nofollow noopener"`, `target="_blank"`), resolvido em `prepareBody` com `products.affiliate_url` + `?tag=PUBLIC_AMAZON_TAG` · o ASIN e a tag ainda não existem; o body fica independente de ambos (mesmo padrão de `{FAIXA:slug}`); o validador aceita o placeholder e exige `/dp/<ASIN>` + `tag=` quando a URL for real.
+- 2026-10-30 · F2 · `/politica-editorial` e `/autor/$slug` (doc 04 §5.4/5.5) **não** entraram nesta sessão (fora do escopo pedido); os links "Como avaliamos" de `ScoreScaleNote`/`CriteriaScores` apontam para `/pai-indica#como-avaliamos` (seção da própria listagem com régua e pesos gerados de `score.ts`/`criterios.ts`); trocar por `/politica-editorial` quando a rota existir.
+- 2026-10-30 · F2 · `products.asin = null` em todos os 14 produtos da seed (Amazon devolve 503 para busca no container; nenhum ASIN confirmado); `affiliate_url` = busca na Amazon com `tag=vocacaodepai-20` (placeholder), `image_url = null`, `images = []`, `review = null`. No validador, produto de seed com `asin null` recebe **aviso PENDENTE** (só em `--files`); no banco continua erro. O `on conflict` da 0011 preserva asin/affiliate_url/fotos/review/faixa já preenchidos no banco.
+- 2026-10-30 · F2 · Capas compostas geradas com **placeholder** ("Foto oficial em breve") por `cover_cmp.py`, só para a validação do arquivo e o layout; regerar com as fotos `_AC_SL1500_` assim que os ASINs forem confirmados.
+- 2026-10-30 · F2 · Faixas de preço da seed são plausíveis (`price_max ≤ 3×price_min`) com `price_range_checked_at = null` → o site mostra "(estimativa)"; pesquisa em 2 lojas fica para a rotina (BRIEF §faixa).
+- 2026-10-30 · F2 · Seleção dos 6 primeiros (pedido: 3 reviews, 2 comparativos, 1 lista): #1, #3, #5, #8, #9, #10 do doc 04 §10 (R1 tinha 3 comparativos; trocamos #7 cadeirinha pelo review #8 e acrescentamos #10).
+- 2026-10-30 · F2 · `FotosModelos.tsx` ganhou `faixa` por modelo e tolera `src` vazio; `ShareButtons` ganhou `path` opcional (`/pai-indica/<slug>`); `home.functions.ts` passa a 6 cards.
+- 2026-10-30 · F2 · Semáforo do pai incluído nos Pai Indica com risco (parafusadeira, balança/dieta, pneu/compressor), seguindo as regras do Padrão A (3 callouts, alerta cita profissional).
+- 2026-10-30 · F2 · `package.json`: scripts `validate:content`, `taxonomia:json`, `typecheck`.
+
+## Pendências
+
+- [ ] **Dono**: `PUBLIC_AMAZON_TAG` (seed usa `vocacaodepai-20` como placeholder nas URLs de busca).
+- [ ] **Antes de aplicar a 0011**: confirmar ASIN de cada um dos 14 produtos (`python3 scripts/rotina/amz.py <ASIN>` fora do container ou pelo dono), preencher `asin`, `affiliate_url = https://www.amazon.com.br/dp/<ASIN>/?tag=<PUBLIC_AMAZON_TAG>`, `image_url`/`images` (≥3 fotos `_AC_SL1500_`, HEAD 200 e >15 KB) e a review longa (`products.review`, `BRIEF_REVIEW_LOJA_PAI.md`); regerar as 6 capas com `cover_cmp.py` e as fotos oficiais; pesquisar faixa em 2 lojas e gravar `price_range_checked_at`.
+- [ ] Aplicar `0011_seed_pai_indica.sql` via `mcp__Supabase__execute_sql` quando o projeto existir (depende da Fase 1, etapas 1 e 3) e rodar `node scripts/validate-content.mjs --slug <slugs>` contra o banco.
+- [ ] Doc 04 §5.4/5.5: `/politica-editorial`, `0009_public_authors.sql` (número já ocupado: usar `0012`), `/autor/$slug`, `AUTHORS` em `site.ts`, `AuthorByline` com "Revisado por".
+- [ ] Doc 04 §9: copiar/adaptar `cmp_gen.py`, `rev_art_gen.py`, `review_gen.py`, `photo_upgrade.py`, `backfill_covers.py`, `README.md` (a seed desta sessão usou `scripts/rotina/seed_pai_indica/gen.mjs`, em Node).
+- [ ] Rodadas R1–R4 restantes do doc 04 §10 (14 posts): #2, #4, #6, #7, #11–#20.
+- [ ] Admin (checklist 2.8): formulário dedicado de review/comparativo (hoje os JSON entram em campos de texto já existentes no `AdminEditor`).
+- [ ] CI com `npm run validate:content` e `git diff --exit-code scripts/lib` (Fase 8).
+- [ ] Fonte Barlow Condensed para `cover_cmp.py` (`scripts/rotina/fonts/BarlowCondensed-Bold.ttf`): hoje cai em DejaVu.

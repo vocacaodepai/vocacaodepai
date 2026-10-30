@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <!-- Bússola do Pai em 16 px: sem "VP", círculo cheio (doc 00 §7.3) -->
+  <rect width="24" height="24" rx="5" fill="#14505C"/>
+  <g fill="#F4EFE6" stroke="#F4EFE6" stroke-width="0.8" stroke-linejoin="round">
+    <polygon points="12,1.6 9.4,6.2 14.6,6.2"/>
+    <polygon points="12,22.4 9.4,17.8 14.6,17.8"/>
+    <polygon points="22.4,12 17.8,9.4 17.8,14.6"/>
+    <polygon points="1.6,12 6.2,9.4 6.2,14.6"/>
+    <rect x="8.6" y="3.8" width="6.8" height="1.4" rx="0.4" fill="#D9822B" stroke="#D9822B"/>
+    <circle cx="12" cy="12" r="4.2" fill="#D9822B" stroke="none"/>
+  </g>
+</svg>

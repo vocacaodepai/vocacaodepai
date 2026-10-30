@@ -1,0 +1,30 @@
+name: Pai Indica Pai — expirar vagas vencidas (disparo manual)
+
+# Doc 02 §4.8 e §8: a expiração de vagas (45 dias) e indicações (90 dias) é agendada UMA vez, pelo
+# pg_cron `vdp-expire-jobs` de 0008_cron.sql (select public.expire_jobs()). A rota /api/cron/expire-jobs
+# (Fase 6) existe só para disparo manual, por isso este workflow NÃO tem schedule: é o botão "Run workflow"
+# para o dono reexecutar se o pg_cron falhar. Padrão dos crons da Fase 8: CRON_SECRET + PUBLIC_SITE_URL.
+# Enquanto a Fase 6 não criar a rota, a chamada devolve 404 e o job falha — esperado.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  expire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Chamar /api/cron/expire-jobs
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ vars.PUBLIC_SITE_URL || 'https://vocacaodepai.com.br' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET}" ]; then echo "Secret CRON_SECRET não configurado no repositório." >&2; exit 1; fi
+          code=$(curl -sS -o /tmp/out.json -w '%{http_code}' --max-time 60 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" "${SITE_URL%/}/api/cron/expire-jobs")
+          echo "HTTP ${code}"; cat /tmp/out.json; echo
+          [ "$code" = "200" ]

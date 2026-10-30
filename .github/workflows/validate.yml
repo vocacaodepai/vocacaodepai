@@ -1,0 +1,82 @@
+name: Validar build, lint e conteúdo
+
+# Fase 8 (doc 10 §5.4 e §10.2): roda em todo push e PR para main. Sem auto-merge aqui — quem mescla até o fim
+# da Fase 8 é o dono; o auto-merge.yml fica guardado em .github/workflows-disabled/ (ver README de lá).
+# O validador roda em modo --files (sem banco) sobre TODAS as migrations de seed (0008+), com --products,
+# e em modo banco (--since 7d) só quando os secrets SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY existirem.
+# Marcar este job ("validate") como required check em Settings → Branches → main antes de ligar o auto-merge.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 9 * * 0" # domingo 06:17 America/Sao_Paulo: validação completa do banco (--all), se houver secrets
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'placeholder' }}
+          PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL || 'https://vocacaodepai.com.br' }}
+        run: npm run build
+      - name: Validar conteúdo das migrations de seed (sem banco)
+        run: |
+          set -euo pipefail
+          files=$(ls supabase/migrations/00[0-9][0-9]_*.sql | grep -v -E '000[1-7]_' | tr '\n' ' ')
+          echo "arquivos: $files"
+          node scripts/validate-content.mjs --files $files --products
+      - name: Validar SQL da rotina (supabase/rotina/*, se existir)
+        run: |
+          set -euo pipefail
+          if ls supabase/rotina/*/*.insert.sql >/dev/null 2>&1; then
+            node scripts/validate-content.mjs --files $(ls supabase/rotina/*/*.insert.sql | tr '\n' ' ')
+          else
+            echo "sem supabase/rotina/*/*.insert.sql ainda"
+          fi
+      - name: Validar conteúdo publicado no banco (7 dias; domingo = tudo)
+        if: ${{ secrets.SUPABASE_URL != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            node scripts/validate-content.mjs --all --products
+          else
+            node scripts/validate-content.mjs --since 7d
+          fi
+      - name: Validar capas compostas commitadas (> 15 KB)
+        run: |
+          python3 - <<'EOF'
+          import glob, os, sys
+          bad = [f for f in glob.glob("public/images/covers/*.jpg") if os.path.getsize(f) < 15000]
+          for f in bad: print("capa pequena (< 15 KB):", f)
+          sys.exit(1 if bad else 0)
+          EOF
+      - name: Conferir sintaxe dos scripts da rotina
+        run: python3 -m py_compile scripts/rotina/*.py && node --check scripts/rotina/guard.mjs && node --check scripts/agente.mjs

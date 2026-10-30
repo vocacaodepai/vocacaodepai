@@ -1,0 +1,35 @@
+name: Irmandade — lembrete de evento (24 h antes)
+
+# Chama GET /api/cron/event-reminder de hora em hora (doc 09 §7; rota criada na Fase 7, idempotente por
+# reminded_at). Alternativa prevista: pg_cron em 0015_irmandade_formacao_extra.sql — usar UM dos dois
+# (desligar este workflow se o pg_cron for agendado com o ref real do Supabase).
+# Padrão dos crons da Fase 8: CRON_SECRET + variável PUBLIC_SITE_URL + workflow_dispatch. Sem auto-merge.
+
+on:
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: event-reminder
+  cancel-in-progress: false
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Chamar /api/cron/event-reminder
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ vars.PUBLIC_SITE_URL || 'https://vocacaodepai.com.br' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET}" ]; then echo "Secret CRON_SECRET não configurado no repositório." >&2; exit 1; fi
+          code=$(curl -sS -o /tmp/out.json -w '%{http_code}' --max-time 120 \
+            -H "Authorization: Bearer ${CRON_SECRET}" "${SITE_URL%/}/api/cron/event-reminder")
+          echo "HTTP ${code}"; cat /tmp/out.json; echo
+          [ "$code" = "200" ]

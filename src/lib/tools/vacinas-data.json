@@ -1,0 +1,237 @@
+{
+  "atualizado_em": "2026-10-30",
+  "fonte": {
+    "nome": "Calendário Nacional de Vacinação — Ministério da Saúde (Programa Nacional de Imunizações)",
+    "url": "https://www.gov.br/saude/pt-br/vacinacao/calendario",
+    "nota": "Esquema infantil vigente conferido em 30/10/2026 (VIP nas 3 doses + reforço aos 15 meses desde 2024; HPV em dose única 9–14 anos desde 2024; covid-19 de 6 meses a menores de 5 anos). Se divergir do site oficial, o site prevalece. Vacinas da rede privada não constam."
+  },
+  "doses": [
+    {
+      "id": "bcg",
+      "vacina": "BCG",
+      "dose": "dose única",
+      "idadeMeses": 0,
+      "protege": "formas graves de tuberculose",
+      "obs": "na maternidade ou UBS, até 4 anos 11 meses"
+    },
+    {
+      "id": "hepb-0",
+      "vacina": "Hepatite B",
+      "dose": "1ª dose",
+      "idadeMeses": 0,
+      "protege": "hepatite B",
+      "obs": "nas primeiras 24 h de vida; as demais doses vêm na pentavalente"
+    },
+    {
+      "id": "penta-1",
+      "vacina": "Pentavalente (DTP + Hib + hepatite B)",
+      "dose": "1ª dose",
+      "idadeMeses": 2,
+      "protege": "difteria, tétano, coqueluche, Haemophilus b e hepatite B"
+    },
+    {
+      "id": "vip-1",
+      "vacina": "Poliomielite inativada (VIP)",
+      "dose": "1ª dose",
+      "idadeMeses": 2,
+      "protege": "poliomielite"
+    },
+    {
+      "id": "pneumo-1",
+      "vacina": "Pneumocócica 10-valente",
+      "dose": "1ª dose",
+      "idadeMeses": 2,
+      "protege": "pneumonia, meningite e otite por pneumococo"
+    },
+    {
+      "id": "rota-1",
+      "vacina": "Rotavírus humano",
+      "dose": "1ª dose",
+      "idadeMeses": 2,
+      "ateMeses": 3.5,
+      "protege": "diarreia grave por rotavírus",
+      "obs": "janela estreita: até 3 meses e 15 dias"
+    },
+    {
+      "id": "menc-1",
+      "vacina": "Meningocócica C",
+      "dose": "1ª dose",
+      "idadeMeses": 3,
+      "protege": "meningite C"
+    },
+    {
+      "id": "penta-2",
+      "vacina": "Pentavalente",
+      "dose": "2ª dose",
+      "idadeMeses": 4,
+      "protege": "difteria, tétano, coqueluche, Haemophilus b e hepatite B"
+    },
+    {
+      "id": "vip-2",
+      "vacina": "Poliomielite inativada (VIP)",
+      "dose": "2ª dose",
+      "idadeMeses": 4,
+      "protege": "poliomielite"
+    },
+    {
+      "id": "pneumo-2",
+      "vacina": "Pneumocócica 10-valente",
+      "dose": "2ª dose",
+      "idadeMeses": 4,
+      "protege": "doenças por pneumococo"
+    },
+    {
+      "id": "rota-2",
+      "vacina": "Rotavírus humano",
+      "dose": "2ª dose",
+      "idadeMeses": 4,
+      "ateMeses": 7.95,
+      "protege": "diarreia grave por rotavírus",
+      "obs": "até 7 meses e 29 dias"
+    },
+    {
+      "id": "menc-2",
+      "vacina": "Meningocócica C",
+      "dose": "2ª dose",
+      "idadeMeses": 5,
+      "protege": "meningite C"
+    },
+    {
+      "id": "penta-3",
+      "vacina": "Pentavalente",
+      "dose": "3ª dose",
+      "idadeMeses": 6,
+      "protege": "difteria, tétano, coqueluche, Haemophilus b e hepatite B"
+    },
+    {
+      "id": "vip-3",
+      "vacina": "Poliomielite inativada (VIP)",
+      "dose": "3ª dose",
+      "idadeMeses": 6,
+      "protege": "poliomielite"
+    },
+    {
+      "id": "covid-1",
+      "vacina": "COVID-19",
+      "dose": "esquema infantil",
+      "idadeMeses": 6,
+      "ateMeses": 59,
+      "protege": "formas graves de covid-19",
+      "obs": "crianças de 6 meses a 4 anos 11 meses, conforme o esquema vigente na UBS"
+    },
+    {
+      "id": "gripe",
+      "vacina": "Influenza",
+      "dose": "anual",
+      "idadeMeses": 6,
+      "ateMeses": 71,
+      "protege": "gripe",
+      "obs": "campanha anual; 2 doses na primeira vez"
+    },
+    {
+      "id": "fa-1",
+      "vacina": "Febre amarela",
+      "dose": "1ª dose",
+      "idadeMeses": 9,
+      "protege": "febre amarela"
+    },
+    {
+      "id": "scr-1",
+      "vacina": "Tríplice viral (SCR)",
+      "dose": "1ª dose",
+      "idadeMeses": 12,
+      "protege": "sarampo, caxumba e rubéola"
+    },
+    {
+      "id": "pneumo-r",
+      "vacina": "Pneumocócica 10-valente",
+      "dose": "reforço",
+      "idadeMeses": 12,
+      "protege": "doenças por pneumococo"
+    },
+    {
+      "id": "menc-r",
+      "vacina": "Meningocócica C",
+      "dose": "reforço",
+      "idadeMeses": 12,
+      "protege": "meningite C"
+    },
+    {
+      "id": "dtp-r1",
+      "vacina": "DTP",
+      "dose": "1º reforço",
+      "idadeMeses": 15,
+      "protege": "difteria, tétano e coqueluche"
+    },
+    {
+      "id": "vip-r",
+      "vacina": "Poliomielite inativada (VIP)",
+      "dose": "reforço",
+      "idadeMeses": 15,
+      "protege": "poliomielite",
+      "obs": "desde 2024 a VIP substitui a VOP (gotinha) no reforço"
+    },
+    {
+      "id": "hepa",
+      "vacina": "Hepatite A",
+      "dose": "dose única",
+      "idadeMeses": 15,
+      "protege": "hepatite A"
+    },
+    {
+      "id": "tetra",
+      "vacina": "Tetra viral (SCR + varicela)",
+      "dose": "dose única",
+      "idadeMeses": 15,
+      "protege": "sarampo, caxumba, rubéola e catapora",
+      "obs": "2ª dose da tríplice viral + 1ª da varicela"
+    },
+    {
+      "id": "dtp-r2",
+      "vacina": "DTP",
+      "dose": "2º reforço",
+      "idadeMeses": 48,
+      "protege": "difteria, tétano e coqueluche"
+    },
+    {
+      "id": "fa-r",
+      "vacina": "Febre amarela",
+      "dose": "reforço",
+      "idadeMeses": 48,
+      "protege": "febre amarela"
+    },
+    {
+      "id": "varicela-2",
+      "vacina": "Varicela",
+      "dose": "2ª dose",
+      "idadeMeses": 48,
+      "protege": "catapora"
+    },
+    {
+      "id": "dt",
+      "vacina": "dT (difteria e tétano)",
+      "dose": "reforço a cada 10 anos",
+      "idadeMeses": 84,
+      "protege": "difteria e tétano",
+      "obs": "a partir dos 7 anos, quando o esquema básico estiver completo"
+    },
+    {
+      "id": "hpv",
+      "vacina": "HPV",
+      "dose": "dose única",
+      "idadeMeses": 108,
+      "ateMeses": 179,
+      "protege": "câncer de colo do útero, pênis, ânus e verrugas genitais",
+      "obs": "meninos e meninas de 9 a 14 anos (dose única desde 2024)"
+    },
+    {
+      "id": "acwy",
+      "vacina": "Meningocócica ACWY",
+      "dose": "dose única/reforço",
+      "idadeMeses": 132,
+      "ateMeses": 179,
+      "protege": "meningites A, C, W e Y",
+      "obs": "11 a 14 anos"
+    }
+  ]
+}
