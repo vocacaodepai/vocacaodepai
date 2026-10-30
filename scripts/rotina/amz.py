@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 """Lê a página mobile da Amazon Brasil de um ASIN e imprime JSON com título, fotos oficiais
 em alta (data-a-hires, _AC_SL1500_), bullets, descrição, nota, avaliações, preço e disponibilidade.
-Cópia adaptada de /home/user/vocacaodemae/scripts/rotina/amz.py (somente leitura) para o Vocação de Pai:
-cache em /tmp/amzcache-vocacaodepai (doc 04 §9). images[0] = foto oficial (_AC_SL1500_), usada em products.image_url.
-Uso: python3 amz.py ASIN [--file caminho.html] [--tries N]
-A Amazon bloqueia com frequência (resposta de ~2 KB): o script repete com pausa longa."""
-import sys, re, json, html, time, subprocess
+Uso: python3 scripts/rotina/amz.py ASIN [--file caminho.html] [--tries N] [--refresh]
+A Amazon bloqueia com frequência (resposta de ~2 KB): o script repete com pausa longa.
+Herdado do Vocação de Mãe (doc 05 §8.1). O `price` do JSON só alimenta products.price
+(base da estimativa) e nunca vai para o texto.
+Cache em /tmp/amzcache-vocacaodepai (doc 04 §9); `--refresh` ignora o cache. images[0] é a foto
+oficial em alta (_AC_SL1500_), usada em products.image_url; images alimenta products.images (até 8)."""
+import sys, re, json, html, time, subprocess, os
 
 UA = ("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 "
       "(KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1")
+CACHE = "/tmp/amzcache-vocacaodepai"
 
 def fetch(asin, tries=6):
     for i in range(tries):
         r = subprocess.run(["curl", "-s", "-m", "30", "-A", UA, "-H", "Accept-Language: pt-BR",
                             f"https://www.amazon.com.br/gp/aw/d/{asin}"], capture_output=True)
         s = r.stdout.decode("utf8", "ignore")
-        if len(s) > 300000 and "add-to-cart-button" in s or len(s) > 300000 and "feature-bullets" in s:
+        if len(s) > 300000 and ("add-to-cart-button" in s or "feature-bullets" in s):
             return s
         time.sleep(25 + 10 * i)
     return None
@@ -64,14 +67,15 @@ def parse(s):
     return out
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2 or not re.fullmatch(r"[A-Z0-9]{10}", sys.argv[1]):
+        print("Uso: python3 scripts/rotina/amz.py <ASIN de 10 caracteres> [--file x.html] [--tries N] [--refresh]")
+        sys.exit(2)
     asin = sys.argv[1]
     tries = 6
     if "--tries" in sys.argv:
         tries = int(sys.argv[sys.argv.index("--tries") + 1])
-    import os
-    cache = "/tmp/amzcache-vocacaodepai"
-    os.makedirs(cache, exist_ok=True)
-    cf = os.path.join(cache, asin + ".json")
+    os.makedirs(CACHE, exist_ok=True)
+    cf = os.path.join(CACHE, asin + ".json")
     if "--file" not in sys.argv and os.path.exists(cf) and "--refresh" not in sys.argv:
         print(open(cf, encoding="utf8").read()); sys.exit(0)
     if "--file" in sys.argv:

@@ -210,6 +210,8 @@ function renderNode(node: RichNode): string {
       return `<div data-fotos-modelos="" data-fotos-modelos-json="${escapeHtml(jsonAttr(a.data))}" class="fotos-modelos-placeholder">Fotos dos modelos (5 lado a lado)</div>`;
     case "buyCard":
       return `<div data-buy-card="" data-buy-card-json="${escapeHtml(jsonAttr(a.data))}" class="fotos-modelos-placeholder">Cartão Onde comprar</div>`;
+    case "product":
+      return `<div data-product="" data-product-json="${escapeHtml(jsonAttr(a.data))}" class="fotos-modelos-placeholder">Produto da Loja do Pai</div>`;
     case "galeriaProduto":
       return `<div data-galeria-produto="" data-galeria-produto-json="${escapeHtml(jsonAttr(a.data))}" class="fotos-modelos-placeholder">Galeria de fotos do produto</div>`;
     default:

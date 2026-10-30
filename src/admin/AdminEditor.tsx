@@ -15,7 +15,11 @@ import { CalloutExtension } from "@/components/blog/Callout";
 import { ToolEmbedExtension } from "@/components/blog/ToolEmbed";
 import { DecisorRapidoExtension } from "@/components/blog/DecisorRapidoExtension";
 import { FotosModelosExtension } from "@/components/blog/FotosModelosExtension";
-import { BuyCardExtension, GaleriaProdutoExtension } from "@/components/blog/dataNodes";
+import {
+  BuyCardExtension,
+  GaleriaProdutoExtension,
+  ProductEmbedExtension,
+} from "@/components/blog/dataNodes";
 import {
   AlertTriangle,
   Bold,
@@ -230,6 +234,7 @@ export default function AdminEditor() {
       FotosModelosExtension,
       BuyCardExtension,
       GaleriaProdutoExtension,
+      ProductEmbedExtension,
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,

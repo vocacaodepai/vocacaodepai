@@ -3,6 +3,7 @@
 // src/lib/pai-indica/taxonomia.ts e criterios.ts (doc 04 §11), para o validador (Node puro) e a rotina (Python)
 // lerem a MESMA fonte. Commitar os JSON; o CI confere com `git diff --exit-code scripts/lib`.
 // Uso: node scripts/export-taxonomia.mjs   (npm run taxonomia:json)
+// Os regex toleram a vírgula final que o Prettier põe quando quebra a entrada em várias linhas.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,11 +13,11 @@ const read = (p) => readFileSync(join(ROOT, p), "utf8");
 
 const taxTs = read("src/lib/pai-indica/taxonomia.ts");
 const categories = [
-  ...taxTs.matchAll(/\{\s*slug:\s*"([a-z0-9-]+)",\s*name:\s*"([^"]+)"\s*\}/g),
+  ...taxTs.matchAll(/\{\s*slug:\s*"([a-z0-9-]+)",\s*name:\s*"([^"]+)",?\s*\}/g),
 ].map((m) => ({ slug: m[1], name: m[2] }));
 const subcategories = [
   ...taxTs.matchAll(
-    /\{\s*slug:\s*"([a-z0-9-]+)",\s*name:\s*"([^"]+)",\s*category:\s*"([a-z0-9-]+)"\s*\}/g,
+    /\{\s*slug:\s*"([a-z0-9-]+)",\s*name:\s*"([^"]+)",\s*category:\s*"([a-z0-9-]+)",?\s*\}/g,
   ),
 ].map((m) => ({ slug: m[1], name: m[2], category: m[3] }));
 
@@ -27,7 +28,7 @@ const body = critTs.slice(
 );
 const criterios = {};
 for (const m of body.matchAll(/^\s{2}"?([a-z0-9-]+)"?:\s*\[([\s\S]*?)^\s{2}\],/gm)) {
-  criterios[m[1]] = [...m[2].matchAll(/\{\s*name:\s*"([^"]+)",\s*weight:\s*(\d+)\s*\}/g)].map(
+  criterios[m[1]] = [...m[2].matchAll(/\{\s*name:\s*"([^"]+)",\s*weight:\s*(\d+),?\s*\}/g)].map(
     (c) => ({
       name: c[1],
       weight: Number(c[2]),

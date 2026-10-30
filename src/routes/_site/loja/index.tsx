@@ -1,36 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/home/ComingSoon";
-import { SITE_NAME } from "@/lib/site";
+import StorePage from "@/pages/StorePage";
+import { getStoreData } from "@/lib/loja/loja.functions";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "@/lib/site";
 
-// Placeholder da Fase 1 (doc 03 §5.3): noindex e fora do sitemap até a seção abrir.
+const TITLE = `Loja do Pai | ${SITE_NAME}`;
+const DESCRIPTION =
+  "O pai também quer desconto: produtos para churrasco, ferramentas, carro, tecnologia e paternidade, com review honesta e faixa de preço pesquisada.";
+
+// /loja (doc 05 §4.5): catálogo inteiro no loader (SSR); filtros ?categoria=/
+// ?subcategoria=/?q= só no navegador. A canonical é autorreferente com os
+// filtros de categoria/subcategoria (não há página própria para consolidar).
 export const Route = createFileRoute("/_site/loja/")({
-  head: () => ({
-    meta: [
-      { title: `Loja do Pai | ${SITE_NAME}` },
-      {
-        name: "description",
-        content:
-          "O pai também quer desconto: produtos indicados pelo Vocação de Pai com faixa de preço pesquisada e botão direto para a Amazon.",
-      },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
-  component: Page,
+  loader: () => getStoreData(),
+  head: (ctx) => {
+    const search = (ctx.match.search ?? {}) as Record<string, string | undefined>;
+    const filterQuery = new URLSearchParams();
+    if (search["categoria"]) filterQuery.set("categoria", search["categoria"]);
+    if (search["subcategoria"]) filterQuery.set("subcategoria", search["subcategoria"]);
+    const url = filterQuery.toString() ? `${SITE_URL}/loja?${filterQuery}` : `${SITE_URL}/loja`;
+    return {
+      meta: [
+        { title: TITLE },
+        { name: "description", content: DESCRIPTION },
+        { property: "og:title", content: TITLE },
+        { property: "og:description", content: DESCRIPTION },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
+        { property: "og:image", content: SITE_OG_IMAGE },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(breadcrumbJsonLd([{ name: "Loja do Pai", path: "/loja" }])),
+        },
+      ],
+    };
+  },
+  component: StorePage,
 });
-
-function Page() {
-  return (
-    <ComingSoon
-      title="Loja do Pai"
-      description="O pai também quer desconto. Produtos que a gente indicaria para um irmão, com faixa de preço pesquisada e botão direto para a Amazon."
-      eta="Abre logo depois do Pai Indica."
-      source="em-breve-loja"
-      highlights={[
-        "Churrasco, ferramentas, esporte, carro e pai e bebê",
-        "Faixa de preço pesquisada em pelo menos duas lojas, nunca preço inventado",
-        "Review longa em cada produto, com prós, contras e para quem é",
-        "Botão único: Comprar agora na Amazon",
-      ]}
-    />
-  );
-}

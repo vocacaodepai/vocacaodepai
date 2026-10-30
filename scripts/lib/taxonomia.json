@@ -208,6 +208,11 @@
       "category": "tecnologia"
     },
     {
+      "slug": "leitura-digital",
+      "name": "Leitura digital",
+      "category": "tecnologia"
+    },
+    {
       "slug": "corrida-e-tenis",
       "name": "Corrida e tênis",
       "category": "esporte-e-outdoor"

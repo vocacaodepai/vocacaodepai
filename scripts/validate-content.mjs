@@ -416,6 +416,25 @@ function postsFromFile(file) {
   };
 }
 
+// Fase 3: slugs de product_categories (0003_loja.sql e seeds) para validar products.category_id.
+function productCategorySlugsFromMigrations() {
+  const set = new Set();
+  const dir = join(ROOT, "supabase", "migrations");
+  if (!existsSync(dir)) return set;
+  for (const f of readdirSync(dir)) {
+    if (!/^\d{4}_.*\.sql$/.test(f)) continue;
+    const sql = readFileSync(join(dir, f), "utf8");
+    if (!/product_categories/i.test(sql)) continue;
+    try {
+      for (const r of parseSqlInserts(sql, "product_categories"))
+        if (typeof r.slug === "string") set.add(r.slug);
+    } catch {
+      /* ignora */
+    }
+  }
+  return set;
+}
+
 function categorySlugsFromMigrations() {
   const set = new Set();
   const dir = join(ROOT, "supabase", "migrations");
@@ -461,6 +480,7 @@ let posts = [],
   universePosts = new Map(),
   universeProducts = new Map(),
   categories = new Set(),
+  productCategories = new Set(),
   warnings = [];
 
 if (FILES_MODE) {
@@ -498,6 +518,7 @@ if (FILES_MODE) {
     if (!universePosts.has(s))
       universePosts.set(s, { slug: s, kind: "artigo", status: "published", __known: true });
   categories = categorySlugsFromMigrations();
+  productCategories = productCategorySlugsFromMigrations();
   if (HAS_DB) {
     try {
       for (const p of await dbGet(
@@ -509,6 +530,8 @@ if (FILES_MODE) {
       ))
         if (!universeProducts.has(pr.slug)) universeProducts.set(pr.slug, pr);
       for (const c of await dbGet(`/categories?select=slug&limit=1000`)) categories.add(c.slug);
+      for (const c of await dbGet(`/product_categories?select=slug&limit=100`))
+        productCategories.add(c.slug);
     } catch (e) {
       warnings.push(`banco indisponível, universo só com arquivos: ${e.message}`);
     }
@@ -542,10 +565,16 @@ if (FILES_MODE) {
   for (const p of posts) universePosts.set(p.slug, p);
   const prods = await dbGet(`/products?select=*&limit=5000`);
   for (const pr of prods) if (pr.active) universeProducts.set(pr.slug, pr);
-  if (WANT_PRODUCTS) products = prods.filter((pr) => pr.active);
+  if (WANT_PRODUCTS) products = prods;
   const catRows = await dbGet(`/categories?select=id,slug&limit=1000`);
   const catById = new Map(catRows.map((c) => [c.id, c.slug]));
   for (const c of catRows) categories.add(c.slug);
+  const pcatRows = await dbGet(`/product_categories?select=id,slug&limit=100`);
+  const pcatById = new Map(pcatRows.map((c) => [c.id, c.slug]));
+  for (const c of pcatRows) productCategories.add(c.slug);
+  for (const pr of products)
+    if (pr.category_id && typeof pr.category_id === "string")
+      pr.category_slug = pcatById.get(pr.category_id) || null;
   for (const p of posts)
     if (p.category_id && typeof p.category_id === "string")
       p.category_slug = catById.get(p.category_id) || null;
@@ -1237,39 +1266,128 @@ function validatePaiIndica(p, ctx) {
   return { e, w };
 }
 
+const AMAZON_IMG = /^https:\/\/m\.media-amazon\.com\//;
+
+// Review longa de products.review (formato do review_gen.py / doc 05 §4.1).
+function validateProductReview(r) {
+  const e = [];
+  if (!r || typeof r !== "object" || r.__invalidJson) return ["review jsonb inválido"];
+  if (!(Number(r.nota) >= 0 && Number(r.nota) <= 10)) e.push("review.nota fora de 0-10");
+  if (!Array.isArray(r.criterios) || r.criterios.length !== 5)
+    e.push("review.criterios precisa de exatamente 5 itens {nome, nota}");
+  else
+    for (const c of r.criterios)
+      if (!c || !String(c.nome || "").trim() || !(Number(c.nota) >= 0 && Number(c.nota) <= 10))
+        e.push("review.criterios: item sem nome ou nota fora de 0-10");
+  if (!Array.isArray(r.em_3_pontos) || r.em_3_pontos.length !== 3)
+    e.push("review.em_3_pontos precisa de 3 frases");
+  const secs = Array.isArray(r.secoes) ? r.secoes : [];
+  if (secs.length < 6) e.push(`review.secoes com ${secs.length} seções (mínimo 6)`);
+  if (secs.filter((x) => x && x.cta).length < 3) e.push("review.secoes: mínimo 3 com cta:true");
+  for (const x of secs)
+    if (
+      !x ||
+      !String(x.titulo || "").trim() ||
+      !Array.isArray(x.paragrafos) ||
+      !x.paragrafos.length
+    )
+      e.push("review.secoes: seção sem titulo/paragrafos");
+  if (!Array.isArray(r.ficha) || r.ficha.length < 5) e.push("review.ficha com menos de 5 linhas");
+  if (!Array.isArray(r.faq) || r.faq.length < 4) e.push("review.faq com menos de 4 itens");
+  else
+    for (const f of r.faq)
+      if (!f || !String(f.q || "").trim() || !String(f.a || "").trim())
+        e.push("review.faq: use {q, a} não vazios");
+  for (const k of ["titulo", "resumo", "ideal_para", "preco_texto", "como_avaliamos", "opiniao"])
+    if (!String(r[k] || "").trim()) e.push(`review.${k} vazio`);
+  return e;
+}
+
+// Produto da Loja do Pai (CLAUDE.md §5 e §7; doc 04 §9; doc 05 §4). Devolve {e, w}.
+// Regras estruturais valem para TODO produto (ativo ou não): slug, ASIN, categoria em
+// product_categories E na taxonomia do Pai Indica, subcategoria, pros/cons 3-6, fotos oficiais
+// (≤ 8, m.media-amazon.com, images[0] = image_url), faixa (max ≤ 3 × min), rating, termos
+// proibidos e a review longa (quando houver). O bloco final só vale para produto ativo.
 function validateProduct(pr) {
   const e = [],
     w = [];
-  // Seed com ASIN ainda não confirmado (asin null): affiliate_url/foto ficam PENDENTES (aviso, só em --files);
-  // no banco continuam erro (produto não pode ir ao ar assim).
+  // Seed com ASIN ainda não confirmado (asin null): o que depende do ASIN (affiliate_url /dp/,
+  // foto oficial, galeria, review longa) fica PENDENTE (aviso, só em --files); no banco continua
+  // erro (produto não pode ir ao ar assim).
   const pending = FILES_MODE && pr.asin == null;
   const hard = (m) => (pending ? w.push(`PENDENTE: ${m}`) : e.push(m));
-  if (!pr.slug) e.push("sem slug");
-  if (!pr.name) e.push("sem name");
-  if (pr.active === false) return e;
-  const min = Number(pr.price_min),
-    max = Number(pr.price_max);
-  if (pr.price_min == null || pr.price_max == null)
-    e.push("sem faixa de preço (price_min/price_max)");
-  else {
-    if (!(min > 0 && max > 0)) e.push("price_min/price_max precisam ser > 0");
-    if (max < min) e.push("price_max < price_min");
-    if (max > 3 * min) e.push(`price_max (${max}) > 3 × price_min (${min})`);
-  }
-  if (!pr.affiliate_url) e.push("sem affiliate_url");
-  else if (!/amazon\.com\.br\/dp\/[A-Z0-9]{10}/i.test(pr.affiliate_url))
-    hard(
-      "affiliate_url fora do padrão https://www.amazon.com.br/dp/<ASIN>/?tag=<PUBLIC_AMAZON_TAG>",
-    );
-  if (!pr.image_url) hard("sem image_url");
-  else if (!/media-amazon\.com/.test(pr.image_url))
-    e.push("image_url não é a foto oficial da Amazon (m.media-amazon.com)");
-  const imgs = Array.isArray(pr.images) ? pr.images : [];
-  if (imgs.length < 3) hard(`images com ${imgs.length} fotos oficiais (mínimo 3)`);
+
+  // --- identidade e catálogo
+  if (!pr.slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pr.slug))
+    e.push("slug ausente ou fora do padrão kebab-case");
+  if (!pr.name || !String(pr.name).trim()) e.push("sem name");
+  if (pr.asin != null && !/^[A-Z0-9]{10}$/.test(String(pr.asin)))
+    e.push(`asin fora do padrão (10 caracteres A-Z/0-9): ${pr.asin}`);
+  if (
+    pr.category_slug != null &&
+    productCategories.size &&
+    !productCategories.has(pr.category_slug)
+  )
+    e.push(`product_category "${pr.category_slug}" não existe em product_categories`);
+  if (pr.category_slug && TAX && !TAX.categories.some((c) => c.slug === pr.category_slug))
+    e.push(`category "${pr.category_slug}" fora da taxonomia (product_categories = taxonomia.ts)`);
+  if (pr.category_slug == null && pr.category_id == null) e.push("sem category_id");
+  if (pr.subcategory != null && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(pr.subcategory)))
+    e.push(`subcategory fora do padrão kebab-case: ${pr.subcategory}`);
   if (pr.subcategory && TAX && !TAX.subcategories.some((s) => s.slug === pr.subcategory))
     e.push(`subcategory "${pr.subcategory}" fora da taxonomia do Pai Indica`);
-  if (!pr.review || typeof pr.review !== "object") hard("sem review longa (products.review)");
+
+  // --- textos curtos
+  const pros = Array.isArray(pr.pros) ? pr.pros : null,
+    cons = Array.isArray(pr.cons) ? pr.cons : null;
+  if (!pros || !cons) e.push("pros/cons precisam ser arrays");
+  else {
+    if (pros.length < 3 || pros.length > 6) e.push(`pros com ${pros.length} itens (precisa 3-6)`);
+    if (cons.length < 3 || cons.length > 6) e.push(`cons com ${cons.length} itens (precisa 3-6)`);
+    for (const x of [...pros, ...cons])
+      if (!String(x || "").trim()) e.push("pros/cons com item vazio");
+  }
+  if (pr.short_description != null && String(pr.short_description).length > 130)
+    e.push(`short_description com ${String(pr.short_description).length} caracteres (máximo 130)`);
+
+  // --- fotos oficiais (sempre da Amazon; ≤ 8; a principal é images[0])
+  const images = Array.isArray(pr.images) ? pr.images : pr.images == null ? [] : null;
+  if (images === null) e.push("images precisa ser array jsonb");
+  else {
+    if (images.length > 8) e.push(`images com ${images.length} fotos (máximo 8)`);
+    for (const u of images)
+      if (!AMAZON_IMG.test(String(u)))
+        e.push(`foto fora de m.media-amazon.com: ${String(u).slice(0, 60)}`);
+    if (images.length && pr.image_url && images[0] !== pr.image_url)
+      e.push("image_url deve ser images[0]");
+  }
+  if (pr.image_url && !/media-amazon\.com/.test(pr.image_url))
+    e.push("image_url não é a foto oficial da Amazon (m.media-amazon.com)");
+
+  // --- faixa de preço (quando informada), nota de compradores e coerência ASIN × link
+  const min = Number(pr.price_min),
+    max = Number(pr.price_max);
+  const hasRange = pr.price_min != null || pr.price_max != null;
+  if (hasRange) {
+    if (pr.price_min == null || pr.price_max == null)
+      e.push("faixa incompleta: price_min e price_max");
+    else {
+      if (!(min > 0 && max > 0)) e.push("price_min/price_max precisam ser > 0");
+      if (max < min) e.push("price_max < price_min");
+      if (max > 3 * min) e.push(`price_max (${max}) > 3 × price_min (${min})`);
+    }
+  }
+  if (pr.rating != null && !(Number(pr.rating) >= 0 && Number(pr.rating) <= 5))
+    e.push("rating fora de 0-5");
+  if (pr.affiliate_url && /amazon\.com\.br/i.test(pr.affiliate_url)) {
+    const asin = (/\/dp\/([A-Z0-9]{10})/i.exec(pr.affiliate_url) || [])[1];
+    if (asin && pr.asin && asin.toUpperCase() !== String(pr.asin).toUpperCase())
+      e.push("asin diferente do ASIN do affiliate_url");
+  }
+
+  // --- textos: nunca preço exato, nunca "Ver preço", termos proibidos, review longa
   const blob = JSON.stringify({
+    n: pr.name,
     d: pr.description,
     s: pr.short_description,
     r: pr.review,
@@ -1278,8 +1396,26 @@ function validateProduct(pr) {
   });
   if (/R\$\s?\d/.test(blob)) e.push('"R$" em texto do produto (nunca preço exato)');
   if (/ver pre[çc]o/i.test(blob)) e.push('texto "Ver preço" é proibido');
-  if (pr.category_slug && TAX && !TAX.categories.some((c) => c.slug === pr.category_slug))
-    e.push(`category "${pr.category_slug}" fora da taxonomia (product_categories = taxonomia.ts)`);
+  const corpus = fold(blob);
+  for (const [t, re] of PROIBIDOS_RE) if (re.test(corpus)) e.push(`termo proibido: "${t}"`);
+  if (pr.review != null) e.push(...validateProductReview(pr.review));
+
+  // --- só para produto ativo (o que aparece na loja): faixa, link com ASIN, foto oficial,
+  //     galeria (≥ 3) e review longa.
+  if (pr.active === false) return { e, w };
+  if (pr.price_min == null || pr.price_max == null)
+    e.push("sem faixa de preço (price_min/price_max)");
+  if (!pr.affiliate_url) e.push("sem affiliate_url");
+  else if (!/amazon\.com\.br\/dp\/[A-Z0-9]{10}/i.test(pr.affiliate_url))
+    hard(
+      "affiliate_url fora do padrão https://www.amazon.com.br/dp/<ASIN>/?tag=<PUBLIC_AMAZON_TAG>",
+    );
+  if (!pr.asin && !/\/dp\/[A-Z0-9]{10}/i.test(pr.affiliate_url || ""))
+    hard("produto ativo sem ASIN");
+  if (!pr.image_url) hard("sem image_url");
+  const imgs = images || [];
+  if (imgs.length < 3) hard(`images com ${imgs.length} fotos oficiais (mínimo 3)`);
+  if (!pr.review || typeof pr.review !== "object") hard("sem review longa (products.review)");
   return { e, w };
 }
 

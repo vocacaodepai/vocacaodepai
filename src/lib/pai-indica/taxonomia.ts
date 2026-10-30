@@ -73,6 +73,8 @@ export const productSubcategories = [
   { slug: "games", name: "Games", category: "tecnologia" },
   { slug: "mochilas-e-cases", name: "Mochilas e cases", category: "tecnologia" },
   { slug: "energia-e-carregadores", name: "Energia e carregadores", category: "tecnologia" },
+  // Fase 3 (0012_seed_loja.sql): leitores digitais (Kindle) da Loja do Pai.
+  { slug: "leitura-digital", name: "Leitura digital", category: "tecnologia" },
   // esporte-e-outdoor
   { slug: "corrida-e-tenis", name: "Corrida e tênis", category: "esporte-e-outdoor" },
   { slug: "musculacao-em-casa", name: "Musculação em casa", category: "esporte-e-outdoor" },
