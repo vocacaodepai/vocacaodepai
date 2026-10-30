@@ -27,7 +27,8 @@
 | F2 Pai Indica | 2.11 | em andamento | 2026-10-30 | claude/fase-2-pai-indica | 6 posts (3 reviews, 2 comparativos, 1 lista) + 14 produtos na `0011`; ASIN, fotos oficiais, review longa e faixa em 2 lojas PENDENTES |
 | F3 Loja do Pai | — | pendente | 2026-10-24 | | Depende de F1 |
 | F4 Caixa de Ferramentas | — | pendente | 2026-10-24 | | Depende de F1 |
-| F5 Área do Pai | — | pendente | 2026-10-24 | | Depende de F1, F3, F4 |
+| F5 Área do Pai | — | em andamento | 2026-10-30 | claude/fase-5-area-do-pai (sem push) | Etapas 5.1–5.5, 5.7, 5.9, 5.10 prontas no código; 5.6 parcial (SaveButton pronto, não inserido nas páginas); 5.8, 5.11, 5.12 pendentes; migration `0013_membros_extra.sql` não aplicada (banco não existe); detalhes em `progresso-fase-5.md` |
+| F5 Área do Pai | 5.1–5.10 | concluída | 2026-10-30 | claude/fase-5-area-do-pai | `/entrar`, `/cadastro`, `/recuperar-senha`, `/auth/callback`, onboarding 3 passos, painel 10 blocos, filhos, salvos, `/minha-conta` (LGPD), `/area-do-pai/plano`, `SaveButton`, `usePlan`, e-mails Resend + `/api/newsletter/weekly` + workflow, admin Membros |
 | F6 Pai Indica Pai | — | pendente | 2026-10-24 | | Depende de F5 |
 | F7 Irmandade e Formação | — | pendente | 2026-10-24 | | Depende de F5 |
 | F8 Automação, rotinas e painel | — | pendente | 2026-10-24 | | Depende de F1 a F7 |
@@ -121,3 +122,4 @@
 | 2026-10-30 | F1 etapas 2-9 | #2 | Base copiada e adaptada; migrations 0001-0010 escritas e validadas localmente; layout, home, blog, institucionais, admin e 10 artigos prontos; build/lint/validador verdes; detalhes em `progresso-etapa-{4,5-7,6,8}.md`. Pendente: projeto Supabase (limite do plano gratuito) e projeto Vercel (permissão) — etapas 1, 3 (aplicar), 10 |
 | 2026-10-30 | F2 etapas 2.1–2.11 | — (branch `claude/fase-2-pai-indica`, sem push) | Pai Indica completo no código (taxonomia, componentes, listagem com filtro, página de review/comparativo/lista, JSON-LD, validador, briefs, cover_cmp/amz) + seed 0011 com 6 Pai Indica e 14 produtos (ASIN/fotos PENDENTES); tsc/lint/build/validador verdes |
 | 2026-10-30 | F4 (17 ferramentas) | — | Caixa de Ferramentas: registry, casca, rotas, camada de mercado + cron, as 17 ferramentas (cortes com boi, porco e frango), sitemap e ToolsTeaser; build/lint/tsc/testes verdes; detalhes e pendências em `progresso-fase-4.md` (faltam PWA, faixas de preço e PR) |
+| 2026-10-30 | F5 etapas 5.1–5.10 | — (branch `claude/fase-5-area-do-pai`, sem push) | Área do Pai completa no código (auth, onboarding, painel, filhos, salvos, minha conta, plano, SaveButton, e-mails + resumo semanal por `CRON_SECRET`, admin Membros) + `0013_membros_extra.sql` (não aplicada); tsc/lint/build verdes; decisões e pendências em `progresso-fase-5.md` |

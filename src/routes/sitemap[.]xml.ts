@@ -20,6 +20,9 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: "/politica-de-afiliados", changefreq: "yearly", priority: "0.2" },
   // Fase 3 — Loja do Pai
   { path: "/loja", changefreq: "daily", priority: "0.8" },
+  // Fase 5 — Área do Pai: só as públicas (/area-do-pai e /minha-conta são noindex)
+  { path: "/entrar", changefreq: "monthly", priority: "0.3" },
+  { path: "/cadastro", changefreq: "monthly", priority: "0.4" },
 ];
 
 function escapeXml(value: string): string {

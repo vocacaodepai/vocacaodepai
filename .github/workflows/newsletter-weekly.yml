@@ -1,0 +1,45 @@
+name: Newsletter semanal (Área do Pai)
+
+# Resumo semanal por fase do filho (doc 07 §6.6): domingo 11:00 UTC = 08:00 Brasília.
+# Chama POST /api/newsletter/weekly com Authorization: Bearer CRON_SECRET (doc 02 §8).
+# Disparo manual com dry_run=true só conta assinantes e segmentos, sem enviar.
+# Não há auto-merge aqui: este workflow não mexe em PRs.
+
+on:
+  schedule:
+    - cron: "0 11 * * 0"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Só contar (true) ou enviar de verdade (false)"
+        required: true
+        default: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Disparar /api/newsletter/weekly
+        env:
+          URL: https://vocacaodepai.com.br/api/newsletter/weekly
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Secret CRON_SECRET não configurado no repositório." >&2
+            exit 1
+          fi
+          QUERY=""
+          if [ "$DRY_RUN" = "true" ]; then QUERY="?dry_run=true"; fi
+          HTTP=$(curl -sS -o /tmp/resp.json -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            --max-time 300 "$URL$QUERY")
+          echo "HTTP $HTTP"
+          cat /tmp/resp.json || true
+          echo
+          [ "$HTTP" = "200" ]

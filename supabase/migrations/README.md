@@ -5,6 +5,7 @@
 | `0001_core.sql` … `0007_ferramentas.sql` | Schema completo (39 tabelas, RLS, funções, buckets), cópia literal do doc 02 §4.1–§4.7 | Fase 1 (todas de uma vez) |
 | `0008_seed_autor.sql` | Usuário/perfil "Equipe Vocação de Pai" (`e8bb17c5-ce46-4d2c-bda7-4d86d975f6fa`) | Fase 1 |
 | `0009_seed_posts_a.sql`, `0010_seed_posts_b.sql` | 10 artigos Padrão A do Pai (`status='published'`) | Fase 1 |
+| `0013_membros_extra.sql` | Fase 5 (Área do Pai): colunas extras de `profiles`, `protect_profile_role`, `get_my_profile`, `child_phase`, `my_child_phases`, policy `newsletter: own read`, `newsletter_confirm/unsubscribe`, `my_plan_slug`, `is_premium`, tags `fase-*`, `get_content_for_user`, `export_my_data`, `delete_my_account`, `admin_list_members`, `admin_member_stats`, `admin_set_role` | Fase 5 (pendente: banco não existe) |
 
 Ordem de aplicação: 0001 → 0010, via `mcp__Supabase__apply_migration` (DDL) ou `execute_sql` (dados) no projeto `<SUPABASE_PROJECT_REF>`.
 Todas são idempotentes (`create table if not exists`, `drop policy if exists` antes de `create policy`, seeds com `on conflict`).

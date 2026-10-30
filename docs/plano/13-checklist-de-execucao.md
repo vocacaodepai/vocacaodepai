@@ -76,18 +76,18 @@
 
 ## Fase 5 — Área do Pai (`07-fase-5-area-do-pai-membros.md`)
 
-- [ ] 5.1 Supabase Auth: e-mail/senha + Google OAuth (dono cadastra `GOOGLE_CLIENT_ID/SECRET`); URLs de redirect da Vercel
-- [ ] 5.2 Rotas `/entrar` e `/cadastro` (formulários, validação, erros em PT-BR, link "esqueci a senha")
-- [ ] 5.3 Trigger `handle_new_user` cria `profiles` com `role='member'`; onboarding em 3 passos (nome, cidade/UF, filhos)
-- [ ] 5.4 Rota `/minha-conta`: editar perfil, avatar (Storage bucket `avatars`), filhos (`children` CRUD), newsletter opt-in e segmentos por fase do filho, excluir conta (soft)
-- [ ] 5.5 Rota `/area-do-pai`: painel com widgets — continue lendo, itens salvos, trilhas em andamento, desafio do dia, Mercado do pai, badges (placeholder até F7)
-- [ ] 5.6 `saved_items`: salvar/dessalvar post, produto, ferramenta (ativar botões das fases 3 e 4); aba "Salvos" com filtro por tipo
-- [ ] 5.7 Newsletter: `/api/newsletter` (inscrição + confirmação dupla via Resend), `newsletter_subscribers.segments`, página de confirmação
+- [x] 5.1 (código pronto; painel Supabase/Google e `GOOGLE_CLIENT_ID/SECRET` são pendência do dono — `progresso-fase-5.md`) Supabase Auth: e-mail/senha + Google OAuth (dono cadastra `GOOGLE_CLIENT_ID/SECRET`); URLs de redirect da Vercel
+- [x] 5.2 Rotas `/entrar` e `/cadastro` (formulários, validação, erros em PT-BR, link "esqueci a senha")
+- [x] 5.3 Trigger `handle_new_user` cria `profiles` com `role='member'`; onboarding em 3 passos (nome, cidade/UF, filhos)
+- [x] 5.4 (exclusão definitiva via `delete_my_account()`, doc 07 §9; filhos em `/area-do-pai/filhos`) Rota `/minha-conta`: editar perfil, avatar (Storage bucket `avatars`), filhos (`children` CRUD), newsletter opt-in e segmentos por fase do filho, excluir conta (soft)
+- [x] 5.5 Rota `/area-do-pai`: painel com widgets — continue lendo, itens salvos, trilhas em andamento, desafio do dia, Mercado do pai, badges (placeholder até F7)
+- [ ] 5.6 (parcial: `SaveButton`, `toggleSavedItem` e `/area-do-pai/salvos` prontos; falta inserir o botão em post/produto/ferramenta na consolidação) `saved_items`: salvar/dessalvar post, produto, ferramenta (ativar botões das fases 3 e 4); aba "Salvos" com filtro por tipo
+- [x] 5.7 (+ `/api/newsletter/sair` e `POST /api/newsletter/weekly` com `CRON_SECRET`) Newsletter: `/api/newsletter` (inscrição + confirmação dupla via Resend), `newsletter_subscribers.segments`, página de confirmação
 - [ ] 5.8 Iscas gratuitas de cadastro (3 arquivos do doc 11 §7: capítulo "5 cortes", checklist "72 horas", planilha enxuta — especificação no doc 09 §12b.3) em `public/downloads/`, entregues após confirmação da newsletter (`/newsletter/obrigado?ok=1`)
-- [ ] 5.9 `plans` seed: `gratuito` (active=true) e `pai-de-familia` (active=false); página `/area-do-pai/planos` só lista o gratuito
-- [ ] 5.10 Guard de rotas autenticadas (`_auth` layout), redirect para `/entrar` com retorno
-- [ ] 5.11 Testar RLS com anônimo e dois usuários diferentes (profiles, children, saved_items)
-- [ ] 5.12 Validar, abrir PR "Fase 5 — Área do Pai", atualizar `PROGRESSO.md`
+- [x] 5.9 (slug real do pago é `pai-de-valor`, `0004`; página `/area-do-pai/plano`) `plans` seed: `gratuito` (active=true) e `pai-de-familia` (active=false); página `/area-do-pai/planos` só lista o gratuito
+- [x] 5.10 (`RequireAuth` no layout `area-do-pai.tsx` e em `/minha-conta`) Guard de rotas autenticadas (`_auth` layout), redirect para `/entrar` com retorno
+- [ ] 5.11 (aguarda o projeto Supabase) Testar RLS com anônimo e dois usuários diferentes (profiles, children, saved_items)
+- [ ] 5.12 (tsc/lint/build verdes; commit na branch, sem push) Validar, abrir PR "Fase 5 — Área do Pai", atualizar `PROGRESSO.md`
 
 ## Fase 6 — Pai Indica Pai (`08-fase-6-pai-indica-pai.md`)
 
