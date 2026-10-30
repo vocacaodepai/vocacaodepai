@@ -6,8 +6,9 @@ import { SITE_URL } from "@/lib/site";
 // Sitemap (doc 03 §6.6 + doc 04 §5.3 + doc 05 §7): home, blog, Pai Indica, Loja do Pai
 // (/loja, /loja/categoria/<slug>, /loja/<slug> ativos), páginas institucionais, categorias
 // e posts publicados (artigo/noticia em /post, review/comparativo/lista em /pai-indica).
-// SEM os placeholders das seções futuras (/ferramentas, /area-do-pai, /pai-indica-pai,
-// /irmandade, /formacao): cada fase acrescenta as suas rotas quando elas existirem de verdade.
+// SEM os placeholders das seções futuras (/ferramentas, /area-do-pai, /pai-indica-pai):
+// cada fase acrescenta as suas rotas quando elas existirem de verdade. Fase 7 acrescentou
+// /irmandade, /historias, /perguntas, /eventos, /formacao, /desafios e os detalhes publicados.
 const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }> = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/blog", changefreq: "daily", priority: "0.9" },
@@ -19,6 +20,13 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: "/politica-de-afiliados", changefreq: "yearly", priority: "0.2" },
   // Fase 3 — Loja do Pai
   { path: "/loja", changefreq: "daily", priority: "0.8" },
+  // Fase 7 — Irmandade e Formação (doc 09 §10.1)
+  { path: "/irmandade", changefreq: "daily", priority: "0.7" },
+  { path: "/historias", changefreq: "daily", priority: "0.7" },
+  { path: "/perguntas", changefreq: "daily", priority: "0.7" },
+  { path: "/eventos", changefreq: "weekly", priority: "0.6" },
+  { path: "/formacao", changefreq: "weekly", priority: "0.8" },
+  { path: "/desafios", changefreq: "weekly", priority: "0.7" },
 ];
 
 function escapeXml(value: string): string {
@@ -57,12 +65,27 @@ interface ProductCategoryRow {
   slug: string;
 }
 
+interface SlugRow {
+  slug: string;
+  updated_at: string | null;
+}
+
 async function buildSitemap(): Promise<string> {
   const supabase = await createReadOnlySupabaseClient();
 
   // TODO Fase 4 (Ferramentas), 6 (vagas) e 7 (histórias):
   // acrescentar as rotas quando as páginas existirem.
-  const [postsRes, categoriesRes, productCategoriesRes, productsRes] = await Promise.all([
+  const [
+    postsRes,
+    categoriesRes,
+    productCategoriesRes,
+    productsRes,
+    storiesRes,
+    questionsRes,
+    eventsRes,
+    tracksRes,
+    challengesRes,
+  ] = await Promise.all([
     supabase
       .from("posts")
       .select("slug, kind, updated_at, publish_at")
@@ -78,6 +101,32 @@ async function buildSitemap(): Promise<string> {
       .eq("active", true)
       .order("featured", { ascending: false })
       .order("sort_order", { ascending: true }),
+    // Fase 7 — Irmandade e Formação (RLS já filtra approved/published).
+    supabase
+      .from("stories")
+      .select("id, updated_at")
+      .eq("status", "approved")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("questions")
+      .select("slug, updated_at")
+      .in("status", ["approved", "closed"])
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("events")
+      .select("slug, updated_at")
+      .eq("status", "published")
+      .order("starts_at", { ascending: true }),
+    supabase
+      .from("tracks")
+      .select("slug, updated_at")
+      .eq("status", "published")
+      .order("sort_order"),
+    supabase
+      .from("challenges")
+      .select("slug, updated_at")
+      .eq("status", "published")
+      .order("sort_order"),
   ]);
 
   const today = toLastmod(null);
@@ -120,6 +169,35 @@ async function buildSitemap(): Promise<string> {
   for (const product of (productsRes.data ?? []) as unknown as ProductRow[]) {
     entries.push(
       urlEntry(`${SITE_URL}/loja/${product.slug}`, toLastmod(product.updated_at), "weekly", "0.7"),
+    );
+  }
+
+  for (const s of (storiesRes.data ?? []) as unknown as {
+    id: string;
+    updated_at: string | null;
+  }[]) {
+    entries.push(
+      urlEntry(`${SITE_URL}/historias/${s.id}`, toLastmod(s.updated_at), "monthly", "0.5"),
+    );
+  }
+  for (const q of (questionsRes.data ?? []) as unknown as SlugRow[]) {
+    entries.push(
+      urlEntry(`${SITE_URL}/perguntas/${q.slug}`, toLastmod(q.updated_at), "weekly", "0.6"),
+    );
+  }
+  for (const e of (eventsRes.data ?? []) as unknown as SlugRow[]) {
+    entries.push(
+      urlEntry(`${SITE_URL}/eventos/${e.slug}`, toLastmod(e.updated_at), "weekly", "0.6"),
+    );
+  }
+  for (const t of (tracksRes.data ?? []) as unknown as SlugRow[]) {
+    entries.push(
+      urlEntry(`${SITE_URL}/formacao/${t.slug}`, toLastmod(t.updated_at), "monthly", "0.7"),
+    );
+  }
+  for (const c of (challengesRes.data ?? []) as unknown as SlugRow[]) {
+    entries.push(
+      urlEntry(`${SITE_URL}/desafios/${c.slug}`, toLastmod(c.updated_at), "monthly", "0.7"),
     );
   }
 
