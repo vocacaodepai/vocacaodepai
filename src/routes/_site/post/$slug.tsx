@@ -1,7 +1,9 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import PostPage from "@/pages/PostPage";
-import { getPostFull, getPostSeo } from "@/lib/seo.functions";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { getPostFull, getPostSeo, getRelatedPosts } from "@/lib/seo.functions";
+import type { BlogPost } from "@/lib/queries";
+import { articleJsonLd, breadcrumbJsonLd, faqJsonLd } from "@/lib/seo";
+import { SITE_NAME, SITE_OG_IMAGE, SITE_URL, DEFAULT_AUTHOR } from "@/lib/site";
 
 export const Route = createFileRoute("/_site/post/$slug")({
   loader: async ({ params }) => {
@@ -9,20 +11,22 @@ export const Route = createFileRoute("/_site/post/$slug")({
       getPostSeo({ data: { slug: params.slug } }),
       getPostFull({ data: { slug: params.slug } }),
     ]);
-    if (!seo) throw notFound();
-    return { seo, full };
+    if (!seo || !full) throw notFound();
+    const post = full as unknown as BlogPost;
+    // "Continue lendo": 3 posts da mesma categoria, já no servidor.
+    const related = await getRelatedPosts({
+      data: { postId: post.id, categoryId: post.category_id ?? null },
+    });
+    // O body é JSON livre do Tiptap; na fronteira servidor→página viaja como
+    // JSON genérico (PostWire, ver queries.ts).
+    return { seo, full, related };
   },
   head: ({ params, loaderData }) => {
     const url = `${SITE_URL}/post/${params.slug}`;
-    const loaderSeo = loaderData?.seo;
-    const title = loaderSeo?.title ?? `Artigo | ${SITE_NAME}`;
-    const description = loaderSeo?.description ?? "Leia o artigo completo no blog Vocação de Pai.";
-    const rawFaq = (loaderData?.full as { faq?: unknown } | null | undefined)?.faq;
-    const faq = Array.isArray(rawFaq)
-      ? (rawFaq as Array<{ question?: unknown; answer?: unknown }>).filter(
-          (item) => typeof item?.question === "string" && typeof item?.answer === "string",
-        )
-      : [];
+    const seo = loaderData?.seo;
+    const title = seo ? `${seo.title} | ${SITE_NAME}` : `Artigo | ${SITE_NAME}`;
+    const description = seo?.description ?? "Leia o artigo completo no blog Vocação de Pai.";
+    const image = seo?.image ?? SITE_OG_IMAGE;
 
     return {
       meta: [
@@ -32,77 +36,51 @@ export const Route = createFileRoute("/_site/post/$slug")({
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        { name: "twitter:card", content: "summary_large_image" },
-        ...(loaderSeo?.image
-          ? [
-              { property: "og:image", content: loaderSeo.image },
-              { name: "twitter:image", content: loaderSeo.image },
-            ]
+        { property: "og:image", content: image },
+        ...(seo?.imageAlt ? [{ property: "og:image:alt", content: seo.imageAlt }] : []),
+        ...(seo?.publishedAt
+          ? [{ property: "article:published_time", content: seo.publishedAt }]
           : []),
+        ...(seo?.updatedAt ? [{ property: "article:modified_time", content: seo.updatedAt }] : []),
+        ...(seo?.categoryName ? [{ property: "article:section", content: seo.categoryName }] : []),
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
       ],
       links: [{ rel: "canonical", href: url }],
-      scripts: loaderSeo
+      scripts: seo
         ? [
             {
               type: "application/ld+json",
-              children: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "Article",
-                headline: loaderSeo.title,
-                description: loaderSeo.description,
-                image: loaderSeo.image ?? undefined,
-                datePublished: loaderSeo.publishedAt ?? undefined,
-                dateModified: loaderSeo.updatedAt ?? loaderSeo.publishedAt ?? undefined,
-                mainEntityOfPage: url,
-                author: {
-                  "@type": "Person",
-                  name: loaderSeo.authorName ?? SITE_NAME,
-                },
-                publisher: { "@type": "Organization", name: SITE_NAME },
-                articleSection: loaderSeo.categoryName ?? undefined,
-              }),
+              children: JSON.stringify(
+                articleJsonLd({
+                  title: seo.title,
+                  description: seo.description,
+                  url,
+                  image: seo.image,
+                  datePublished: seo.publishedAt,
+                  dateModified: seo.updatedAt ?? seo.publishedAt,
+                  authorName: seo.authorName ?? DEFAULT_AUTHOR,
+                  category: seo.categoryName,
+                  publisherLogo: SITE_OG_IMAGE,
+                }),
+              ),
             },
             {
               type: "application/ld+json",
-              children: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "BreadcrumbList",
-                itemListElement: [
-                  { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
-                  ...(loaderSeo.categorySlug
-                    ? [
-                        {
-                          "@type": "ListItem",
-                          position: 2,
-                          name: loaderSeo.categoryName,
-                          item: `${SITE_URL}/categoria/${loaderSeo.categorySlug}`,
-                        },
-                      ]
+              children: JSON.stringify(
+                breadcrumbJsonLd([
+                  { name: "Blog", path: "/blog" },
+                  ...(seo.categorySlug && seo.categoryName
+                    ? [{ name: seo.categoryName, path: `/categoria/${seo.categorySlug}` }]
                     : []),
-                  {
-                    "@type": "ListItem",
-                    position: loaderSeo.categorySlug ? 3 : 2,
-                    name: loaderSeo.title,
-                    item: url,
-                  },
-                ],
-              }),
+                  { name: seo.title, path: `/post/${params.slug}` },
+                ]),
+              ),
             },
-            ...(faq.length > 0
-              ? [
-                  {
-                    type: "application/ld+json",
-                    children: JSON.stringify({
-                      "@context": "https://schema.org",
-                      "@type": "FAQPage",
-                      mainEntity: faq.map((item) => ({
-                        "@type": "Question",
-                        name: item.question,
-                        acceptedAnswer: { "@type": "Answer", text: item.answer },
-                      })),
-                    }),
-                  },
-                ]
+            ...(seo.faq.length > 0
+              ? [{ type: "application/ld+json", children: JSON.stringify(faqJsonLd(seo.faq)) }]
               : []),
           ]
         : [],

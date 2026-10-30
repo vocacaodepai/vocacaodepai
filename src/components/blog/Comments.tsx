@@ -24,14 +24,20 @@ export function Comments({ postId }: { postId: string }) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !content.trim()) return;
+    if (!user) {
+      openLogin();
+      return;
+    }
+    const authorName = (name || profile?.full_name || user.email?.split("@")[0] || "Pai").trim();
+    if (!authorName || !content.trim()) return;
     setSending(true);
     try {
+      // RLS da 0002: o comentário nasce `pending` com `user_id = auth.uid()`.
       await submitComment({
         post_id: postId,
-        author_name: name,
-        author_email: email,
-        content,
+        user_id: user.id,
+        author_name: authorName,
+        content: content.trim(),
       });
       setSent(true);
       setName("");
@@ -78,7 +84,7 @@ export function Comments({ postId }: { postId: string }) {
 
       {sent ? (
         <div className="mt-8 rounded-2xl bg-secondary/50 p-5 text-sm font-semibold text-secondary-foreground">
-          {"Obrigada! Seu comentário foi enviado e aparecerá após a aprovação."}
+          {"Obrigado! Seu comentário foi enviado e aparece depois da aprovação."}
         </div>
       ) : !user ? (
         <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-secondary bg-secondary/25 p-8 text-center">

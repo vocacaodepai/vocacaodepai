@@ -2,6 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import BlogPage from "@/pages/BlogPage";
 import { getBlogData, parseBlogParams } from "@/lib/hub.functions";
 import { breadcrumbJsonLd } from "@/lib/seo";
+import { SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "@/lib/site";
+
+const BLOG_TITLE = `Blog do ${SITE_NAME}`;
+const BLOG_DESCRIPTION =
+  "Artigos para o pai, o marido e o provedor: paternidade por fase, casamento, dinheiro, fé, saúde do homem, churrasco, ferramentas e muito mais.";
 
 export const Route = createFileRoute("/_site/blog")({
   loaderDeps: ({ search }) => parseBlogParams(search as Record<string, unknown>),
@@ -10,32 +15,28 @@ export const Route = createFileRoute("/_site/blog")({
     const search = ctx.match.search as Record<string, string | undefined>;
     const categoria = search?.["categoria"];
     const page = Math.max(1, Number(search?.["page"] ?? "1") || 1);
-    // /blog?categoria=X duplica /categoria/X (que j\u00e1 existe como p\u00e1gina
-    // pr\u00f3pria) \u2014 apontar a canonical pra l\u00e1; pagina\u00e7\u00e3o sem filtro \u00e9
-    // autorreferente.
+    const active = ctx.loaderData?.active ?? null;
+    // /blog?categoria=X duplica /categoria/X (página própria): canonical
+    // aponta para lá; paginação sem filtro é autorreferente.
     const canonical = categoria
-      ? `https://vocacaodepai.com.br/categoria/${categoria}${page > 1 ? `?page=${page}` : ""}`
+      ? `${SITE_URL}/categoria/${categoria}${page > 1 ? `?page=${page}` : ""}`
       : page > 1
-        ? `https://vocacaodepai.com.br/blog?page=${page}`
-        : "https://vocacaodepai.com.br/blog";
+        ? `${SITE_URL}/blog?page=${page}`
+        : `${SITE_URL}/blog`;
+    const title = active ? `${active.name} | ${BLOG_TITLE}` : `${BLOG_TITLE} | ${SITE_NAME}`;
+    const description = active?.description ?? BLOG_DESCRIPTION;
 
     return {
       meta: [
-        { title: "Blog | Voca\u00e7\u00e3o de M\u00e3e" },
-        {
-          name: "description",
-          content:
-            "Artigos sobre gesta\u00e7\u00e3o, parto, amamenta\u00e7\u00e3o, sono do beb\u00ea e desenvolvimento infantil.",
-        },
-        { property: "og:title", content: "Blog | Voca\u00e7\u00e3o de M\u00e3e" },
-        {
-          property: "og:description",
-          content:
-            "Artigos sobre gesta\u00e7\u00e3o, parto, amamenta\u00e7\u00e3o, sono do beb\u00ea e desenvolvimento infantil.",
-        },
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
         { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
         { property: "og:url", content: canonical },
+        { property: "og:image", content: SITE_OG_IMAGE },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: SITE_OG_IMAGE },
       ],
       links: [{ rel: "canonical", href: canonical }],
       scripts: [

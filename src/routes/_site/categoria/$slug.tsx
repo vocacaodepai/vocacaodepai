@@ -1,6 +1,8 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import CategoryPage from "@/pages/CategoryPage";
 import { getCategoryData } from "@/lib/hub.functions";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "@/lib/site";
 
 function titleize(slug: string) {
   return slug
@@ -21,16 +23,15 @@ export const Route = createFileRoute("/_site/categoria/$slug")({
   head: (ctx) => {
     const { params, loaderData } = ctx;
     const name = loaderData?.category?.name ?? titleize(params.slug);
-    const title = `${name} | Vocação de Pai`;
+    const parent = loaderData?.parent ?? null;
+    const title = `${name} | Blog do ${SITE_NAME}`;
     const description =
       loaderData?.category?.description ??
       `Artigos sobre ${name.toLowerCase()} no blog Vocação de Pai: orientações práticas e diretas para o pai de família.`;
     const search = ctx.match.search as Record<string, string | undefined>;
     const page = Math.max(1, Number(search?.["page"] ?? "1") || 1);
-    const url =
-      page > 1
-        ? `https://vocacaodepai.com.br/categoria/${params.slug}?page=${page}`
-        : `https://vocacaodepai.com.br/categoria/${params.slug}`;
+    const path = `/categoria/${params.slug}`;
+    const url = page > 1 ? `${SITE_URL}${path}?page=${page}` : `${SITE_URL}${path}`;
 
     return {
       meta: [
@@ -39,32 +40,22 @@ export const Route = createFileRoute("/_site/categoria/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
         { property: "og:url", content: url },
+        { property: "og:image", content: SITE_OG_IMAGE },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: SITE_OG_IMAGE },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [
         {
           type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "Início",
-                item: "https://vocacaodepai.com.br",
-              },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Blog",
-                item: "https://vocacaodepai.com.br/blog",
-              },
-              { "@type": "ListItem", position: 3, name, item: url },
-            ],
-          }),
+          children: JSON.stringify(
+            breadcrumbJsonLd([
+              { name: "Blog", path: "/blog" },
+              ...(parent ? [{ name: parent.name, path: `/categoria/${parent.slug}` }] : []),
+              { name, path },
+            ]),
+          ),
         },
       ],
     };
