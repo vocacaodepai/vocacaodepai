@@ -4,15 +4,18 @@ import {
   ArrowLeftRight,
   Baby,
   Beef,
+  BookOpen,
   CalendarCheck,
   ClipboardList,
   Flame,
+  Footprints,
   HeartPulse,
   LineChart,
   PiggyBank,
   Ruler,
   Scale,
   Shield,
+  Syringe,
   TrendingUp,
   Wrench,
 } from "lucide-react";
@@ -58,8 +61,7 @@ export interface ToolDefinition {
 
 const L = (loader: () => Promise<{ default: ComponentType }>) => lazy(loader);
 
-// Registro fechado (doc 06 §0.2). Pendentes para a próxima sessão: nomes-de-filhos, calendario-de-vacinacao,
-// marcos-do-desenvolvimento (ver docs/plano/progresso-fase-4.md).
+// Registro fechado (doc 06 §0.2): os 17 slugs.
 export const TOOLS: ToolDefinition[] = [
   {
     slug: "conversor-de-moedas",
@@ -745,6 +747,178 @@ export const TOOLS: ToolDefinition[] = [
     disclaimer:
       "Lista educativa; use EPI e siga o manual de cada ferramenta. Serviços elétricos, de gás e em altura exigem profissional habilitado.",
     component: L(() => import("@/components/ferramentas/kit-de-ferramentas/ToolkitBuilder")),
+  },
+  {
+    slug: "nomes-de-filhos",
+    title: "Nomes de filhos com significado",
+    seoTitle: "Nomes de filhos: significado, origem e nomes de santos",
+    description:
+      "Escolha o nome do seu filho com significado e origem, filtre por letra, nomes de santos e bíblicos, teste com o sobrenome e monte a lista com a esposa.",
+    short: "Mais de 900 nomes com significado, origem e nomes de santos.",
+    icon: BookOpen,
+    category: "familia",
+    appCategory: "LifestyleApplication",
+    howTo: [
+      {
+        name: "Filtre",
+        text: "Menino ou menina, letra inicial, origem, só santos ou só bíblicos.",
+      },
+      {
+        name: "Teste com o sobrenome",
+        text: "Digite o sobrenome da família para ver como o nome completo soa.",
+      },
+      {
+        name: "Favorite e compartilhe",
+        text: "Guarde até 10 nomes e mande a lista para a esposa decidir junto.",
+      },
+    ],
+    faq: [
+      {
+        question: "Por que escolher nome de santo?",
+        answer:
+          "Na tradição católica, o nome dá ao filho um padroeiro e um exemplo de vida. Não é obrigação, mas é um presente que acompanha a criança para sempre.",
+      },
+      {
+        question: "Posso registrar qualquer nome?",
+        answer:
+          "O cartório pode recusar nomes que exponham a criança ao ridículo. Nomes compostos e estrangeiros são aceitos; grafias muito incomuns podem gerar dúvida. Em caso de recusa, há recurso ao juiz.",
+      },
+      {
+        question: "Os significados são confiáveis?",
+        answer:
+          "Vêm da etimologia tradicional de cada língua (hebraico, grego, latim, germânico, tupi). Nomes modernos sem etimologia clara trazem a origem mais aceita.",
+      },
+      {
+        question: "E se o pai e a mãe não concordam?",
+        answer:
+          "Cada um monta a lista de favoritos e troca com o outro. O nome do filho é decisão do casal; a ferramenta só organiza a conversa.",
+      },
+    ],
+    relatedCategories: ["paternidade-por-fase", "fe-e-virtude"],
+    relatedTerms: ["nomes de bebê", "nome de santo", "significado do nome", "registro"],
+    component: L(() => import("@/components/ferramentas/nomes-de-filhos/ChildNames")),
+  },
+  {
+    slug: "calendario-de-vacinacao",
+    title: "Calendário de vacinação do seu filho",
+    seoTitle: "Calendário de vacinação infantil: próximas doses por idade",
+    description:
+      "Digite a data de nascimento e veja as vacinas do SUS por idade, o que já venceu, as próximas doses com lembrete na agenda e o que observar depois de vacinar.",
+    short: "Próximas doses por idade, atrasadas e lembrete na agenda.",
+    icon: Syringe,
+    category: "familia",
+    appCategory: "HealthApplication",
+    howTo: [
+      {
+        name: "Informe a data de nascimento",
+        text: "A linha do tempo mostra todas as doses do calendário do SUS por idade.",
+      },
+      {
+        name: "Marque as doses feitas",
+        text: "Confira na caderneta e marque. Fica salvo neste navegador.",
+      },
+      {
+        name: "Agende as próximas",
+        text: "Adicione as 3 próximas doses à sua agenda com lembrete 3 dias antes.",
+      },
+      {
+        name: "Observe depois da vacina",
+        text: "Febre baixa é comum; o Semáforo do pai diz quando procurar atendimento.",
+      },
+    ],
+    faq: [
+      {
+        question: "O calendário é o do SUS?",
+        answer:
+          "Sim, o Calendário Nacional de Vacinação do Ministério da Saúde, gratuito em qualquer UBS. A data da última conferência aparece na tela; vacinas da rede privada não estão incluídas.",
+      },
+      {
+        question: "Perdi a data de uma dose. E agora?",
+        answer:
+          "Vá à UBS: o esquema é retomado de onde parou, sem recomeçar. Só o rotavírus tem janela que não pode passar; o restante se recupera.",
+      },
+      {
+        question: "Pode dar várias vacinas no mesmo dia?",
+        answer:
+          "Pode. O calendário é feito assim para proteger cedo. Vacinar junto não sobrecarrega o organismo da criança.",
+      },
+      {
+        question: "E se meu filho estiver gripado?",
+        answer:
+          "Resfriado leve sem febre não impede a vacina. Com febre, espere melhorar. Na dúvida, a equipe da UBS decide na hora.",
+      },
+    ],
+    relatedCategories: ["paternidade-por-fase", "corpo-e-saude-do-homem"],
+    relatedTerms: ["vacina", "calendário de vacinação", "UBS", "caderneta", "recém-nascido"],
+    disclaimer:
+      "Informação educativa baseada no calendário público vigente na data indicada; a caderneta e a equipe de saúde prevalecem. Reação grave após vacina: procure atendimento ou ligue 192.",
+    component: L(
+      () => import("@/components/ferramentas/calendario-de-vacinacao/VaccinationCalendar"),
+    ),
+  },
+  {
+    slug: "marcos-do-desenvolvimento",
+    title: "Marcos do desenvolvimento: o que o pai faz em cada fase",
+    seoTitle: "Marcos do desenvolvimento do filho: o que esperar por idade",
+    description:
+      "Veja o que o seu filho costuma fazer em cada idade, do 1º mês aos 5 anos, o que o pai pode fazer para estimular e quais sinais pedem conversa com o pediatra.",
+    short: "O que esperar por idade, o que o pai faz e quando falar com o pediatra.",
+    icon: Footprints,
+    category: "familia",
+    appCategory: "HealthApplication",
+    howTo: [
+      {
+        name: "Informe a idade do filho",
+        text: "Data de nascimento ou meses. A fase atual abre em destaque.",
+      },
+      {
+        name: "Confira os marcos",
+        text: "Motor, linguagem, social e cognitivo. Marque o que você já viu ele fazer.",
+      },
+      {
+        name: "Faça a sua parte",
+        text: "Cada fase tem 3 a 4 ações simples do pai, para o dia a dia.",
+      },
+      {
+        name: "Olhe o Semáforo",
+        text: "Atenção é observar e comentar; alerta é procurar o pediatra agora.",
+      },
+    ],
+    faq: [
+      {
+        question: "Meu filho não faz um marco da idade. Ele está atrasado?",
+        answer:
+          "Cada criança tem seu ritmo e os marcos são faixas, não datas. Um marco ausente pede observação e conversa na próxima consulta; vários ausentes ou uma habilidade perdida pedem avaliação logo.",
+      },
+      {
+        question: "De onde vêm os marcos?",
+        answer:
+          "Da Caderneta da Criança do Ministério da Saúde, a mesma que o pediatra usa nas consultas, reescritos em linguagem de pai.",
+      },
+      {
+        question: "O que o pai faz de diferente da mãe?",
+        answer:
+          "Brincadeira física, voz grave, desafio controlado e o exemplo de homem. Estudos mostram que o envolvimento do pai melhora linguagem e autocontrole. Não é substituir a mãe; é somar.",
+      },
+      {
+        question: "Tela atrapalha?",
+        answer:
+          "Antes dos 2 anos, a recomendação é zero tela. Depois, pouco e com você junto. Nenhuma tela substitui conversa, chão e quintal.",
+      },
+    ],
+    relatedCategories: ["paternidade-por-fase", "esporte-e-lazer-com-os-filhos"],
+    relatedTerms: [
+      "desenvolvimento infantil",
+      "marcos",
+      "primeiro ano",
+      "estimular o bebê",
+      "pediatra",
+    ],
+    disclaimer:
+      "Conteúdo educativo baseado na Caderneta da Criança; não substitui a avaliação do pediatra. Habilidade perdida ou vários marcos ausentes: procure o pediatra.",
+    component: L(
+      () => import("@/components/ferramentas/marcos-do-desenvolvimento/DevelopmentMilestones"),
+    ),
   },
   {
     slug: "imc-e-gasto-calorico",

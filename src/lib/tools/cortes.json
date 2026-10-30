@@ -1,6 +1,6 @@
 {
   "atualizado_em": "2026-10-30",
-  "nota": "Equivalências BR × EUA aproximadas (anexo res-ecossistema E.1; confirmar no Catálogo ABIEC). Faixas de preço só após pesquisa em 2 lojas (CLAUDE.md §5.2); null = ainda não pesquisada.",
+  "nota": "Equivalências BR × EUA aproximadas (anexo res-ecossistema E.1; confirmar no Catálogo ABIEC). Faixas de preço só após pesquisa em 2 lojas (CLAUDE.md §5.2); null = ainda não pesquisada. Porco e frango: equivalências do anexo res-ecossistema E.1 (UnB/Bem Paraná) e nomenclatura usual do varejo.",
   "preparos": ["grelha", "espeto", "chapa", "panela", "forno", "moida"],
   "cortes": [
     {
@@ -27,7 +27,8 @@
       },
       "dica_do_pai": "Peça peça de até 1,2 kg: acima disso costuma vir com coxão duro junto.",
       "svg_id": "picanha",
-      "artigos": ["guia-dos-cortes-de-carne-para-churrasco"]
+      "artigos": ["guia-dos-cortes-de-carne-para-churrasco"],
+      "animal": "boi"
     },
     {
       "slug": "contrafile",
@@ -53,7 +54,8 @@
       },
       "dica_do_pai": "Deixe a carne sair da geladeira 30 minutos antes de ir ao fogo.",
       "svg_id": "contrafile",
-      "artigos": ["guia-dos-cortes-de-carne-para-churrasco"]
+      "artigos": ["guia-dos-cortes-de-carne-para-churrasco"],
+      "animal": "boi"
     },
     {
       "slug": "alcatra",
@@ -79,7 +81,8 @@
       },
       "dica_do_pai": "O miolo da alcatra é o melhor custo-benefício do churrasco de família.",
       "svg_id": "alcatra",
-      "artigos": ["guia-dos-cortes-de-carne-para-churrasco"]
+      "artigos": ["guia-dos-cortes-de-carne-para-churrasco"],
+      "animal": "boi"
     },
     {
       "slug": "maminha",
@@ -105,7 +108,8 @@
       },
       "dica_do_pai": "Asse inteira, com a gordura para cima, e só fatie na tábua.",
       "svg_id": "maminha",
-      "artigos": ["fraldinha-ou-maminha-diferenca"]
+      "artigos": ["fraldinha-ou-maminha-diferenca"],
+      "animal": "boi"
     },
     {
       "slug": "fraldinha",
@@ -131,7 +135,8 @@
       },
       "dica_do_pai": "Peça inteira, grelha quente, 4 minutos de cada lado e descanso de 5 minutos.",
       "svg_id": "fraldinha",
-      "artigos": ["fraldinha-ou-maminha-diferenca"]
+      "artigos": ["fraldinha-ou-maminha-diferenca"],
+      "animal": "boi"
     },
     {
       "slug": "costela",
@@ -157,7 +162,8 @@
       },
       "dica_do_pai": "Comece a costela antes de todo o resto: ela é a última a sair e a primeira a acabar.",
       "svg_id": "costela",
-      "artigos": ["costela-no-bafo-quanto-tempo"]
+      "artigos": ["costela-no-bafo-quanto-tempo"],
+      "animal": "boi"
     },
     {
       "slug": "cupim",
@@ -183,7 +189,8 @@
       },
       "dica_do_pai": "Tempere na véspera com sal grosso e alho; o tempo faz o trabalho.",
       "svg_id": "cupim",
-      "artigos": []
+      "artigos": [],
+      "animal": "boi"
     },
     {
       "slug": "acem",
@@ -209,7 +216,8 @@
       },
       "dica_do_pai": "Peça moído na hora para o hambúrguer dos filhos: tem a gordura certa.",
       "svg_id": "acem",
-      "artigos": []
+      "artigos": [],
+      "animal": "boi"
     },
     {
       "slug": "peito",
@@ -235,7 +243,8 @@
       },
       "dica_do_pai": "Para começar no defumado, o peito ensina paciência: 95 °C internos é o alvo.",
       "svg_id": "peito",
-      "artigos": []
+      "artigos": [],
+      "animal": "boi"
     },
     {
       "slug": "musculo",
@@ -261,7 +270,8 @@
       },
       "dica_do_pai": "Com osso, rende o melhor caldo para a sopa do inverno.",
       "svg_id": "musculo",
-      "artigos": []
+      "artigos": [],
+      "animal": "boi"
     },
     {
       "slug": "paleta",
@@ -287,7 +297,8 @@
       },
       "dica_do_pai": "O miolo da paleta vira um ótimo bife de panela com cebola.",
       "svg_id": "paleta",
-      "artigos": []
+      "artigos": [],
+      "animal": "boi"
     },
     {
       "slug": "coxao-mole",
@@ -313,7 +324,8 @@
       },
       "dica_do_pai": "É o bife do dia a dia: fino, rápido e com farofa.",
       "svg_id": "coxao-mole",
-      "artigos": []
+      "artigos": [],
+      "animal": "boi"
     },
     {
       "slug": "coxao-duro",
@@ -339,7 +351,8 @@
       },
       "dica_do_pai": "Rosbife e carne louca: fatie bem fino depois de assar.",
       "svg_id": "coxao-duro",
-      "artigos": []
+      "artigos": [],
+      "animal": "boi"
     },
     {
       "slug": "lagarto",
@@ -365,7 +378,8 @@
       },
       "dica_do_pai": "Lagarto recheado com linguiça na panela de pressão: almoço de domingo garantido.",
       "svg_id": "lagarto",
-      "artigos": []
+      "artigos": [],
+      "animal": "boi"
     },
     {
       "slug": "patinho",
@@ -391,7 +405,8 @@
       },
       "dica_do_pai": "Peça para moer na sua frente: você vê o corte e evita mistura.",
       "svg_id": "patinho",
-      "artigos": []
+      "artigos": [],
+      "animal": "boi"
     },
     {
       "slug": "file-mignon",
@@ -417,6 +432,412 @@
       },
       "dica_do_pai": "Para o jantar do aniversário de casamento: medalhão com manteiga e alecrim.",
       "svg_id": "file-mignon",
+      "artigos": [],
+      "animal": "boi"
+    },
+    {
+      "slug": "pernil",
+      "animal": "porco",
+      "nome_br": "Pernil",
+      "nome_eua": "Ham / Fresh ham",
+      "regiao": "traseiro",
+      "textura": "Magro, fibras longas; macio no assado lento",
+      "maciez": 3,
+      "gordura": 2,
+      "preco_relativo": 2,
+      "preparo": ["forno", "panela"],
+      "ponto": "Bem passado (71 °C internos); assado lento 3 a 4 horas",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: pernil sem marinada de véspera e em forno alto fica seco e sem sabor; tempere na véspera e asse baixo."
+      },
+      "dica_do_pai": "Para o Natal, compre com pele: a pururuca é a melhor parte.",
+      "svg_id": "pernil",
+      "artigos": []
+    },
+    {
+      "slug": "lombo-suino",
+      "animal": "porco",
+      "nome_br": "Lombo",
+      "nome_eua": "Pork loin",
+      "regiao": "central",
+      "textura": "Muito magro; seca fácil",
+      "maciez": 3,
+      "gordura": 1,
+      "preco_relativo": 3,
+      "preparo": ["forno", "chapa", "grelha"],
+      "ponto": "Ao ponto para bem passado (63–68 °C), 5 minutos de descanso",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: o lombo é o corte suíno que mais seca; não passe de 68 °C e deixe descansar antes de fatiar."
+      },
+      "dica_do_pai": "Lombo com laranja na panela de pressão é almoço de domingo rápido.",
+      "svg_id": "lombo-suino",
+      "artigos": []
+    },
+    {
+      "slug": "costela-suina",
+      "animal": "porco",
+      "nome_br": "Costela suína",
+      "nome_eua": "Pork ribs / Spare ribs",
+      "regiao": "central",
+      "textura": "Gordura entremeada e osso; a mais saborosa do churrasco suíno",
+      "maciez": 2,
+      "gordura": 5,
+      "preco_relativo": 2,
+      "preparo": ["espeto", "forno", "grelha"],
+      "ponto": "Bem passada, 2 a 3 horas em fogo baixo até soltar do osso",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: costelinha em fogo forte queima por fora e fica crua por dentro; longe da brasa, com paciência."
+      },
+      "dica_do_pai": "Membrana de trás removida antes de temperar: a carne absorve o sal e fica macia.",
+      "svg_id": "costela-suina",
+      "artigos": []
+    },
+    {
+      "slug": "barriga",
+      "animal": "porco",
+      "nome_br": "Barriga (panceta / bacon)",
+      "nome_eua": "Pork belly",
+      "regiao": "central",
+      "textura": "Camadas de gordura e carne; crocante por fora",
+      "maciez": 3,
+      "gordura": 5,
+      "preco_relativo": 2,
+      "preparo": ["forno", "chapa", "grelha"],
+      "ponto": "Bem passada; pele crocante (pururuca) em forno alto no fim",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: barriga de porco é muito gordurosa; uma porção pequena basta, e a pele precisa de forno alto só no final."
+      },
+      "dica_do_pai": "Panceta à pururuca: sal grosso na pele, forno baixo, depois forno no máximo por 15 minutos.",
+      "svg_id": "barriga",
+      "artigos": []
+    },
+    {
+      "slug": "paleta-suina",
+      "animal": "porco",
+      "nome_br": "Paleta suína",
+      "nome_eua": "Pork shoulder / Picnic",
+      "regiao": "dianteiro",
+      "textura": "Mais gordura que o pernil; macia na panela e no pulled pork",
+      "maciez": 2,
+      "gordura": 4,
+      "preco_relativo": 1,
+      "preparo": ["forno", "panela"],
+      "ponto": "Bem passada, 6 a 8 horas a 110 °C para desfiar",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: paleta pede tempo; na pressa vira carne dura. É o corte do porco desfiado."
+      },
+      "dica_do_pai": "A paleta é mais barata que o pernil e rende a melhor carne desfiada para o sanduíche dos filhos.",
+      "svg_id": "paleta-suina",
+      "artigos": []
+    },
+    {
+      "slug": "copa-lombo",
+      "animal": "porco",
+      "nome_br": "Copa-lombo (sobrepaleta)",
+      "nome_eua": "Pork collar / Boston butt",
+      "regiao": "dianteiro",
+      "textura": "Gordura marmorizada; muito suculenta",
+      "maciez": 4,
+      "gordura": 4,
+      "preco_relativo": 2,
+      "preparo": ["grelha", "chapa", "forno"],
+      "ponto": "Ao ponto para bem passado (65–70 °C); bife grosso na grelha",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: copa muito bem passada perde a suculência que é a graça do corte; bife grosso e fogo médio."
+      },
+      "dica_do_pai": "É a picanha do porco: bife de copa-lombo na grelha com sal grosso.",
+      "svg_id": "copa-lombo",
+      "artigos": []
+    },
+    {
+      "slug": "bisteca",
+      "animal": "porco",
+      "nome_br": "Bisteca suína",
+      "nome_eua": "Pork chop",
+      "regiao": "central",
+      "textura": "Lombo com osso; saborosa e rápida",
+      "maciez": 3,
+      "gordura": 3,
+      "preco_relativo": 2,
+      "preparo": ["grelha", "chapa"],
+      "ponto": "Ao ponto (63 °C) com descanso; bisteca alta",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: bisteca fina na frigideira fervendo vira sola; peça com 2,5 cm e sele dos dois lados."
+      },
+      "dica_do_pai": "Bisteca com osso é o bife rápido da semana: 4 minutos de cada lado.",
+      "svg_id": "bisteca",
+      "artigos": []
+    },
+    {
+      "slug": "file-mignon-suino",
+      "animal": "porco",
+      "nome_br": "Filé-mignon suíno",
+      "nome_eua": "Pork tenderloin",
+      "regiao": "central",
+      "textura": "O mais macio do porco; muito magro",
+      "maciez": 5,
+      "gordura": 1,
+      "preco_relativo": 3,
+      "preparo": ["chapa", "forno", "grelha"],
+      "ponto": "Ao ponto (63 °C); nunca bem passado",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: por ser magro, o filé suíno fica seco passado de 65 °C; sele e tire cedo."
+      },
+      "dica_do_pai": "Medalhão de filé suíno é o jantar econômico que parece de restaurante.",
+      "svg_id": "file-mignon-suino",
+      "artigos": []
+    },
+    {
+      "slug": "joelho-suino",
+      "animal": "porco",
+      "nome_br": "Joelho (eisbein) e pé",
+      "nome_eua": "Pork knuckle / Hock",
+      "regiao": "extremidades",
+      "textura": "Pele, colágeno e osso; cozimento longo",
+      "maciez": 1,
+      "gordura": 4,
+      "preco_relativo": 1,
+      "preparo": ["panela", "forno"],
+      "ponto": "Bem passado, 2 horas na pressão ou 3 no forno",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "alerta",
+        "texto": "Sinal de alerta: pé e joelho precisam de cozimento completo; carne de porco malcozida pode transmitir parasitas — cozinhe bem e procure um médico se houver sintomas de intoxicação."
+      },
+      "dica_do_pai": "Joelho cozido e depois assado: o eisbein da cervejaria em casa.",
+      "svg_id": "joelho-suino",
+      "artigos": []
+    },
+    {
+      "slug": "peito-de-frango",
+      "animal": "frango",
+      "nome_br": "Peito de frango",
+      "nome_eua": "Chicken breast",
+      "regiao": "dianteiro",
+      "textura": "Magro; seca fácil",
+      "maciez": 3,
+      "gordura": 1,
+      "preco_relativo": 2,
+      "preparo": ["chapa", "grelha", "forno", "panela"],
+      "ponto": "Sempre bem passado (74 °C), mas sem passar: 74 °C e descanso",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "alerta",
+        "texto": "Sinal de alerta: frango sempre bem passado, 74 °C no termômetro; frango rosado é risco de salmonela — procure um médico se houver sintomas de intoxicação."
+      },
+      "dica_do_pai": "Peito batido fino ou em cubos marinados: cozinha rápido e não seca.",
+      "svg_id": "peito-de-frango",
+      "artigos": []
+    },
+    {
+      "slug": "coxa",
+      "animal": "frango",
+      "nome_br": "Coxa",
+      "nome_eua": "Chicken drumstick",
+      "regiao": "traseiro",
+      "textura": "Carne escura, suculenta, com osso",
+      "maciez": 4,
+      "gordura": 3,
+      "preco_relativo": 1,
+      "preparo": ["espeto", "forno", "grelha", "panela"],
+      "ponto": "Bem passada (74 °C); 35 a 40 minutos no forno",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "alerta",
+        "texto": "Sinal de alerta: coxa com osso leva mais tempo; carne perto do osso rosada é frango cru — 74 °C sempre, e procure um médico se houver sintomas de intoxicação."
+      },
+      "dica_do_pai": "Coxa no churrasco vai no espeto largo, longe da brasa, virando sempre.",
+      "svg_id": "coxa",
+      "artigos": []
+    },
+    {
+      "slug": "sobrecoxa",
+      "animal": "frango",
+      "nome_br": "Sobrecoxa",
+      "nome_eua": "Chicken thigh",
+      "regiao": "traseiro",
+      "textura": "A mais saborosa do frango; gordura na pele",
+      "maciez": 4,
+      "gordura": 3,
+      "preco_relativo": 1,
+      "preparo": ["grelha", "chapa", "forno", "panela"],
+      "ponto": "Bem passada (74 °C); desossada na grelha, 6 minutos de cada lado",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "alerta",
+        "texto": "Sinal de alerta: pele crocante não significa carne pronta; confira 74 °C no centro e procure um médico se houver sintomas de intoxicação."
+      },
+      "dica_do_pai": "Sobrecoxa desossada é o melhor custo-benefício do churrasco: barata e não seca.",
+      "svg_id": "sobrecoxa",
+      "artigos": []
+    },
+    {
+      "slug": "asa",
+      "animal": "frango",
+      "nome_br": "Asa (tulipa e meio da asa)",
+      "nome_eua": "Chicken wing",
+      "regiao": "dianteiro",
+      "textura": "Pouca carne, muita pele e sabor",
+      "maciez": 3,
+      "gordura": 3,
+      "preco_relativo": 1,
+      "preparo": ["grelha", "forno", "chapa"],
+      "ponto": "Bem passada (74 °C), crocante",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "alerta",
+        "texto": "Sinal de alerta: asa de frango mal passada perto do osso é frango cru; cozinhe até 74 °C e procure um médico se houver sintomas de intoxicação."
+      },
+      "dica_do_pai": "Tulipa marinada na véspera no churrasco: a criançada come primeiro.",
+      "svg_id": "asa",
+      "artigos": []
+    },
+    {
+      "slug": "coracao",
+      "animal": "frango",
+      "nome_br": "Coração de frango",
+      "nome_eua": "Chicken hearts",
+      "regiao": "miúdos",
+      "textura": "Firme e sem gordura; o miúdo do churrasco",
+      "maciez": 3,
+      "gordura": 2,
+      "preco_relativo": 1,
+      "preparo": ["espeto", "chapa"],
+      "ponto": "Bem passado (74 °C); 8 a 10 minutos no espeto",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "alerta",
+        "texto": "Sinal de alerta: miúdo é carne de alto risco se ficar cru por dentro; bem passado sempre, e procure um médico se houver sintomas de intoxicação."
+      },
+      "dica_do_pai": "Coração no espeto com sal grosso e limão abre o churrasco enquanto a picanha não chega.",
+      "svg_id": "coracao",
+      "artigos": []
+    },
+    {
+      "slug": "dorso-pescoco",
+      "animal": "frango",
+      "nome_br": "Dorso e pescoço",
+      "nome_eua": "Chicken back and neck",
+      "regiao": "central",
+      "textura": "Mais osso que carne; caldo",
+      "maciez": 1,
+      "gordura": 3,
+      "preco_relativo": 1,
+      "preparo": ["panela"],
+      "ponto": "Bem passado; 40 minutos de cozimento para caldo",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: dorso e pescoço têm ossos pequenos e pontiagudos; nunca sirva a criança pequena sem desossar."
+      },
+      "dica_do_pai": "Compre o frango inteiro e guarde dorso e pescoço para o caldo da canja.",
+      "svg_id": "dorso-pescoco",
       "artigos": []
     }
   ]

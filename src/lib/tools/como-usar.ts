@@ -213,6 +213,62 @@ A lista vem dividida em duas partes. Comece por estes são os itens essenciais p
 
 Prefira marca conhecida nas ferramentas que você vai usar sempre e kit simples nas que usa pouco. Guarde tudo na mesma caixa, no mesmo lugar, e ensine o filho a devolver cada peça ao lugar dela. Caixa de ferramentas organizada é lição de ordem que a criança leva para a vida.`,
 
+  "nomes-de-filhos": `Escolher o nome do filho é a primeira decisão que o pai e a mãe tomam juntos para uma pessoa que ainda não conhecem, e ela vai acompanhá-la a vida inteira. Esta ferramenta reúne mais de novecentos nomes com significado e origem, organizados para o casal filtrar, comparar, testar com o sobrenome e chegar a uma lista curta sem briga.
+
+## Como filtrar
+
+Comece pelo sexo, se já souber. Depois use a letra inicial, a origem, que vai do hebraico e do grego ao latim, ao germânico e ao tupi, e os dois filtros que fazem desta lista algo diferente: só nomes de santos e só nomes bíblicos. Na tradição católica, dar ao filho o nome de um santo é dar a ele um padroeiro, uma data para celebrar e uma história de vida para imitar. Não é obrigação, mas é um presente que o pai pode dar no primeiro dia.
+
+## Teste com o sobrenome
+
+Digite o sobrenome da família e cada card passa a mostrar o nome completo. Preste atenção ao som: nome que termina com a mesma letra com que o sobrenome começa costuma emendar mal, e a ferramenta avisa quando isso acontece. Leia em voz alta, imagine a chamada na escola e a assinatura no documento. Nome bonito na lista pode ficar estranho no dia a dia.
+
+## Monte a lista e decida juntos
+
+Favorite até dez nomes; eles ficam guardados neste navegador. O botão de compartilhar manda a lista para a esposa, que pode fazer a dela e trocar. O botão de sortear mostra cinco nomes aleatórios dentro dos filtros, bom para destravar quando nada agrada. Decisão de nome é do casal: a ferramenta só organiza a conversa.
+
+## Sobre o registro
+
+O cartório pode recusar nome que exponha a criança ao ridículo; nomes compostos e estrangeiros são aceitos, e grafias muito incomuns podem gerar dúvida na hora de registrar. Quem registra, na maioria das famílias, é o pai, nos primeiros dias de vida, levando a declaração de nascido vivo do hospital. Os significados desta lista vêm da etimologia tradicional de cada língua; nomes modernos sem etimologia clara trazem a origem mais aceita. Escolha com calma, reze pelo filho enquanto escolhe, e lembre que o melhor nome é o que o casal vai gostar de chamar todos os dias.`,
+
+  "calendario-de-vacinacao": `Vacina de filho não é assunto só da mãe. O pai que acompanha o calendário, marca a data e leva a criança à UBS está protegendo a família de doenças que ainda matam no Brasil e dividindo de verdade a carga da casa. Esta ferramenta transforma o calendário público do SUS numa linha do tempo do seu filho, com as doses feitas, as próximas e as atrasadas.
+
+## Comece pela data de nascimento
+
+Digite a data e a tela monta a linha do tempo por idade: ao nascer, dois meses, três, quatro, cinco, seis, nove, doze, quinze meses, quatro anos e a adolescência. Cada dose mostra a vacina, de que doença protege e observações importantes, como a janela estreita do rotavírus, que não pode passar. Pegue a caderneta e marque o que já foi feito; a marcação fica salva neste navegador e, se você tiver conta na Área do Pai, a data do filho vem preenchida sozinha.
+
+## Leia os estados
+
+Feita é a dose marcada por você. No prazo é a que está na idade certa agora. Próxima mostra quantos dias faltam. Atrasada é a dose cuja idade já passou há mais de um mês sem marcação: não se preocupe, o esquema é retomado de onde parou, sem recomeçar; vá à UBS esta semana. Fora da janela aparece só nas vacinas com limite de idade, e nesse caso a equipe de saúde orienta o que fazer.
+
+## Agende como quem agenda reunião
+
+O bloco das próximas três doses tem o botão de adicionar à agenda: ele cria o compromisso no seu celular com lembrete três dias antes. Trate como compromisso de trabalho. Leve a caderneta na sua carteira; quem leva é você.
+
+## Depois da vacina
+
+Febre baixa, dor no local e irritação nas primeiras quarenta e oito horas são comuns e passam com colo, líquido e, se o pediatra orientou, antitérmico. O Semáforo do pai aponta o que não é normal: febre alta que não cede, choro inconsolável por horas, convulsão ou inchaço importante pedem atendimento imediato na UPA ou ligação para o 192. Resfriado leve sem febre não impede vacinar; com febre, espere melhorar.
+
+O calendário é o Nacional de Vacinação do Ministério da Saúde, gratuito em qualquer UBS, conferido na data indicada na tela. Vacinas da rede privada não estão aqui. A caderneta e a equipe de saúde sempre prevalecem sobre qualquer ferramenta.`,
+
+  "marcos-do-desenvolvimento": `Pai presente conhece o filho. Sabe o que esperar em cada idade, percebe quando algo não vai bem e, principalmente, sabe o que fazer para ajudar. Esta ferramenta traduz os marcos do desenvolvimento da Caderneta da Criança, a mesma que o pediatra usa, para a linguagem de quem chega do trabalho e quer aproveitar a hora que tem com o filho.
+
+## Informe a idade
+
+Digite a data de nascimento ou a idade em meses. A fase atual abre em destaque, com os marcos divididos em quatro áreas: motor, linguagem, social e cognitivo. Marque o que você já viu o seu filho fazer; a marcação fica salva neste navegador. Navegue para a fase anterior, se quiser conferir o que ficou para trás, e para a seguinte, para saber o que vem aí.
+
+## Faça a sua parte
+
+Em cada fase há três ou quatro ações do pai, pensadas para o dia a dia real: conversar olhando nos olhos, colocar de bruços por um minuto, esconder o rosto, ler em voz alta, brincar no chão, dar tarefas pequenas, levar para o quintal, incluir nas tarefas de homem da casa. Nada custa dinheiro e tudo cabe em quinze minutos. A ciência é clara: o envolvimento do pai melhora linguagem, autocontrole e segurança da criança. Não é substituir a mãe; é somar o que só o pai dá.
+
+## Leia o Semáforo com calma
+
+Marcos são faixas, não datas. Um filho que ainda não anda aos doze meses está dentro da normalidade; a maioria anda entre doze e quinze. O sinal verde diz que a fase está indo bem. O sinal de atenção aponta um marco que costuma estar presente e ainda não apareceu: observe por algumas semanas e comente na próxima consulta. O sinal de alerta é diferente: habilidade que o filho já tinha e perdeu, ausência de contato visual, não reagir a sons ou ao nome, ou vários marcos ausentes ao mesmo tempo pedem o pediatra agora, não a próxima consulta de rotina. Quanto mais cedo se avalia, melhor o resultado.
+
+## Telas, sono e exemplo
+
+Antes dos dois anos a recomendação é nenhuma tela. Depois, pouco e com você ao lado. Sono regular e rotina previsível fazem mais pelo desenvolvimento do que qualquer brinquedo educativo. E o maior estímulo que um menino ou uma menina recebe é ver o pai tratando a mãe com respeito, rezando com a família e cumprindo a palavra. Esta ferramenta é educativa e não substitui a avaliação do pediatra; a Caderneta da Criança continua sendo o documento oficial.`,
+
   "imc-e-gasto-calorico": `Homem que cuida da família precisa estar vivo e forte para ela. Não é vaidade; é responsabilidade. Esta calculadora dá os quatro números básicos da saúde do homem adulto: o índice de massa corporal, a taxa metabólica basal, o gasto calórico diário e a meta de calorias para o seu objetivo, além da água que você deveria beber por dia.
 
 ## O que informar

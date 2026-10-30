@@ -311,5 +311,129 @@ if (sgs) {
   ok("poupança selic 13,75 → 0,5% a.m.", sgs.poupancaMensalPelaSelic(13.75) === 0.5);
   ok("poupança selic 8 → 70%", near(sgs.poupancaMensalPelaSelic(8), 0.4556, 0.001));
 }
+
+// --- nomes, vacinas, marcos, cortes (sessão 2 da Fase 4)
+const nom = await import(B + "nomes-data.ts");
+const vac = await import(B + "vacinas.ts");
+const mar = await import(B + "marcos-data.ts");
+const fsMod = await import("node:fs");
+const cortesJson = JSON.parse(fsMod.readFileSync(B + "cortes.json", "utf8"));
+ok(
+  "nomes únicos",
+  new Set(nom.CHILD_NAMES.map((n) => n.name)).size === nom.CHILD_NAMES.length,
+  nom.CHILD_NAMES.length,
+);
+ok(
+  "todo saint está em SANTOS",
+  nom.CHILD_NAMES.filter((n) => n.saint).every((n) => nom.SANTOS.includes(n.name)),
+);
+ok(
+  "todo biblical está em BIBLICOS",
+  nom.CHILD_NAMES.filter((n) => n.biblical).every((n) => nom.BIBLICOS.includes(n.name)),
+);
+ok(
+  "menino + santo + J inclui José e João",
+  ["José", "João"].every((x) =>
+    nom.CHILD_NAMES.some((n) => n.name === x && n.sex === "menino" && n.saint),
+  ),
+);
+ok(
+  "sem mãe/bebê nos significados",
+  !nom.CHILD_NAMES.some((n) => /mãe|mamãe|bebê/i.test(n.meaning)),
+);
+ok("vacinas ids únicos", new Set(vac.DOSES.map((d) => d.id)).size === vac.DOSES.length);
+ok(
+  "idadeMeses crescente por vacina",
+  Object.values(
+    vac.DOSES.reduce((m, d) => {
+      (m[d.vacina] ??= []).push(d.idadeMeses);
+      return m;
+    }, {}),
+  ).every((arr) => arr.every((v, i) => i === 0 || v >= arr[i - 1])),
+);
+// nascimento há 4 meses e 20 dias
+const nasc = new Date(Date.now() - (4 * 30.4375 + 20) * 86400000).toISOString().slice(0, 10);
+const id = vac.idadeEmMeses(nasc);
+const est = (i) =>
+  vac.estadoDaDose(
+    vac.DOSES.find((d) => d.id === i),
+    id,
+    false,
+  );
+ok("4m20d: BCG atrasada se não marcada", est("bcg") === "atrasada");
+ok("4m20d: penta-1 (2m) atrasada", est("penta-1") === "atrasada");
+ok("4m20d: penta-2 (4m) no prazo", est("penta-2") === "no-prazo");
+ok(
+  "4m20d: menc-2 (5m) próxima",
+  est("menc-2") === "proxima" &&
+    vac.diasAte(
+      nasc,
+      vac.DOSES.find((d) => d.id === "menc-2"),
+    ) > 0 &&
+    vac.diasAte(
+      nasc,
+      vac.DOSES.find((d) => d.id === "menc-2"),
+    ) < 15,
+);
+ok("4m20d: rota-1 fora da janela", est("rota-1") === "fora-da-janela");
+ok("feita vence tudo", vac.estadoDaDose(vac.DOSES[0], id, true) === "feita");
+ok("futura (12m)", est("scr-1") === "futura");
+const ics = vac.gerarIcs(nasc, vac.DOSES.slice(2, 5), "Pedro");
+ok(
+  "ics com 3 eventos e alarme",
+  (ics.match(/BEGIN:VEVENT/g) || []).length === 3 && ics.includes("TRIGGER:-P3D"),
+);
+ok(
+  "marcos meses crescente",
+  mar.FASES.every((f, i) => i === 0 || f.meses > mar.FASES[i - 1].meses),
+);
+ok(
+  "marcos ≥3 marcos e ≥3 ações por fase",
+  mar.FASES.every((f) => f.marcos.length >= 3 && f.oQueOPaiFaz.length >= 3),
+);
+ok(
+  "sinal de alerta termina com pediatra/UBS",
+  mar.FASES.every((f) => /pediatra|UBS/.test(f.sinalDeAlerta.slice(-40))),
+);
+ok(
+  "sem 'atrasado' como diagnóstico",
+  !mar.FASES.some((f) => /atrasad/i.test(f.sinalDeAtencao + f.sinalDeAlerta)),
+);
+const f7 = mar.faseParaIdade(7);
+ok("7 meses → fase 6, próxima 9", f7.atual.meses === 6 && f7.proxima.meses === 9);
+ok("fases até 5 anos", mar.FASES.at(-1).meses === 60);
+ok(
+  "cortes: 31 slugs únicos",
+  new Set(cortesJson.cortes.map((c) => c.slug)).size === cortesJson.cortes.length &&
+    cortesJson.cortes.length === 31,
+);
+ok(
+  "cortes: preparo ⊂ preparos",
+  cortesJson.cortes.every((c) => c.preparo.every((p) => cortesJson.preparos.includes(p))),
+);
+ok(
+  "cortes: faixa null ou max ≤ 3×min",
+  cortesJson.cortes.every(
+    (c) => c.faixa_preco.min == null || c.faixa_preco.max <= 3 * c.faixa_preco.min,
+  ),
+);
+ok(
+  "cortes: svg_id presente no diagrama",
+  (() => {
+    const src = fsMod.readFileSync(
+      path.join(ROOT, "src/components/ferramentas/cortes-de-carne/BeefDiagram.tsx"),
+      "utf8",
+    );
+    return cortesJson.cortes.every(
+      (c) => src.includes(`"${c.svg_id}"`) || src.includes(`${c.svg_id}:`),
+    );
+  })(),
+);
+ok(
+  "cortes: panela → músculo, acém, peito, costela",
+  ["musculo", "acem", "peito", "costela"].every((s) =>
+    cortesJson.cortes.find((c) => c.slug === s).preparo.includes("panela"),
+  ),
+);
 console.log(fails ? `\n${fails} FALHA(S)` : "\nTODOS OS TESTES PASSARAM");
 process.exit(fails ? 1 : 0);

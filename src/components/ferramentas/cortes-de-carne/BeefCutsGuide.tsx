@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CORTES, PREPAROS, corteBySlug, cortesPorPreparo } from "@/lib/tools/cortes";
+import {
+  ANIMAIS,
+  CORTES,
+  PREPAROS,
+  corteBySlug,
+  cortesDoAnimal,
+  cortesPorPreparo,
+  type Animal,
+} from "@/lib/tools/cortes";
 import { CORTES_DATA } from "@/lib/tools/cortes";
 import { getPublishedSlugs } from "@/lib/tools/related.functions";
 import { formatFaixaBRL } from "@/lib/tools/format";
@@ -118,7 +126,17 @@ function Painel({ slug, publicados }: { slug: string; publicados: string[] }) {
 }
 
 export default function BeefCutsGuide() {
-  const [sel, setSel] = useState<string>(initial);
+  const [sel, setSelRaw] = useState<string>(initial);
+  const [animal, setAnimal] = useState<Animal>(() => corteBySlug(initial())?.animal ?? "boi");
+  const setSel = (slug: string) => {
+    setSelRaw(slug);
+    const a = corteBySlug(slug)?.animal;
+    if (a) setAnimal(a);
+  };
+  const trocarAnimal = (a: Animal) => {
+    setAnimal(a);
+    setSelRaw(cortesDoAnimal(a)[0].slug);
+  };
   const [preparo, setPreparo] = useState("panela");
   const [ordem, setOrdem] = useState<"nome_br" | "regiao" | "maciez" | "preco_relativo">("nome_br");
   const slugs = useMemo(() => Array.from(new Set(CORTES.flatMap((c) => c.artigos))), []);
@@ -158,9 +176,23 @@ export default function BeefCutsGuide() {
       <TabsContent value="diagrama">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           <div>
-            <BeefDiagram selected={sel} onSelect={setSel} />
+            <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label="Animal">
+              {ANIMAIS.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={animal === a.id}
+                  onClick={() => trocarAnimal(a.id)}
+                  className={`rounded-full border px-4 py-1.5 text-sm font-bold ${animal === a.id ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"}`}
+                >
+                  {a.nome}
+                </button>
+              ))}
+            </div>
+            <BeefDiagram animal={animal} selected={sel} onSelect={setSel} />
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {CORTES.map((c) => (
+              {cortesDoAnimal(animal).map((c) => (
                 <button
                   key={c.slug}
                   type="button"
@@ -173,8 +205,8 @@ export default function BeefCutsGuide() {
               ))}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Equivalências Brasil × EUA aproximadas; dados revisados em{" "}
-              {CORTES_DATA.atualizado_em.split("-").reverse().join("/")}.
+              {CORTES.length} cortes (boi, porco e frango). Equivalências Brasil × EUA aproximadas;
+              dados revisados em {CORTES_DATA.atualizado_em.split("-").reverse().join("/")}.
             </p>
           </div>
           <Painel slug={sel} publicados={publicados} />
@@ -197,7 +229,12 @@ export default function BeefCutsGuide() {
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {cortesPorPreparo(preparo).map((c) => (
             <li key={c.slug} className="rounded-2xl border border-border bg-card p-4">
-              <p className="font-display text-lg font-bold">{c.nome_br}</p>
+              <p className="font-display text-lg font-bold">
+                {c.nome_br}{" "}
+                <span className="text-xs font-normal text-muted-foreground">
+                  ({ANIMAIS.find((a) => a.id === c.animal)?.nome})
+                </span>
+              </p>
               <p className="text-sm text-muted-foreground">{c.textura}</p>
               <p className="mt-1 text-sm">
                 <strong>Ponto:</strong> {c.ponto}

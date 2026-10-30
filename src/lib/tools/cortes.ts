@@ -1,7 +1,9 @@
 import data from "./cortes.json" with { type: "json" };
 
+export type Animal = "boi" | "porco" | "frango";
 export interface Corte {
   slug: string;
+  animal: Animal;
   nome_br: string;
   nome_eua: string;
   regiao: string;
@@ -29,6 +31,12 @@ export const CORTES_DATA = data as unknown as {
   cortes: Corte[];
 };
 export const CORTES = CORTES_DATA.cortes;
+export const ANIMAIS: Array<{ id: Animal; nome: string }> = [
+  { id: "boi", nome: "Boi" },
+  { id: "porco", nome: "Porco" },
+  { id: "frango", nome: "Frango" },
+];
+export const cortesDoAnimal = (animal: Animal) => CORTES.filter((c) => c.animal === animal);
 export const PREPAROS: Record<string, string> = {
   grelha: "Grelha",
   espeto: "Espeto",
