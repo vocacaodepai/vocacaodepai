@@ -15,14 +15,18 @@ import {
 // when the VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY env vars aren't configured
 // on the server keeps SSR working instead of silently 404ing every page.
 // Placeholders substituídos pelos valores reais no fim da Etapa 1 (doc 03 §1.3).
-const FALLBACK_SUPABASE_URL = "<SUPABASE_URL>";
-const FALLBACK_SUPABASE_PUBLISHABLE_KEY = "<SUPABASE_PUBLISHABLE_KEY>";
+// Sem variáveis (placeholder ainda não preenchido) o servidor precisa responder com estados vazios,
+// não quebrar na criação do cliente ("Invalid supabaseUrl").
+const FALLBACK_SUPABASE_URL = "https://placeholder.supabase.co";
+const FALLBACK_SUPABASE_PUBLISHABLE_KEY = "placeholder-key";
 
 // Client sem o genérico `Database`: os tipos gerados ainda são os do VDM e
 // serão regenerados; as consultas usam os tipos locais de src/lib/queries.ts.
 export async function createReadOnlySupabaseClient(): Promise<SupabaseClient> {
   const { createClient } = await import("@supabase/supabase-js");
-  const url = process.env["VITE_SUPABASE_URL"] || FALLBACK_SUPABASE_URL;
+  const url = (process.env["VITE_SUPABASE_URL"] || "").startsWith("http")
+    ? process.env["VITE_SUPABASE_URL"]!
+    : FALLBACK_SUPABASE_URL;
   const key = process.env["VITE_SUPABASE_ANON_KEY"] || FALLBACK_SUPABASE_PUBLISHABLE_KEY;
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },

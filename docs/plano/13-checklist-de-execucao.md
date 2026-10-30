@@ -6,28 +6,28 @@
 
 ## Fase 1 — Fundação (`03-fase-1-fundacao.md`)
 
-- [ ] 1.1 Clonar `vocacaodemae` para este repositório (copiar `src/`, `supabase/`, `public/`, configs); commit inicial "chore: base clonada do Vocação de Mãe"
-- [ ] 1.2 Remover `@lovable.dev/mcp-js`, rotas `.lovable`/`.mcp`/`mcp.ts`, `.well-known` do Lovable e `src/i18n/`; site só em PT-BR
-- [ ] 1.3 Remover todo conteúdo, componentes, rotas e seeds de maternidade (histórias de mãe, loja da mãe, calculadoras de gestação); manter só a estrutura
-- [ ] 1.4 Renomear pacote, título, metadados, favicon e manifest para "Vocação de Pai"; `PUBLIC_SITE_URL=https://vocacaodepai.com.br`
-- [ ] 1.5 Aplicar design tokens em `src/styles.css` (`@theme`: primária `#14505C`, secundária `#1F2429`, destaque `#D9822B`, fundo `#F4EFE6`, texto `#1B1F23`, sucesso `#2F7D4F`, atenção `#D9A21B`, alerta `#B23A3A`; escuro `#14181C`/`#1F2429`) e fontes "Barlow Condensed" + "Inter"
-- [ ] 1.6 Criar `.env.example` com todas as variáveis do `CLAUDE.md` §13 e atualizar `.gitignore`
+- [x] 1.1 Clonar `vocacaodemae` para este repositório (copiar `src/`, `supabase/`, `public/`, configs); commit inicial "chore: base clonada do Vocação de Mãe"
+- [x] 1.2 Remover `@lovable.dev/mcp-js`, rotas `.lovable`/`.mcp`/`mcp.ts`, `.well-known` do Lovable e `src/i18n/`; site só em PT-BR
+- [x] 1.3 Remover todo conteúdo, componentes, rotas e seeds de maternidade (histórias de mãe, loja da mãe, calculadoras de gestação); manter só a estrutura
+- [x] 1.4 Renomear pacote, título, metadados, favicon e manifest para "Vocação de Pai"; `PUBLIC_SITE_URL=https://vocacaodepai.com.br`
+- [x] 1.5 Aplicar design tokens em `src/styles.css` (`@theme`: primária `#14505C`, secundária `#1F2429`, destaque `#D9822B`, fundo `#F4EFE6`, texto `#1B1F23`, sucesso `#2F7D4F`, atenção `#D9A21B`, alerta `#B23A3A`; escuro `#14181C`/`#1F2429`) e fontes "Barlow Condensed" + "Inter"
+- [x] 1.6 Criar `.env.example` com todas as variáveis do `CLAUDE.md` §13 e atualizar `.gitignore`
 - [ ] 1.7 Dono cria o projeto Supabase (`sa-east-1`); substituir `<SUPABASE_PROJECT_REF>` no `CLAUDE.md`, `.env.example` e doc 02; configurar `VITE_SUPABASE_URL`/`ANON_KEY` na Vercel
-- [ ] 1.8 Escrever e aplicar `supabase/migrations/0001_core.sql` com o SQL do doc 03 §3.1 (nomes do doc 02 §4.1: profiles, children, contact_messages, newsletter_subscribers, moderation_log, _tmp_post_staging, seo_search_stats, `is_admin()`, `get_secret()`, buckets, trigger `updated_at`, trigger de criação de profile, RLS; se o SQL do doc 03 divergir do doc 02, vale o doc 03 e registrar em `PROGRESSO.md`)
-- [ ] 1.9 Escrever e aplicar `0002_blog.sql` com o SQL do doc 03 §3.2 (nomes do doc 02 §4.2: categories, tags, post_tags, posts com todas as colunas-chave, comments, reactions, post_view_events, função `search_posts`, índice GIN em `search_content`, RLS)
-- [ ] 1.10 Criar `supabase/migrations/README.md` listando 0003–0007 como "aplicadas na fase N com o SQL do doc da fase" (nada a aplicar aqui): `0003_loja.sql` = product_categories, products, product_price_checks (F3, doc 05 §2) · `0004_membros.sql` = saved_items, plans, subscriptions, badges, user_badges (F5, doc 07 §2) · `0005_pai_indica_pai.sql` = jobs, job_referrals, professionals, mentorships (F6, doc 08 §2) · `0006_irmandade_formacao.sql` = stories, questions, answers, events, event_rsvps, tracks, track_steps, track_progress, challenges, challenge_days, challenge_progress (F7, doc 09 §2) · `0007_ferramentas.sql` = market_cache, tool_usage (F4, doc 06 §2.1)
-- [ ] 1.11 Seed de categorias do Blog (`00NN_seed_categories.sql`): paternidade, casamento, filhos, trabalho-e-carreira, dinheiro-do-pai, fe-e-formacao, saude-do-homem, churrasco-e-cozinha, casa-e-oficina, pai-indica
-- [ ] 1.12 Layout do site: header com as 8 seções, footer com institucionais e aviso de afiliado, modo escuro, menu mobile
-- [ ] 1.13 Home: hero, últimos artigos, bloco Pai Indica (placeholder), bloco Loja do Pai (placeholder), bloco Caixa de Ferramentas (placeholder), newsletter
-- [ ] 1.14 Rotas do Blog: `/blog` (lista + filtro por categoria), `/post/$slug` (render Tiptap com callouts do Semáforo do Pai, tabela, taskList, FAQ, quiz, JSON-LD Article), `/categoria/$slug`, `/busca` (tsvector português)
-- [ ] 1.15 Componentes `SemaforoDoPai` (callouts ok/warn/alerta), `ContinueLendo`, `FaqBlock`, `QuizBlock`, `ParaAMae` (link cruzado com Vocação de Mãe)
-- [ ] 1.16 Institucionais: `/sobre`, `/contato` (form → Resend ou mailto fallback), `/politica-de-privacidade`, `/termos-de-uso`, `/politica-de-afiliados`
-- [ ] 1.17 `/admin`: login de admin (`is_admin()`), lista de posts, editor Tiptap com nós callout/table/taskList/image, campos kind/faq/quiz/seo, publicar/despublicar
-- [ ] 1.18 `scripts/validate-content.mjs`: regras do `CLAUDE.md` §4.3 (semáforo, ≥10 links válidos, capa não repetida, termos proibidos, Pai Indica com nota/categoria, faixa de preço, botão)
-- [ ] 1.19 `sitemap[.]xml.ts`, `robots.txt`, RSS `/rss.xml`, meta tags OG/Twitter padrão
-- [ ] 1.20 Publicar 10 artigos seed Padrão A do Pai (2 por categoria principal) via migration de dados, `status='published'`
+- [ ] 1.8 Escrever e aplicar `supabase/migrations/0001_core.sql` com o SQL do doc 03 §3.1 (nomes do doc 02 §4.1: profiles, children, contact_messages, newsletter_subscribers, moderation_log, _tmp_post_staging, seo_search_stats, `is_admin()`, `get_secret()`, buckets, trigger `updated_at`, trigger de criação de profile, RLS; se o SQL do doc 03 divergir do doc 02, vale o doc 03 e registrar em `PROGRESSO.md`) *(arquivo pronto e validado localmente; aplicar quando o projeto Supabase existir)*
+- [ ] 1.9 Escrever e aplicar `0002_blog.sql` com o SQL do doc 03 §3.2 (nomes do doc 02 §4.2: categories, tags, post_tags, posts com todas as colunas-chave, comments, reactions, post_view_events, função `search_posts`, índice GIN em `search_content`, RLS) *(idem)*
+- [x] 1.10 Criar `supabase/migrations/README.md` listando 0003–0007 como "aplicadas na fase N com o SQL do doc da fase" (nada a aplicar aqui): `0003_loja.sql` = product_categories, products, product_price_checks (F3, doc 05 §2) · `0004_membros.sql` = saved_items, plans, subscriptions, badges, user_badges (F5, doc 07 §2) · `0005_pai_indica_pai.sql` = jobs, job_referrals, professionals, mentorships (F6, doc 08 §2) · `0006_irmandade_formacao.sql` = stories, questions, answers, events, event_rsvps, tracks, track_steps, track_progress, challenges, challenge_days, challenge_progress (F7, doc 09 §2) · `0007_ferramentas.sql` = market_cache, tool_usage (F4, doc 06 §2.1)
+- [x] 1.11 Seed de categorias do Blog (`00NN_seed_categories.sql`): paternidade, casamento, filhos, trabalho-e-carreira, dinheiro-do-pai, fe-e-formacao, saude-do-homem, churrasco-e-cozinha, casa-e-oficina, pai-indica
+- [x] 1.12 Layout do site: header com as 8 seções, footer com institucionais e aviso de afiliado, modo escuro, menu mobile
+- [x] 1.13 Home: hero, últimos artigos, bloco Pai Indica (placeholder), bloco Loja do Pai (placeholder), bloco Caixa de Ferramentas (placeholder), newsletter
+- [x] 1.14 Rotas do Blog: `/blog` (lista + filtro por categoria), `/post/$slug` (render Tiptap com callouts do Semáforo do Pai, tabela, taskList, FAQ, quiz, JSON-LD Article), `/categoria/$slug`, `/busca` (tsvector português)
+- [x] 1.15 Componentes `SemaforoDoPai` (callouts ok/warn/alerta), `ContinueLendo`, `FaqBlock`, `QuizBlock`, `ParaAMae` (link cruzado com Vocação de Mãe)
+- [x] 1.16 Institucionais: `/sobre`, `/contato` (form → Resend ou mailto fallback), `/politica-de-privacidade`, `/termos-de-uso`, `/politica-de-afiliados`
+- [x] 1.17 `/admin`: login de admin (`is_admin()`), lista de posts, editor Tiptap com nós callout/table/taskList/image, campos kind/faq/quiz/seo, publicar/despublicar
+- [x] 1.18 `scripts/validate-content.mjs`: regras do `CLAUDE.md` §4.3 (semáforo, ≥10 links válidos, capa não repetida, termos proibidos, Pai Indica com nota/categoria, faixa de preço, botão)
+- [x] 1.19 `sitemap[.]xml.ts`, `robots.txt`, RSS `/rss.xml`, meta tags OG/Twitter padrão
+- [ ] 1.20 Publicar 10 artigos seed Padrão A do Pai (2 por categoria principal) via migration de dados, `status='published'` *(0009/0010 prontos e validados; aplicar com o projeto)*
 - [ ] 1.21 Dono cria projeto `vocacaodepai` na Vercel (time "Portal da AI") e aponta o domínio; deploy de produção verde
-- [ ] 1.22 Validar `npm run build && npm run lint && node scripts/validate-content.mjs`; abrir PR "Fase 1 — Fundação"; atualizar `PROGRESSO.md`
+- [ ] 1.22 Validar `npm run build && npm run lint && node scripts/validate-content.mjs`; abrir PR "Fase 1 — Fundação"; atualizar `PROGRESSO.md` *(validações verdes; PR #2 aberto em 30/10/2026)*
 
 ## Fase 2 — Pai Indica (`04-fase-2-pai-indica-reviews.md`)
 
