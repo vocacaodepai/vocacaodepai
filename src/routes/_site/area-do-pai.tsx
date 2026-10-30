@@ -1,36 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/home/ComingSoon";
-import { SITE_NAME } from "@/lib/site";
+import { Outlet, createFileRoute, useLocation } from "@tanstack/react-router";
+import { RequireAuth } from "@/components/area-do-pai/RequireAuth";
+import { privateHead } from "@/lib/area-do-pai/head";
 
-// Placeholder da Fase 1 (doc 03 §5.3): noindex e fora do sitemap até a seção abrir.
+// Layout de /area-do-pai/* (Fase 5): guarda de sessão + redirecionamento para o
+// onboarding. As páginas ficam em area-do-pai/{index,onboarding,filhos,salvos,plano}.tsx.
 export const Route = createFileRoute("/_site/area-do-pai")({
-  head: () => ({
-    meta: [
-      { title: `Área do Pai | ${SITE_NAME}` },
-      {
-        name: "description",
-        content:
-          "Seu painel de pai: filhos cadastrados, conteúdo pela idade deles, trilhas, itens salvos e insígnias.",
-      },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
-  component: Page,
+  head: () => privateHead("Área do Pai"),
+  component: AreaLayout,
 });
 
-function Page() {
+function AreaLayout() {
+  const { pathname } = useLocation();
+  const onboarding = pathname.replace(/\/$/, "").endsWith("/onboarding");
   return (
-    <ComingSoon
-      title="Área do Pai"
-      description="Seu painel: filhos cadastrados, conteúdo pela idade deles, trilhas em andamento, itens salvos e suas insígnias. Grátis."
-      eta="Chega com o cadastro de membros."
-      source="em-breve-area-do-pai"
-      highlights={[
-        "Cadastre seus filhos e receba o conteúdo certo para a idade deles",
-        "Salve artigos, produtos e ferramentas para voltar depois",
-        "Trilhas de formação e desafios de 30 dias com insígnias",
-        "Porta de entrada da Irmandade e do Pai Indica Pai",
-      ]}
-    />
+    <RequireAuth allowOnboarding={onboarding}>
+      <Outlet />
+    </RequireAuth>
   );
 }

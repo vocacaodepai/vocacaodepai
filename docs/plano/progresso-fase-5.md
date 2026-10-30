@@ -1,0 +1,56 @@
+# Progresso — Fase 5 (Área do Pai: membros, autenticação, fases do filho, salvos, e-mails, planos, LGPD)
+
+> Registro da sessão `claude/fase-5-area-do-pai` (2026-10-30). Para fundir em `docs/plano/PROGRESSO.md`
+> ("Decisões tomadas durante a execução" e "Pendências do dono") na consolidação da fase.
+> Banco ainda não existe (placeholder `<SUPABASE_PROJECT_REF>`): a migration `0013` **não foi aplicada**;
+> tudo renderiza sem sessão e sem dados (estados vazios, avisos "ainda não ligada ao banco").
+
+## Entregue
+
+| Item (doc 07) | Arquivo | Estado |
+|---|---|---|
+| Migration aditiva da fase (colunas `profiles.interests/consent_terms_at/consent_privacy_at/last_seen_at`, `protect_profile_role`, `get_my_profile`, `child_phase`, `my_child_phases`, policy `newsletter: own read`, `newsletter_confirm/unsubscribe`, `my_plan_slug`, `is_premium`, 9 tags `fase-*`, `get_content_for_user`, `export_my_data`, `delete_my_account`, `admin_list_members`, `admin_member_stats`, `admin_set_role`) | `supabase/migrations/0013_membros_extra.sql` | pronta, **não aplicada** |
+| Fases do filho (8 fases, `childPhase()` espelho do SQL, idade humanizada, próxima fase, interesses, UFs) | `src/lib/phases.ts` | pronto |
+| Auth: `signInWithPassword/MagicLink/Google`, `requestPasswordReset`, `updatePassword/Email`, `resendConfirmation`, `getAccessToken`, `safeNext` (anti open redirect), `ptError` (erros em PT-BR), força/validação de senha | `src/lib/auth.ts` | pronto |
+| Contexto de auth com `member` (linha completa de `profiles`), `emailConfirmed`, `providers`; `openLogin()` navega para `/entrar?next=` (sem modal) | `src/lib/auth-context.ts`, `src/lib/auth-ui.tsx` | pronto |
+| Server-only: `createUserClient` (RLS), `requireUser`, `getServiceClient`, `getAnonClient`, `rateLimit` em memória, `requestIp`, `safeEqual`, `verifyTurnstile`, hidratação de salvos | `src/lib/area-do-pai/area.server.ts` | pronto |
+| Server functions: `getAuthConfig` (Google ligado? banco ligado?), `signUpFn` (Turnstile + honeypot + tempo mínimo + 5/h/IP), `getPainelData`, `getSavedItems`, `toggleSavedItem` (60/min), `listMySavedIds`, `setNewsletterPref`, `sendWelcomeEmail`, `getPlans`, `registerPlanInterest` | `src/lib/area-do-pai/{auth,area}.functions.ts` | pronto |
+| E-mails Resend: boas-vindas e resumo semanal por fase (template 600px nas cores da marca, lotes de 100 via Resend Batch, idempotência `segments.last_digest_at` < 6 dias, log em `moderation_log`) | `src/lib/area-do-pai/email.server.ts` | pronto |
+| `POST /api/newsletter/weekly` (`Authorization: Bearer CRON_SECRET`, `?dry_run=true`) e `GET /api/newsletter/sair?token=` | `src/routes/api/newsletter.weekly.ts`, `src/routes/api/newsletter.sair.ts` | pronto |
+| Workflow semanal (domingo 11:00 UTC = 08:00 BRT + `workflow_dispatch` com `dry_run`), sem auto-merge | `.github/workflows/newsletter-weekly.yml` | pronto |
+| `/entrar` (e-mail/senha, link por e-mail, Google só com `GOOGLE_CLIENT_ID`), `/cadastro` (Turnstile se houver chave, honeypot, medidor de senha, consentimento LGPD, tela "Confira seu e-mail" com reenviar), `/recuperar-senha` (`step=pedir|nova`), `/auth/callback` (PKCE → onboarding ou `next`) | `src/pages/area-do-pai/{Entrar,Cadastro,RecuperarSenha,AuthCallback}Page.tsx` + rotas em `src/routes/_site/` | pronto |
+| Onboarding em 3 passos (nome/cidade/UF → filhos com data e sexo, "estamos esperando um bebê" → interesses + newsletter); grava consentimentos, `children`, chama `complete_onboarding()` e `grant_badges_for_me()`, dispara boas-vindas; rascunho em `localStorage` | `src/pages/area-do-pai/OnboardingPage.tsx` | pronto |
+| Painel `/area-do-pai` com os 10 blocos (boas-vindas + plano, filhos/fases com recomendados por `get_content_for_user`, salvos, trilhas, desafios, insígnias, contribuições, newsletter, "Mercado do pai hoje" só com dado em `market_cache`, upsell) | `src/pages/area-do-pai/PainelPage.tsx` | pronto |
+| `/area-do-pai/filhos` (CRUD, validações do doc: −60 anos a +10 meses, máx. 12, sexo obrigatório, próxima fase), `/area-do-pai/salvos` (filtros por tipo + remover), `/minha-conta` (Dados c/ avatar no bucket `avatars`, Acesso: e-mail/senha/provedores/sair de todos, Notificações, Privacidade: exportar JSON + excluir com `EXCLUIR`), `/area-do-pai/plano` | `src/pages/area-do-pai/{Filhos,Salvos,MinhaConta,Plano}Page.tsx` | pronto |
+| Layout `/area-do-pai/*` com `RequireAuth` (redireciona para `/entrar?next=` e para o onboarding) e sub-navegação | `src/routes/_site/area-do-pai.tsx`, `src/components/area-do-pai/{RequireAuth,AreaShell}.tsx` | pronto |
+| `SaveButton` genérico (post/product/tool/job/track; anônimo → `/entrar?next=`), `TurnstileWidget`, `PremiumGate` + `UpsellCard`, `usePlan()` | `src/components/area-do-pai/{SaveButton,TurnstileWidget,PremiumGate}.tsx`, `src/hooks/usePlan.ts` | pronto (ainda **não** inserido em post/produto/ferramenta — ver decisões) |
+| Admin › Membros (métricas, busca, paginação, troca de papel com log; só `role='admin'`, editor volta para `/admin` com toast) + link na barra do painel | `src/admin/AdminMembers.tsx`, `src/routes/_admin/admin/membros.tsx`, `src/admin/AdminLayout.tsx` | pronto |
+| Sitemap: `/entrar` e `/cadastro`; `/area-do-pai/*`, `/minha-conta`, `/recuperar-senha`, `/auth/callback` em `noindex, nofollow` | `src/routes/sitemap[.]xml.ts`, `src/lib/area-do-pai/head.ts` | pronto |
+
+Validação local: `npx tsc --noEmit`, `npm run lint` (0 erros; 12 avisos `react-refresh` pré-existentes/estilo) e `npm run build` verdes; `node scripts/validate-content.mjs` sem banco imprime aviso e sai com 0.
+
+## Decisões tomadas durante a execução
+
+- 2026-10-30 · F5 · **Migration `0013_membros_extra.sql`** (não `0008_area_do_pai.sql` do doc 07): o número 0008 já é a seed do autor. Adaptada ao SQL real: `saved_items.item_id` é `text` (`get_content_for_user` compara `p.id::text`), `badges.rule` é jsonb e `award_badges`/`grant_badges_for_me` já vêm da `0006` (não redefinidas; as 4 badges da Fase 5 já estão na `0004`), `user_badges.earned_at` (não `awarded_at`), `plans.price_cents/interval` (sem `price_monthly`; seed dos 2 planos já está na `0004`, `pai-de-valor` nasce `active=false`), `newsletter_subscribers.segments` é **objeto** jsonb (`{"fases":[…],"interesses":[…],"last_digest_at":…}`, doc 11 §5.1), `email_verified()` fica na `0005`. Acrescentada `admin_member_stats()` (métricas do topo do admin).
+- 2026-10-30 · F5 · **Sem edge functions, sem pg_cron, sem `INTERNAL_FN_SECRET`** (CLAUDE.md §13: `CRON_SECRET` é o único segredo). Boas-vindas e confirmação saem por server functions (Resend direto, `RESEND_API_KEY`); o resumo semanal é `POST /api/newsletter/weekly` + `.github/workflows/newsletter-weekly.yml` (schedule domingo 11:00 UTC). Sem a chave do Resend o envio é pulado e registrado no log.
+- 2026-10-30 · F5 · **Botão Google só aparece quando `GOOGLE_CLIENT_ID` existe no servidor** (`getAuthConfig`); sem Turnstile (`TURNSTILE_SITE_KEY` vazia) o cadastro degrada para honeypot + tempo mínimo + rate limit, igual à newsletter da Fase 1. Nenhuma variável nova (`VITE_TURNSTILE_SITE_KEY`, `BILLING_ENABLED`, `SUPABASE_PUBLISHABLE_KEY` do doc 07 **não** existem).
+- 2026-10-30 · F5 · **Planos**: sem Mercado Pago, sem webhook, sem checkout (CLAUDE.md §13: `BILLING_ENABLED` → `plans.active`). `/area-do-pai/plano` mostra o gratuito ativo e "Pai de Valor" como "Em breve — me avise" (grava `interesses: ["pai-de-valor"]` em `newsletter_subscribers.segments`). Rota é `/area-do-pai/plano` (singular, como o prompt da fase; o doc 07 escrevia `/planos`).
+- 2026-10-30 · F5 · Arquivos em `src/lib/area-do-pai/*`, `src/components/area-do-pai/*`, `src/pages/area-do-pai/*` (estrutura do CLAUDE.md §2) em vez de `src/lib/{rate-limit,supabase-server,saved.functions}.ts`, `src/components/area/*` e `src/pages/{auth,area}/*` do doc 07. `AuthProvider` continua em `src/lib/auth-ui.tsx` (importado por `__root.tsx`, não editado).
+- 2026-10-30 · F5 · **`SaveButton` não foi inserido** em `PostPage`, `ProductPage` nem nas ferramentas (instrução da sessão: não editar páginas do blog/loja/pai-indica; a Fase 4 ainda não existe nesta branch). Na consolidação: trocar o botão "Salvar" do `PostPage` (reações `save`) e o botão desabilitado do `ProductPage` por `<SaveButton itemType="post|product" itemId={id} />` e, nas ferramentas, `itemType="tool" itemId={slug}` (o `item_id` é `text`, sem o hash do doc 07 §5.3).
+- 2026-10-30 · F5 · Avatar: upload só em `/minha-conta` (bucket `avatars`, pasta `<uid>/`), sem `compressToWebP` (sem dependência nova); o onboarding não pede foto.
+- 2026-10-30 · F5 · "Mercado do pai hoje" lê `market_cache` com as chaves da `0007` (`fx:last`, `sgs:indicators`) de forma defensiva; o bloco só aparece se houver dado. Até a Fase 4 entrar, o lugar mostra o atalho para a Caixa de Ferramentas.
+- 2026-10-30 · F5 · Tipos do Supabase continuam os herdados: a Área do Pai usa o client "solto" `src/lib/area-do-pai/client.ts` e tipos locais em `src/lib/area-do-pai/types.ts` (mesmo padrão de `src/lib/db.ts`). Regenerar `types.ts` quando o banco existir.
+- 2026-10-30 · F5 · Exclusão de conta é **definitiva** (`delete_my_account()` apaga `auth.users` em cascata; newsletter vira `unsubscribed`), como o doc 07 §9 — não "soft" como o checklist 5.4 escrevia.
+
+## Pendências do dono (Fase 5)
+
+- [ ] Criar o projeto Supabase e aplicar `0001`–`0013` (`mcp__Supabase__apply_migration`); regenerar `src/integrations/supabase/types.ts`; rodar o Advisor (security/performance) e as consultas de verificação do doc 07 §15.2.
+- [ ] Supabase Auth (doc 07 §1.1): Email provider com **Confirm email ON**, senha mínima 8 com letras e dígitos; Site URL `https://vocacaodepai.com.br` e Redirect URLs `https://vocacaodepai.com.br/auth/callback`, `https://www.vocacaodepai.com.br/auth/callback`, `https://*-portal-da-ai.vercel.app/auth/callback`, `http://localhost:3000/auth/callback`; templates de e-mail em PT-BR (Confirm signup, Magic Link, Reset Password, Change Email) com `{{ .ConfirmationURL }}`; SMTP customizado via Resend (`smtp.resend.com:465`, user `resend`, senha = `RESEND_API_KEY`, remetente `contato@vocacaodepai.com.br`); Rate Limits (e-mail 10/h, sign-ups 30/h/IP).
+- [ ] Google OAuth (doc 07 §1.2): credencial Web no Google Cloud com redirect `https://<SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback`; colar Client ID/Secret no provider Google do Supabase **e** `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` na Vercel (o botão "Entrar com Google" só aparece com `GOOGLE_CLIENT_ID` no servidor).
+- [ ] Cloudflare Turnstile: `TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET_KEY` (cadastro e newsletter).
+- [ ] `RESEND_API_KEY` + domínio verificado (boas-vindas, confirmação e resumo semanal).
+- [ ] `CRON_SECRET` na Vercel **e** como secret do GitHub Actions (`newsletter-weekly.yml`); testar com `workflow_dispatch` e `dry_run=true`.
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` na Vercel (sem ela: assinatura da newsletter pelo membro fica só na preferência do perfil, e o resumo semanal responde 503).
+- [ ] Teste manual do fluxo completo (doc 07 §4, critério 4) em preview da Vercel; checklist 5.11 (RLS com anônimo e dois usuários).
+- [ ] Iscas gratuitas do checklist 5.8 (`public/downloads/`, doc 11 §7) — não entraram nesta sessão.
+- [ ] Inserir o `SaveButton` em post/produto/ferramenta na consolidação (ver decisões).

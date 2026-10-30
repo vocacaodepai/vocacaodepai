@@ -17,16 +17,26 @@ import { Route as SiteIndexRouteImport } from './routes/_site/index'
 import { Route as SiteAreaDoPaiRouteImport } from './routes/_site/area-do-pai'
 import { Route as SiteBlogRouteImport } from './routes/_site/blog'
 import { Route as SiteBuscaRouteImport } from './routes/_site/busca'
+import { Route as SiteCadastroRouteImport } from './routes/_site/cadastro'
 import { Route as SiteContatoRouteImport } from './routes/_site/contato'
 import { Route as SiteEntrarRouteImport } from './routes/_site/entrar'
 import { Route as SiteIrmandadeRouteImport } from './routes/_site/irmandade'
+import { Route as SiteMinhaContaRouteImport } from './routes/_site/minha-conta'
 import { Route as SitePoliticaDeAfiliadosRouteImport } from './routes/_site/politica-de-afiliados'
 import { Route as SitePoliticaDePrivacidadeRouteImport } from './routes/_site/politica-de-privacidade'
+import { Route as SiteRecuperarSenhaRouteImport } from './routes/_site/recuperar-senha'
 import { Route as SiteSobreRouteImport } from './routes/_site/sobre'
 import { Route as SiteTermosDeUsoRouteImport } from './routes/_site/termos-de-uso'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiNewsletterRouteImport } from './routes/api/newsletter'
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
+import { Route as AdminAdminMembrosRouteImport } from './routes/_admin/admin/membros'
+import { Route as SiteAreaDoPaiIndexRouteImport } from './routes/_site/area-do-pai/index'
+import { Route as SiteAreaDoPaiFilhosRouteImport } from './routes/_site/area-do-pai/filhos'
+import { Route as SiteAreaDoPaiOnboardingRouteImport } from './routes/_site/area-do-pai/onboarding'
+import { Route as SiteAreaDoPaiPlanoRouteImport } from './routes/_site/area-do-pai/plano'
+import { Route as SiteAreaDoPaiSalvosRouteImport } from './routes/_site/area-do-pai/salvos'
+import { Route as SiteAuthCallbackRouteImport } from './routes/_site/auth/callback'
 import { Route as SiteCategoriaSlugRouteImport } from './routes/_site/categoria/$slug'
 import { Route as SiteFerramentasIndexRouteImport } from './routes/_site/ferramentas/index'
 import { Route as SiteFormacaoIndexRouteImport } from './routes/_site/formacao/index'
@@ -38,6 +48,8 @@ import { Route as SitePaiIndicaSlugRouteImport } from './routes/_site/pai-indica
 import { Route as SitePostSlugRouteImport } from './routes/_site/post/$slug'
 import { Route as ApiImgSplatRouteImport } from './routes/api/img/$'
 import { Route as ApiNewsletterConfirmarRouteImport } from './routes/api/newsletter.confirmar'
+import { Route as ApiNewsletterSairRouteImport } from './routes/api/newsletter.sair'
+import { Route as ApiNewsletterWeeklyRouteImport } from './routes/api/newsletter.weekly'
 import { Route as AdminAdminEditorIndexRouteImport } from './routes/_admin/admin/editor/index'
 import { Route as AdminAdminEditorIdRouteImport } from './routes/_admin/admin/editor/$id'
 import { Route as AdminAdminProdutosIndexRouteImport } from './routes/_admin/admin/produtos/index'
@@ -85,6 +97,11 @@ const SiteBuscaRoute = SiteBuscaRouteImport.update({
   path: '/busca',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteCadastroRoute = SiteCadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteContatoRoute = SiteContatoRouteImport.update({
   id: '/contato',
   path: '/contato',
@@ -100,6 +117,11 @@ const SiteIrmandadeRoute = SiteIrmandadeRouteImport.update({
   path: '/irmandade',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteMinhaContaRoute = SiteMinhaContaRouteImport.update({
+  id: '/minha-conta',
+  path: '/minha-conta',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SitePoliticaDeAfiliadosRoute = SitePoliticaDeAfiliadosRouteImport.update({
   id: '/politica-de-afiliados',
   path: '/politica-de-afiliados',
@@ -111,6 +133,11 @@ const SitePoliticaDePrivacidadeRoute =
     path: '/politica-de-privacidade',
     getParentRoute: () => SiteRoute,
   } as any)
+const SiteRecuperarSenhaRoute = SiteRecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteSobreRoute = SiteSobreRouteImport.update({
   id: '/sobre',
   path: '/sobre',
@@ -135,6 +162,41 @@ const AdminAdminIndexRoute = AdminAdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
   getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminMembrosRoute = AdminAdminMembrosRouteImport.update({
+  id: '/admin/membros',
+  path: '/admin/membros',
+  getParentRoute: () => AdminRoute,
+} as any)
+const SiteAreaDoPaiIndexRoute = SiteAreaDoPaiIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SiteAreaDoPaiRoute,
+} as any)
+const SiteAreaDoPaiFilhosRoute = SiteAreaDoPaiFilhosRouteImport.update({
+  id: '/filhos',
+  path: '/filhos',
+  getParentRoute: () => SiteAreaDoPaiRoute,
+} as any)
+const SiteAreaDoPaiOnboardingRoute = SiteAreaDoPaiOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => SiteAreaDoPaiRoute,
+} as any)
+const SiteAreaDoPaiPlanoRoute = SiteAreaDoPaiPlanoRouteImport.update({
+  id: '/plano',
+  path: '/plano',
+  getParentRoute: () => SiteAreaDoPaiRoute,
+} as any)
+const SiteAreaDoPaiSalvosRoute = SiteAreaDoPaiSalvosRouteImport.update({
+  id: '/salvos',
+  path: '/salvos',
+  getParentRoute: () => SiteAreaDoPaiRoute,
+} as any)
+const SiteAuthCallbackRoute = SiteAuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => SiteRoute,
 } as any)
 const SiteCategoriaSlugRoute = SiteCategoriaSlugRouteImport.update({
   id: '/categoria/$slug',
@@ -191,6 +253,16 @@ const ApiNewsletterConfirmarRoute = ApiNewsletterConfirmarRouteImport.update({
   path: '/confirmar',
   getParentRoute: () => ApiNewsletterRoute,
 } as any)
+const ApiNewsletterSairRoute = ApiNewsletterSairRouteImport.update({
+  id: '/sair',
+  path: '/sair',
+  getParentRoute: () => ApiNewsletterRoute,
+} as any)
+const ApiNewsletterWeeklyRoute = ApiNewsletterWeeklyRouteImport.update({
+  id: '/weekly',
+  path: '/weekly',
+  getParentRoute: () => ApiNewsletterRoute,
+} as any)
 const AdminAdminEditorIndexRoute = AdminAdminEditorIndexRouteImport.update({
   id: '/admin/editor/',
   path: '/admin/editor/',
@@ -238,25 +310,37 @@ export interface FileRoutesByFullPath {
   '/': typeof SiteIndexRoute
   '/rss.xml': typeof RssDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/area-do-pai': typeof SiteAreaDoPaiRoute
+  '/area-do-pai': typeof SiteAreaDoPaiRouteWithChildren
   '/blog': typeof SiteBlogRoute
   '/busca': typeof SiteBuscaRoute
+  '/cadastro': typeof SiteCadastroRoute
   '/contato': typeof SiteContatoRoute
   '/entrar': typeof SiteEntrarRoute
   '/irmandade': typeof SiteIrmandadeRoute
+  '/minha-conta': typeof SiteMinhaContaRoute
   '/politica-de-afiliados': typeof SitePoliticaDeAfiliadosRoute
   '/politica-de-privacidade': typeof SitePoliticaDePrivacidadeRoute
+  '/recuperar-senha': typeof SiteRecuperarSenhaRoute
   '/sobre': typeof SiteSobreRoute
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
+  '/admin/membros': typeof AdminAdminMembrosRoute
+  '/area-do-pai/filhos': typeof SiteAreaDoPaiFilhosRoute
+  '/area-do-pai/onboarding': typeof SiteAreaDoPaiOnboardingRoute
+  '/area-do-pai/plano': typeof SiteAreaDoPaiPlanoRoute
+  '/area-do-pai/salvos': typeof SiteAreaDoPaiSalvosRoute
+  '/auth/callback': typeof SiteAuthCallbackRoute
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
   '/loja/$slug': typeof SiteLojaSlugRoute
   '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
+  '/api/newsletter/sair': typeof ApiNewsletterSairRoute
+  '/api/newsletter/weekly': typeof ApiNewsletterWeeklyRoute
   '/admin/': typeof AdminAdminIndexRoute
+  '/area-do-pai/': typeof SiteAreaDoPaiIndexRoute
   '/ferramentas/': typeof SiteFerramentasIndexRoute
   '/formacao/': typeof SiteFormacaoIndexRoute
   '/loja/': typeof SiteLojaIndexRoute
@@ -275,25 +359,36 @@ export interface FileRoutesByTo {
   '/': typeof SiteIndexRoute
   '/rss.xml': typeof RssDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/area-do-pai': typeof SiteAreaDoPaiRoute
   '/blog': typeof SiteBlogRoute
   '/busca': typeof SiteBuscaRoute
+  '/cadastro': typeof SiteCadastroRoute
   '/contato': typeof SiteContatoRoute
   '/entrar': typeof SiteEntrarRoute
   '/irmandade': typeof SiteIrmandadeRoute
+  '/minha-conta': typeof SiteMinhaContaRoute
   '/politica-de-afiliados': typeof SitePoliticaDeAfiliadosRoute
   '/politica-de-privacidade': typeof SitePoliticaDePrivacidadeRoute
+  '/recuperar-senha': typeof SiteRecuperarSenhaRoute
   '/sobre': typeof SiteSobreRoute
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
+  '/admin/membros': typeof AdminAdminMembrosRoute
+  '/area-do-pai/filhos': typeof SiteAreaDoPaiFilhosRoute
+  '/area-do-pai/onboarding': typeof SiteAreaDoPaiOnboardingRoute
+  '/area-do-pai/plano': typeof SiteAreaDoPaiPlanoRoute
+  '/area-do-pai/salvos': typeof SiteAreaDoPaiSalvosRoute
+  '/auth/callback': typeof SiteAuthCallbackRoute
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
   '/loja/$slug': typeof SiteLojaSlugRoute
   '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
+  '/api/newsletter/sair': typeof ApiNewsletterSairRoute
+  '/api/newsletter/weekly': typeof ApiNewsletterWeeklyRoute
   '/admin': typeof AdminAdminIndexRoute
+  '/area-do-pai': typeof SiteAreaDoPaiIndexRoute
   '/ferramentas': typeof SiteFerramentasIndexRoute
   '/formacao': typeof SiteFormacaoIndexRoute
   '/loja': typeof SiteLojaIndexRoute
@@ -314,26 +409,38 @@ export interface FileRoutesById {
   '/_site': typeof SiteRouteWithChildren
   '/rss.xml': typeof RssDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_site/area-do-pai': typeof SiteAreaDoPaiRoute
+  '/_site/area-do-pai': typeof SiteAreaDoPaiRouteWithChildren
   '/_site/blog': typeof SiteBlogRoute
   '/_site/busca': typeof SiteBuscaRoute
+  '/_site/cadastro': typeof SiteCadastroRoute
   '/_site/contato': typeof SiteContatoRoute
   '/_site/entrar': typeof SiteEntrarRoute
   '/_site/irmandade': typeof SiteIrmandadeRoute
+  '/_site/minha-conta': typeof SiteMinhaContaRoute
   '/_site/politica-de-afiliados': typeof SitePoliticaDeAfiliadosRoute
   '/_site/politica-de-privacidade': typeof SitePoliticaDePrivacidadeRoute
+  '/_site/recuperar-senha': typeof SiteRecuperarSenhaRoute
   '/_site/sobre': typeof SiteSobreRoute
   '/_site/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/_site/': typeof SiteIndexRoute
+  '/_admin/admin/membros': typeof AdminAdminMembrosRoute
+  '/_site/area-do-pai/filhos': typeof SiteAreaDoPaiFilhosRoute
+  '/_site/area-do-pai/onboarding': typeof SiteAreaDoPaiOnboardingRoute
+  '/_site/area-do-pai/plano': typeof SiteAreaDoPaiPlanoRoute
+  '/_site/area-do-pai/salvos': typeof SiteAreaDoPaiSalvosRoute
+  '/_site/auth/callback': typeof SiteAuthCallbackRoute
   '/_site/categoria/$slug': typeof SiteCategoriaSlugRoute
   '/_site/loja/$slug': typeof SiteLojaSlugRoute
   '/_site/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/_site/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
+  '/api/newsletter/sair': typeof ApiNewsletterSairRoute
+  '/api/newsletter/weekly': typeof ApiNewsletterWeeklyRoute
   '/_admin/admin/': typeof AdminAdminIndexRoute
+  '/_site/area-do-pai/': typeof SiteAreaDoPaiIndexRoute
   '/_site/ferramentas/': typeof SiteFerramentasIndexRoute
   '/_site/formacao/': typeof SiteFormacaoIndexRoute
   '/_site/loja/': typeof SiteLojaIndexRoute
@@ -357,22 +464,34 @@ export interface FileRouteTypes {
     | '/area-do-pai'
     | '/blog'
     | '/busca'
+    | '/cadastro'
     | '/contato'
     | '/entrar'
     | '/irmandade'
+    | '/minha-conta'
     | '/politica-de-afiliados'
     | '/politica-de-privacidade'
+    | '/recuperar-senha'
     | '/sobre'
     | '/termos-de-uso'
     | '/admin/login'
     | '/api/newsletter'
+    | '/admin/membros'
+    | '/area-do-pai/filhos'
+    | '/area-do-pai/onboarding'
+    | '/area-do-pai/plano'
+    | '/area-do-pai/salvos'
+    | '/auth/callback'
     | '/categoria/$slug'
     | '/loja/$slug'
     | '/pai-indica/$slug'
     | '/post/$slug'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
+    | '/api/newsletter/sair'
+    | '/api/newsletter/weekly'
     | '/admin/'
+    | '/area-do-pai/'
     | '/ferramentas/'
     | '/formacao/'
     | '/loja/'
@@ -391,25 +510,36 @@ export interface FileRouteTypes {
     | '/'
     | '/rss.xml'
     | '/sitemap.xml'
-    | '/area-do-pai'
     | '/blog'
     | '/busca'
+    | '/cadastro'
     | '/contato'
     | '/entrar'
     | '/irmandade'
+    | '/minha-conta'
     | '/politica-de-afiliados'
     | '/politica-de-privacidade'
+    | '/recuperar-senha'
     | '/sobre'
     | '/termos-de-uso'
     | '/admin/login'
     | '/api/newsletter'
+    | '/admin/membros'
+    | '/area-do-pai/filhos'
+    | '/area-do-pai/onboarding'
+    | '/area-do-pai/plano'
+    | '/area-do-pai/salvos'
+    | '/auth/callback'
     | '/categoria/$slug'
     | '/loja/$slug'
     | '/pai-indica/$slug'
     | '/post/$slug'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
+    | '/api/newsletter/sair'
+    | '/api/newsletter/weekly'
     | '/admin'
+    | '/area-do-pai'
     | '/ferramentas'
     | '/formacao'
     | '/loja'
@@ -432,23 +562,35 @@ export interface FileRouteTypes {
     | '/_site/area-do-pai'
     | '/_site/blog'
     | '/_site/busca'
+    | '/_site/cadastro'
     | '/_site/contato'
     | '/_site/entrar'
     | '/_site/irmandade'
+    | '/_site/minha-conta'
     | '/_site/politica-de-afiliados'
     | '/_site/politica-de-privacidade'
+    | '/_site/recuperar-senha'
     | '/_site/sobre'
     | '/_site/termos-de-uso'
     | '/admin/login'
     | '/api/newsletter'
     | '/_site/'
+    | '/_admin/admin/membros'
+    | '/_site/area-do-pai/filhos'
+    | '/_site/area-do-pai/onboarding'
+    | '/_site/area-do-pai/plano'
+    | '/_site/area-do-pai/salvos'
+    | '/_site/auth/callback'
     | '/_site/categoria/$slug'
     | '/_site/loja/$slug'
     | '/_site/pai-indica/$slug'
     | '/_site/post/$slug'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
+    | '/api/newsletter/sair'
+    | '/api/newsletter/weekly'
     | '/_admin/admin/'
+    | '/_site/area-do-pai/'
     | '/_site/ferramentas/'
     | '/_site/formacao/'
     | '/_site/loja/'
@@ -532,6 +674,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteBuscaRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/cadastro': {
+      id: '/_site/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof SiteCadastroRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/contato': {
       id: '/_site/contato'
       path: '/contato'
@@ -553,6 +702,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteIrmandadeRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/minha-conta': {
+      id: '/_site/minha-conta'
+      path: '/minha-conta'
+      fullPath: '/minha-conta'
+      preLoaderRoute: typeof SiteMinhaContaRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/politica-de-afiliados': {
       id: '/_site/politica-de-afiliados'
       path: '/politica-de-afiliados'
@@ -565,6 +721,13 @@ declare module '@tanstack/react-router' {
       path: '/politica-de-privacidade'
       fullPath: '/politica-de-privacidade'
       preLoaderRoute: typeof SitePoliticaDePrivacidadeRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/recuperar-senha': {
+      id: '/_site/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof SiteRecuperarSenhaRouteImport
       parentRoute: typeof SiteRoute
     }
     '/_site/sobre': {
@@ -601,6 +764,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminAdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/membros': {
+      id: '/_admin/admin/membros'
+      path: '/admin/membros'
+      fullPath: '/admin/membros'
+      preLoaderRoute: typeof AdminAdminMembrosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_site/area-do-pai/': {
+      id: '/_site/area-do-pai/'
+      path: '/'
+      fullPath: '/area-do-pai/'
+      preLoaderRoute: typeof SiteAreaDoPaiIndexRouteImport
+      parentRoute: typeof SiteAreaDoPaiRoute
+    }
+    '/_site/area-do-pai/filhos': {
+      id: '/_site/area-do-pai/filhos'
+      path: '/filhos'
+      fullPath: '/area-do-pai/filhos'
+      preLoaderRoute: typeof SiteAreaDoPaiFilhosRouteImport
+      parentRoute: typeof SiteAreaDoPaiRoute
+    }
+    '/_site/area-do-pai/onboarding': {
+      id: '/_site/area-do-pai/onboarding'
+      path: '/onboarding'
+      fullPath: '/area-do-pai/onboarding'
+      preLoaderRoute: typeof SiteAreaDoPaiOnboardingRouteImport
+      parentRoute: typeof SiteAreaDoPaiRoute
+    }
+    '/_site/area-do-pai/plano': {
+      id: '/_site/area-do-pai/plano'
+      path: '/plano'
+      fullPath: '/area-do-pai/plano'
+      preLoaderRoute: typeof SiteAreaDoPaiPlanoRouteImport
+      parentRoute: typeof SiteAreaDoPaiRoute
+    }
+    '/_site/area-do-pai/salvos': {
+      id: '/_site/area-do-pai/salvos'
+      path: '/salvos'
+      fullPath: '/area-do-pai/salvos'
+      preLoaderRoute: typeof SiteAreaDoPaiSalvosRouteImport
+      parentRoute: typeof SiteAreaDoPaiRoute
+    }
+    '/_site/auth/callback': {
+      id: '/_site/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof SiteAuthCallbackRouteImport
+      parentRoute: typeof SiteRoute
     }
     '/_site/categoria/$slug': {
       id: '/_site/categoria/$slug'
@@ -679,6 +891,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiNewsletterConfirmarRouteImport
       parentRoute: typeof ApiNewsletterRoute
     }
+    '/api/newsletter/sair': {
+      id: '/api/newsletter/sair'
+      path: '/sair'
+      fullPath: '/api/newsletter/sair'
+      preLoaderRoute: typeof ApiNewsletterSairRouteImport
+      parentRoute: typeof ApiNewsletterRoute
+    }
+    '/api/newsletter/weekly': {
+      id: '/api/newsletter/weekly'
+      path: '/weekly'
+      fullPath: '/api/newsletter/weekly'
+      preLoaderRoute: typeof ApiNewsletterWeeklyRouteImport
+      parentRoute: typeof ApiNewsletterRoute
+    }
     '/_admin/admin/editor/': {
       id: '/_admin/admin/editor/'
       path: '/admin/editor'
@@ -739,6 +965,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAdminMembrosRoute: typeof AdminAdminMembrosRoute
   AdminAdminIndexRoute: typeof AdminAdminIndexRoute
   AdminAdminEditorIdRoute: typeof AdminAdminEditorIdRoute
   AdminAdminProdutosIdRoute: typeof AdminAdminProdutosIdRoute
@@ -750,6 +977,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminMembrosRoute: AdminAdminMembrosRoute,
   AdminAdminIndexRoute: AdminAdminIndexRoute,
   AdminAdminEditorIdRoute: AdminAdminEditorIdRoute,
   AdminAdminProdutosIdRoute: AdminAdminProdutosIdRoute,
@@ -762,18 +990,42 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface SiteAreaDoPaiRouteChildren {
+  SiteAreaDoPaiFilhosRoute: typeof SiteAreaDoPaiFilhosRoute
+  SiteAreaDoPaiOnboardingRoute: typeof SiteAreaDoPaiOnboardingRoute
+  SiteAreaDoPaiPlanoRoute: typeof SiteAreaDoPaiPlanoRoute
+  SiteAreaDoPaiSalvosRoute: typeof SiteAreaDoPaiSalvosRoute
+  SiteAreaDoPaiIndexRoute: typeof SiteAreaDoPaiIndexRoute
+}
+
+const SiteAreaDoPaiRouteChildren: SiteAreaDoPaiRouteChildren = {
+  SiteAreaDoPaiFilhosRoute: SiteAreaDoPaiFilhosRoute,
+  SiteAreaDoPaiOnboardingRoute: SiteAreaDoPaiOnboardingRoute,
+  SiteAreaDoPaiPlanoRoute: SiteAreaDoPaiPlanoRoute,
+  SiteAreaDoPaiSalvosRoute: SiteAreaDoPaiSalvosRoute,
+  SiteAreaDoPaiIndexRoute: SiteAreaDoPaiIndexRoute,
+}
+
+const SiteAreaDoPaiRouteWithChildren = SiteAreaDoPaiRoute._addFileChildren(
+  SiteAreaDoPaiRouteChildren,
+)
+
 interface SiteRouteChildren {
-  SiteAreaDoPaiRoute: typeof SiteAreaDoPaiRoute
+  SiteAreaDoPaiRoute: typeof SiteAreaDoPaiRouteWithChildren
   SiteBlogRoute: typeof SiteBlogRoute
   SiteBuscaRoute: typeof SiteBuscaRoute
+  SiteCadastroRoute: typeof SiteCadastroRoute
   SiteContatoRoute: typeof SiteContatoRoute
   SiteEntrarRoute: typeof SiteEntrarRoute
   SiteIrmandadeRoute: typeof SiteIrmandadeRoute
+  SiteMinhaContaRoute: typeof SiteMinhaContaRoute
   SitePoliticaDeAfiliadosRoute: typeof SitePoliticaDeAfiliadosRoute
   SitePoliticaDePrivacidadeRoute: typeof SitePoliticaDePrivacidadeRoute
+  SiteRecuperarSenhaRoute: typeof SiteRecuperarSenhaRoute
   SiteSobreRoute: typeof SiteSobreRoute
   SiteTermosDeUsoRoute: typeof SiteTermosDeUsoRoute
   SiteIndexRoute: typeof SiteIndexRoute
+  SiteAuthCallbackRoute: typeof SiteAuthCallbackRoute
   SiteCategoriaSlugRoute: typeof SiteCategoriaSlugRoute
   SiteLojaSlugRoute: typeof SiteLojaSlugRoute
   SitePaiIndicaSlugRoute: typeof SitePaiIndicaSlugRoute
@@ -787,17 +1039,21 @@ interface SiteRouteChildren {
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
-  SiteAreaDoPaiRoute: SiteAreaDoPaiRoute,
+  SiteAreaDoPaiRoute: SiteAreaDoPaiRouteWithChildren,
   SiteBlogRoute: SiteBlogRoute,
   SiteBuscaRoute: SiteBuscaRoute,
+  SiteCadastroRoute: SiteCadastroRoute,
   SiteContatoRoute: SiteContatoRoute,
   SiteEntrarRoute: SiteEntrarRoute,
   SiteIrmandadeRoute: SiteIrmandadeRoute,
+  SiteMinhaContaRoute: SiteMinhaContaRoute,
   SitePoliticaDeAfiliadosRoute: SitePoliticaDeAfiliadosRoute,
   SitePoliticaDePrivacidadeRoute: SitePoliticaDePrivacidadeRoute,
+  SiteRecuperarSenhaRoute: SiteRecuperarSenhaRoute,
   SiteSobreRoute: SiteSobreRoute,
   SiteTermosDeUsoRoute: SiteTermosDeUsoRoute,
   SiteIndexRoute: SiteIndexRoute,
+  SiteAuthCallbackRoute: SiteAuthCallbackRoute,
   SiteCategoriaSlugRoute: SiteCategoriaSlugRoute,
   SiteLojaSlugRoute: SiteLojaSlugRoute,
   SitePaiIndicaSlugRoute: SitePaiIndicaSlugRoute,
@@ -814,10 +1070,14 @@ const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
 
 interface ApiNewsletterRouteChildren {
   ApiNewsletterConfirmarRoute: typeof ApiNewsletterConfirmarRoute
+  ApiNewsletterSairRoute: typeof ApiNewsletterSairRoute
+  ApiNewsletterWeeklyRoute: typeof ApiNewsletterWeeklyRoute
 }
 
 const ApiNewsletterRouteChildren: ApiNewsletterRouteChildren = {
   ApiNewsletterConfirmarRoute: ApiNewsletterConfirmarRoute,
+  ApiNewsletterSairRoute: ApiNewsletterSairRoute,
+  ApiNewsletterWeeklyRoute: ApiNewsletterWeeklyRoute,
 }
 
 const ApiNewsletterRouteWithChildren = ApiNewsletterRoute._addFileChildren(

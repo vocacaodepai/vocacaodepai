@@ -1,11 +1,14 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import EntrarPage from "@/pages/area-do-pai/EntrarPage";
+import { publicAuthHead } from "@/lib/area-do-pai/head";
 
-// Fase 1 (doc 03 §5.3): /entrar só redireciona para o login do admin.
-// A Fase 5 (Área do Pai) troca por uma página própria de login de membro.
+// /entrar (doc 07 §4.7): login de membro da Área do Pai (e-mail/senha, link por e-mail, Google).
 export const Route = createFileRoute("/_site/entrar")({
-  beforeLoad: () => {
-    throw redirect({ to: "/admin/login" });
-  },
-  head: () => ({ meta: [{ name: "robots", content: "noindex" }] }),
-  component: () => null,
+  head: () =>
+    publicAuthHead(
+      "Entrar na Área do Pai",
+      "Entre na Área do Pai: seu painel com filhos, conteúdo por fase, salvos, trilhas e insígnias.",
+      "/entrar",
+    ),
+  component: EntrarPage,
 });

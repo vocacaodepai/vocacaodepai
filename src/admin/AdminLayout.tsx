@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, Outlet, useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, LogOut, Plus, ShieldAlert, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, LogOut, Plus, ShieldAlert, ShoppingBag, Users } from "lucide-react";
 import { SITE_NAME } from "@/lib/site";
 import { fetchAdminProfile, fetchIsAdmin, type AdminProfile } from "./admin-db";
 
@@ -135,6 +135,15 @@ export function AdminLayout() {
               <ShoppingBag className="h-4 w-4" />
               Loja do Pai
             </Link>
+            {session.profile.role === "admin" && (
+              <Link
+                to="/admin/membros"
+                className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Users className="h-4 w-4" />
+                Membros
+              </Link>
+            )}
             <span className="hidden text-sm text-muted-foreground md:block">
               {session.profile.display_name} · {session.profile.role}
             </span>
