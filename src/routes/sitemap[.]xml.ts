@@ -15,6 +15,8 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: "/politica-de-privacidade", changefreq: "yearly", priority: "0.2" },
   { path: "/termos-de-uso", changefreq: "yearly", priority: "0.2" },
   { path: "/politica-de-afiliados", changefreq: "yearly", priority: "0.2" },
+  // Fase 3 — Loja do Pai
+  { path: "/loja", changefreq: "daily", priority: "0.8" },
 ];
 
 function escapeXml(value: string): string {
@@ -42,12 +44,21 @@ interface CategoryRow {
   sort_order: number;
 }
 
+interface ProductRow {
+  slug: string;
+  updated_at: string | null;
+}
+
+interface ProductCategoryRow {
+  slug: string;
+}
+
 async function buildSitemap(): Promise<string> {
   const supabase = await createReadOnlySupabaseClient();
 
-  // TODO Fase 2 (Pai Indica), 3 (Loja), 4 (Ferramentas), 6 (vagas) e 7 (histórias):
+  // TODO Fase 2 (Pai Indica), 4 (Ferramentas), 6 (vagas) e 7 (histórias):
   // acrescentar as rotas quando as páginas existirem.
-  const [postsRes, categoriesRes] = await Promise.all([
+  const [postsRes, categoriesRes, productCategoriesRes, productsRes] = await Promise.all([
     supabase
       .from("posts")
       .select("slug, updated_at, publish_at")
@@ -55,6 +66,14 @@ async function buildSitemap(): Promise<string> {
       .lte("publish_at", nowIso())
       .order("publish_at", { ascending: false }),
     supabase.from("categories").select("slug, parent_id, sort_order").order("sort_order"),
+    // Fase 3 — Loja do Pai: categorias e produtos ativos (RLS já filtra active = true).
+    supabase.from("product_categories").select("slug").order("sort_order"),
+    supabase
+      .from("products")
+      .select("slug, updated_at")
+      .eq("active", true)
+      .order("featured", { ascending: false })
+      .order("sort_order", { ascending: true }),
   ]);
 
   const today = toLastmod(null);
@@ -85,6 +104,15 @@ async function buildSitemap(): Promise<string> {
         "weekly",
         "0.8",
       ),
+    );
+  }
+
+  for (const category of (productCategoriesRes.data ?? []) as unknown as ProductCategoryRow[]) {
+    entries.push(urlEntry(`${SITE_URL}/loja/categoria/${category.slug}`, today, "weekly", "0.7"));
+  }
+  for (const product of (productsRes.data ?? []) as unknown as ProductRow[]) {
+    entries.push(
+      urlEntry(`${SITE_URL}/loja/${product.slug}`, toLastmod(product.updated_at), "weekly", "0.7"),
     );
   }
 

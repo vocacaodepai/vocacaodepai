@@ -16,7 +16,7 @@ export function reviewModelos(doc: TipTapNode | null | undefined): ReviewModelo[
 
 const buyCard = (m: ReviewModelo): TipTapNode => ({
   type: "buyCard",
-  attrs: { data: { name: m.name, photo: m.src, href: m.href } },
+  attrs: { data: { name: m.name, photo: m.src, href: m.href, slug: m.slug } },
 });
 
 /**

@@ -46,18 +46,18 @@
 
 ## Fase 3 — Loja do Pai (`05-fase-3-loja.md`)
 
-- [ ] 3.1 Seed `product_categories` (10, doc 05 §3): churrasco-e-cozinha, ferramentas, carro-e-moto, tecnologia, esporte-e-outdoor, paternidade-pratica, livros-e-formacao, estilo-e-barba, casa-e-jardim, presentes-para-o-pai
-- [ ] 3.2 Queries em `src/lib/db/products.ts` (lista por categoria, destaque, por slug, relacionados) com cache de 5 min no servidor
-- [ ] 3.3 Rota `/loja`: hero com slogan "O pai também quer desconto", categorias, destaques (`featured`), grade de produtos com `ProductCard` (foto oficial, faixa de preço, rating, botão)
-- [ ] 3.4 Rota `/loja/categoria/$slug`: grade filtrada, subcategorias, ordenação (relevância, menor faixa, maior nota)
-- [ ] 3.5 Rota `/loja/$slug`: galeria (`images`), faixa de preço com data, botão "Comprar agora na Amazon", prós/contras, review longa (`products.review`), produtos relacionados, Pai Indica relacionados, JSON-LD `Product`
-- [ ] 3.6 `/admin/produtos`: CRUD completo (ASIN → preencher `affiliate_url`; upload/URL de imagem oficial; categoria/subcategoria; destaque; ativo)
-- [ ] 3.7 Ferramenta de admin "Checar faixa de preço": grava em `product_price_checks` 2 lojas, calcula `price_min`/`price_max` (regra `max ≤ 3×min`), atualiza `price_range_checked_at`
-- [ ] 3.8 Botão "Salvar na Área do Pai" (desabilitado até a Fase 5, com tooltip)
-- [ ] 3.9 Bloco "Loja do Pai" na home e em artigos do Blog (produtos da mesma categoria)
-- [ ] 3.10 Seed de 60 produtos (6 por categoria, doc 05 §10), cada um com ≥3 fotos oficiais; ≥20 com review longa real; ≥15 com faixa de mercado pesquisada
-- [ ] 3.11 `validate-content.mjs`: regras de produto (faixa, botão, imagem oficial `m.media-amazon.com`, categoria válida)
-- [ ] 3.12 Validar, abrir PR "Fase 3 — Loja do Pai", atualizar `PROGRESSO.md`
+- [x] 3.1 Seed `product_categories` (10, doc 05 §3): churrasco-e-cozinha, ferramentas, carro-e-moto, tecnologia, esporte-e-outdoor, paternidade-pratica, livros-e-formacao, estilo-e-barba, casa-e-jardim, presentes-para-o-pai *(feito com os 10 slugs reais da `0003_loja.sql`/doc 04 §3 — `bebe-e-crianca`, `saude-do-homem`; "presentes" é rota, não categoria — ver `progresso-fase-3.md`)*
+- [x] 3.2 Queries em `src/lib/db/products.ts` (lista por categoria, destaque, por slug, relacionados) com cache de 5 min no servidor *(em `src/lib/loja/queries.ts` + `loja.functions.ts`; cache de 5 min fica para a Fase 8 junto com o `market_cache`)*
+- [x] 3.3 Rota `/loja`: hero com slogan "O pai também quer desconto", categorias, destaques (`featured`), grade de produtos com `ProductCard` (foto oficial, faixa de preço, rating, botão)
+- [x] 3.4 Rota `/loja/categoria/$slug`: grade filtrada, subcategorias, ordenação (relevância, menor faixa, maior nota)
+- [x] 3.5 Rota `/loja/$slug`: galeria (`images`), faixa de preço com data, botão "Comprar agora na Amazon", prós/contras, review longa (`products.review`), produtos relacionados, Pai Indica relacionados, JSON-LD `Product`
+- [x] 3.6 `/admin/produtos`: CRUD completo (ASIN → preencher `affiliate_url`; upload/URL de imagem oficial; categoria/subcategoria; destaque; ativo)
+- [x] 3.7 Ferramenta de admin "Checar faixa de preço": grava em `product_price_checks` 2 lojas, calcula `price_min`/`price_max` (regra `max ≤ 3×min`), atualiza `price_range_checked_at`
+- [x] 3.8 Botão "Salvar na Área do Pai" (desabilitado até a Fase 5, com tooltip)
+- [ ] 3.9 Bloco "Loja do Pai" na home e em artigos do Blog (produtos da mesma categoria) *(home pronta em `LojaTeaser.tsx`; bloco nos artigos pendente)*
+- [ ] 3.10 Seed de 60 produtos (6 por categoria, doc 05 §10), cada um com ≥3 fotos oficiais; ≥20 com review longa real; ≥15 com faixa de mercado pesquisada *(`0012_seed_loja.sql` com os 60 produtos, 5 reviews e faixa plausível, validada 60/60; ASIN/fotos/faixa pesquisada pendentes — produtos entram inativos até confirmar ASIN)*
+- [x] 3.11 `validate-content.mjs`: regras de produto (faixa, botão, imagem oficial `m.media-amazon.com`, categoria válida)
+- [ ] 3.12 Validar, abrir PR "Fase 3 — Loja do Pai", atualizar `PROGRESSO.md` *(build/lint/tsc/validador verdes na branch `claude/fase-3-loja`; PR e consolidação em `PROGRESSO.md` pendentes)*
 
 ## Fase 4 — Caixa de Ferramentas (`06-fase-4-ferramentas.md`)
 

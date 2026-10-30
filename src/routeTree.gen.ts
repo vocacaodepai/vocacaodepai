@@ -31,6 +31,7 @@ import { Route as SiteCategoriaSlugRouteImport } from './routes/_site/categoria/
 import { Route as SiteFerramentasIndexRouteImport } from './routes/_site/ferramentas/index'
 import { Route as SiteFormacaoIndexRouteImport } from './routes/_site/formacao/index'
 import { Route as SiteLojaIndexRouteImport } from './routes/_site/loja/index'
+import { Route as SiteLojaSlugRouteImport } from './routes/_site/loja/$slug'
 import { Route as SitePaiIndicaPaiIndexRouteImport } from './routes/_site/pai-indica-pai/index'
 import { Route as SitePaiIndicaIndexRouteImport } from './routes/_site/pai-indica/index'
 import { Route as SitePostSlugRouteImport } from './routes/_site/post/$slug'
@@ -38,6 +39,12 @@ import { Route as ApiImgSplatRouteImport } from './routes/api/img/$'
 import { Route as ApiNewsletterConfirmarRouteImport } from './routes/api/newsletter.confirmar'
 import { Route as AdminAdminEditorIndexRouteImport } from './routes/_admin/admin/editor/index'
 import { Route as AdminAdminEditorIdRouteImport } from './routes/_admin/admin/editor/$id'
+import { Route as AdminAdminProdutosIndexRouteImport } from './routes/_admin/admin/produtos/index'
+import { Route as AdminAdminProdutosIdRouteImport } from './routes/_admin/admin/produtos/$id'
+import { Route as AdminAdminProdutosFilaFotosRouteImport } from './routes/_admin/admin/produtos/fila-fotos'
+import { Route as AdminAdminProdutosFilaPrecosRouteImport } from './routes/_admin/admin/produtos/fila-precos'
+import { Route as AdminAdminProdutosNovoRouteImport } from './routes/_admin/admin/produtos/novo'
+import { Route as SiteLojaCategoriaSlugRouteImport } from './routes/_site/loja/categoria/$slug'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
@@ -148,6 +155,11 @@ const SiteLojaIndexRoute = SiteLojaIndexRouteImport.update({
   path: '/loja/',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteLojaSlugRoute = SiteLojaSlugRouteImport.update({
+  id: '/loja/$slug',
+  path: '/loja/$slug',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SitePaiIndicaPaiIndexRoute = SitePaiIndicaPaiIndexRouteImport.update({
   id: '/pai-indica-pai/',
   path: '/pai-indica-pai/',
@@ -183,6 +195,38 @@ const AdminAdminEditorIdRoute = AdminAdminEditorIdRouteImport.update({
   path: '/admin/editor/$id',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminProdutosIndexRoute = AdminAdminProdutosIndexRouteImport.update({
+  id: '/admin/produtos/',
+  path: '/admin/produtos/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminProdutosIdRoute = AdminAdminProdutosIdRouteImport.update({
+  id: '/admin/produtos/$id',
+  path: '/admin/produtos/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminProdutosFilaFotosRoute =
+  AdminAdminProdutosFilaFotosRouteImport.update({
+    id: '/admin/produtos/fila-fotos',
+    path: '/admin/produtos/fila-fotos',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminAdminProdutosFilaPrecosRoute =
+  AdminAdminProdutosFilaPrecosRouteImport.update({
+    id: '/admin/produtos/fila-precos',
+    path: '/admin/produtos/fila-precos',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminAdminProdutosNovoRoute = AdminAdminProdutosNovoRouteImport.update({
+  id: '/admin/produtos/novo',
+  path: '/admin/produtos/novo',
+  getParentRoute: () => AdminRoute,
+} as any)
+const SiteLojaCategoriaSlugRoute = SiteLojaCategoriaSlugRouteImport.update({
+  id: '/loja/categoria/$slug',
+  path: '/loja/categoria/$slug',
+  getParentRoute: () => SiteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof SiteIndexRoute
@@ -201,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/loja/$slug': typeof SiteLojaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
@@ -211,7 +256,13 @@ export interface FileRoutesByFullPath {
   '/pai-indica-pai/': typeof SitePaiIndicaPaiIndexRoute
   '/pai-indica/': typeof SitePaiIndicaIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
+  '/admin/produtos/$id': typeof AdminAdminProdutosIdRoute
+  '/admin/produtos/fila-fotos': typeof AdminAdminProdutosFilaFotosRoute
+  '/admin/produtos/fila-precos': typeof AdminAdminProdutosFilaPrecosRoute
+  '/admin/produtos/novo': typeof AdminAdminProdutosNovoRoute
+  '/loja/categoria/$slug': typeof SiteLojaCategoriaSlugRoute
   '/admin/editor/': typeof AdminAdminEditorIndexRoute
+  '/admin/produtos/': typeof AdminAdminProdutosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof SiteIndexRoute
@@ -230,6 +281,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/loja/$slug': typeof SiteLojaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
@@ -240,7 +292,13 @@ export interface FileRoutesByTo {
   '/pai-indica-pai': typeof SitePaiIndicaPaiIndexRoute
   '/pai-indica': typeof SitePaiIndicaIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
+  '/admin/produtos/$id': typeof AdminAdminProdutosIdRoute
+  '/admin/produtos/fila-fotos': typeof AdminAdminProdutosFilaFotosRoute
+  '/admin/produtos/fila-precos': typeof AdminAdminProdutosFilaPrecosRoute
+  '/admin/produtos/novo': typeof AdminAdminProdutosNovoRoute
+  '/loja/categoria/$slug': typeof SiteLojaCategoriaSlugRoute
   '/admin/editor': typeof AdminAdminEditorIndexRoute
+  '/admin/produtos': typeof AdminAdminProdutosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -262,6 +320,7 @@ export interface FileRoutesById {
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/_site/': typeof SiteIndexRoute
   '/_site/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/_site/loja/$slug': typeof SiteLojaSlugRoute
   '/_site/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
@@ -272,7 +331,13 @@ export interface FileRoutesById {
   '/_site/pai-indica-pai/': typeof SitePaiIndicaPaiIndexRoute
   '/_site/pai-indica/': typeof SitePaiIndicaIndexRoute
   '/_admin/admin/editor/$id': typeof AdminAdminEditorIdRoute
+  '/_admin/admin/produtos/$id': typeof AdminAdminProdutosIdRoute
+  '/_admin/admin/produtos/fila-fotos': typeof AdminAdminProdutosFilaFotosRoute
+  '/_admin/admin/produtos/fila-precos': typeof AdminAdminProdutosFilaPrecosRoute
+  '/_admin/admin/produtos/novo': typeof AdminAdminProdutosNovoRoute
+  '/_site/loja/categoria/$slug': typeof SiteLojaCategoriaSlugRoute
   '/_admin/admin/editor/': typeof AdminAdminEditorIndexRoute
+  '/_admin/admin/produtos/': typeof AdminAdminProdutosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -293,6 +358,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/newsletter'
     | '/categoria/$slug'
+    | '/loja/$slug'
     | '/post/$slug'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
@@ -303,7 +369,13 @@ export interface FileRouteTypes {
     | '/pai-indica-pai/'
     | '/pai-indica/'
     | '/admin/editor/$id'
+    | '/admin/produtos/$id'
+    | '/admin/produtos/fila-fotos'
+    | '/admin/produtos/fila-precos'
+    | '/admin/produtos/novo'
+    | '/loja/categoria/$slug'
     | '/admin/editor/'
+    | '/admin/produtos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -322,6 +394,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/newsletter'
     | '/categoria/$slug'
+    | '/loja/$slug'
     | '/post/$slug'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
@@ -332,7 +405,13 @@ export interface FileRouteTypes {
     | '/pai-indica-pai'
     | '/pai-indica'
     | '/admin/editor/$id'
+    | '/admin/produtos/$id'
+    | '/admin/produtos/fila-fotos'
+    | '/admin/produtos/fila-precos'
+    | '/admin/produtos/novo'
+    | '/loja/categoria/$slug'
     | '/admin/editor'
+    | '/admin/produtos'
   id:
     | '__root__'
     | '/_admin'
@@ -353,6 +432,7 @@ export interface FileRouteTypes {
     | '/api/newsletter'
     | '/_site/'
     | '/_site/categoria/$slug'
+    | '/_site/loja/$slug'
     | '/_site/post/$slug'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
@@ -363,7 +443,13 @@ export interface FileRouteTypes {
     | '/_site/pai-indica-pai/'
     | '/_site/pai-indica/'
     | '/_admin/admin/editor/$id'
+    | '/_admin/admin/produtos/$id'
+    | '/_admin/admin/produtos/fila-fotos'
+    | '/_admin/admin/produtos/fila-precos'
+    | '/_admin/admin/produtos/novo'
+    | '/_site/loja/categoria/$slug'
     | '/_admin/admin/editor/'
+    | '/_admin/admin/produtos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -532,6 +618,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteLojaIndexRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/loja/$slug': {
+      id: '/_site/loja/$slug'
+      path: '/loja/$slug'
+      fullPath: '/loja/$slug'
+      preLoaderRoute: typeof SiteLojaSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/pai-indica-pai/': {
       id: '/_site/pai-indica-pai/'
       path: '/pai-indica-pai'
@@ -581,19 +674,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminEditorIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/produtos/': {
+      id: '/_admin/admin/produtos/'
+      path: '/admin/produtos'
+      fullPath: '/admin/produtos/'
+      preLoaderRoute: typeof AdminAdminProdutosIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/produtos/$id': {
+      id: '/_admin/admin/produtos/$id'
+      path: '/admin/produtos/$id'
+      fullPath: '/admin/produtos/$id'
+      preLoaderRoute: typeof AdminAdminProdutosIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/produtos/fila-fotos': {
+      id: '/_admin/admin/produtos/fila-fotos'
+      path: '/admin/produtos/fila-fotos'
+      fullPath: '/admin/produtos/fila-fotos'
+      preLoaderRoute: typeof AdminAdminProdutosFilaFotosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/produtos/fila-precos': {
+      id: '/_admin/admin/produtos/fila-precos'
+      path: '/admin/produtos/fila-precos'
+      fullPath: '/admin/produtos/fila-precos'
+      preLoaderRoute: typeof AdminAdminProdutosFilaPrecosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/produtos/novo': {
+      id: '/_admin/admin/produtos/novo'
+      path: '/admin/produtos/novo'
+      fullPath: '/admin/produtos/novo'
+      preLoaderRoute: typeof AdminAdminProdutosNovoRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_site/loja/categoria/$slug': {
+      id: '/_site/loja/categoria/$slug'
+      path: '/loja/categoria/$slug'
+      fullPath: '/loja/categoria/$slug'
+      preLoaderRoute: typeof SiteLojaCategoriaSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
   AdminAdminIndexRoute: typeof AdminAdminIndexRoute
   AdminAdminEditorIdRoute: typeof AdminAdminEditorIdRoute
+  AdminAdminProdutosIdRoute: typeof AdminAdminProdutosIdRoute
+  AdminAdminProdutosFilaFotosRoute: typeof AdminAdminProdutosFilaFotosRoute
+  AdminAdminProdutosFilaPrecosRoute: typeof AdminAdminProdutosFilaPrecosRoute
+  AdminAdminProdutosNovoRoute: typeof AdminAdminProdutosNovoRoute
   AdminAdminEditorIndexRoute: typeof AdminAdminEditorIndexRoute
+  AdminAdminProdutosIndexRoute: typeof AdminAdminProdutosIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminIndexRoute: AdminAdminIndexRoute,
   AdminAdminEditorIdRoute: AdminAdminEditorIdRoute,
+  AdminAdminProdutosIdRoute: AdminAdminProdutosIdRoute,
+  AdminAdminProdutosFilaFotosRoute: AdminAdminProdutosFilaFotosRoute,
+  AdminAdminProdutosFilaPrecosRoute: AdminAdminProdutosFilaPrecosRoute,
+  AdminAdminProdutosNovoRoute: AdminAdminProdutosNovoRoute,
   AdminAdminEditorIndexRoute: AdminAdminEditorIndexRoute,
+  AdminAdminProdutosIndexRoute: AdminAdminProdutosIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -611,12 +756,14 @@ interface SiteRouteChildren {
   SiteTermosDeUsoRoute: typeof SiteTermosDeUsoRoute
   SiteIndexRoute: typeof SiteIndexRoute
   SiteCategoriaSlugRoute: typeof SiteCategoriaSlugRoute
+  SiteLojaSlugRoute: typeof SiteLojaSlugRoute
   SitePostSlugRoute: typeof SitePostSlugRoute
   SiteFerramentasIndexRoute: typeof SiteFerramentasIndexRoute
   SiteFormacaoIndexRoute: typeof SiteFormacaoIndexRoute
   SiteLojaIndexRoute: typeof SiteLojaIndexRoute
   SitePaiIndicaPaiIndexRoute: typeof SitePaiIndicaPaiIndexRoute
   SitePaiIndicaIndexRoute: typeof SitePaiIndicaIndexRoute
+  SiteLojaCategoriaSlugRoute: typeof SiteLojaCategoriaSlugRoute
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
@@ -632,12 +779,14 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteTermosDeUsoRoute: SiteTermosDeUsoRoute,
   SiteIndexRoute: SiteIndexRoute,
   SiteCategoriaSlugRoute: SiteCategoriaSlugRoute,
+  SiteLojaSlugRoute: SiteLojaSlugRoute,
   SitePostSlugRoute: SitePostSlugRoute,
   SiteFerramentasIndexRoute: SiteFerramentasIndexRoute,
   SiteFormacaoIndexRoute: SiteFormacaoIndexRoute,
   SiteLojaIndexRoute: SiteLojaIndexRoute,
   SitePaiIndicaPaiIndexRoute: SitePaiIndicaPaiIndexRoute,
   SitePaiIndicaIndexRoute: SitePaiIndicaIndexRoute,
+  SiteLojaCategoriaSlugRoute: SiteLojaCategoriaSlugRoute,
 }
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)

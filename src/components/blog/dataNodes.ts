@@ -56,6 +56,13 @@ export const BuyCardExtension = makeDataNode(
   "fotos-modelos-placeholder",
   "Cartão Onde comprar",
 );
+/** Cartão de produto único da Loja do Pai: `{ data: { slug, variant? } }` (doc 05 §6.2). */
+export const ProductEmbedExtension = makeDataNode(
+  "product",
+  "data-product",
+  "fotos-modelos-placeholder",
+  "Produto da Loja do Pai",
+);
 export const GaleriaProdutoExtension = makeDataNode(
   "galeriaProduto",
   "data-galeria-produto",

@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getProductsBySlugs } from "@/lib/loja/loja.functions";
 
 export interface GaleriaData {
   slug?: string;
@@ -7,11 +8,35 @@ export interface GaleriaData {
   images?: string[];
 }
 
-/** Galeria de fotos do produto: todas no mesmo retângulo 4:3 (sem cortar), deslizando para o lado. */
+/**
+ * Galeria de fotos do produto: todas no mesmo retângulo 4:3 (sem cortar), deslizando
+ * para o lado. Quando só vem `slug`, busca `products.images` (até 8 fotos oficiais)
+ * pelo server fn getProductsBySlugs (doc 05 §6).
+ */
 export function GaleriaProdutoWidget({ data }: { data: GaleriaData }) {
-  // TODO Fase 3 (Loja do Pai): quando só vier `slug`, buscar `products.images`.
-  const images = (data.images ?? []).filter(Boolean);
+  const [fetched, setFetched] = useState<{ images: string[]; nome: string } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const own = (data.images ?? []).filter(Boolean);
+    if (!data.slug || own.length > 0) return;
+    let alive = true;
+    getProductsBySlugs({ data: { slugs: [data.slug] } })
+      .then((list) => {
+        const p = list[0];
+        if (alive && p) setFetched({ images: p.images, nome: p.name });
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [data.slug, data.images]);
+
+  const images = (
+    (data.images ?? []).filter(Boolean).length > 0
+      ? (data.images ?? []).filter(Boolean)
+      : (fetched?.images ?? [])
+  ).slice(0, 8);
 
   if (images.length === 0) return null;
 
@@ -19,7 +44,7 @@ export function GaleriaProdutoWidget({ data }: { data: GaleriaData }) {
     const el = scroller.current;
     if (el) el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: "smooth" });
   };
-  const nome = data.nome ?? "produto";
+  const nome = data.nome ?? fetched?.nome ?? "produto";
 
   return (
     <div className="galeria-produto not-prose relative my-6">
@@ -66,6 +91,13 @@ export function GaleriaProdutoWidget({ data }: { data: GaleriaData }) {
             {images.length} fotos, deslize para o lado
           </p>
         </>
+      )}
+      {data.slug && (
+        <p className="mt-1 text-center text-xs">
+          <a href={`/loja/${data.slug}`} className="font-semibold text-primary hover:underline">
+            Ver análise completa na Loja do Pai
+          </a>
+        </p>
       )}
     </div>
   );

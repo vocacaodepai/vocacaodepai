@@ -4,10 +4,11 @@ import { DecisorRapidoWidget, type DecisorData } from "@/components/blog/Decisor
 import { FotosModelosWidget, type FotosModelosData } from "@/components/blog/FotosModelos";
 import { BuyCardWidget, type BuyCardData } from "@/components/blog/BuyCard";
 import { GaleriaProdutoWidget, type GaleriaData } from "@/components/blog/GaleriaProduto";
+import { ProductEmbedWidget, type ProductEmbedData } from "@/components/loja/ProductEmbed";
 
 /**
  * Encontra os marcadores `[data-tool-embed]`, `[data-decisor]` e
- * `[data-fotos-modelos]` dentro do artigo e monta os componentes
+ * `[data-fotos-modelos]`, `[data-buy-card]`, `[data-galeria-produto]` e `[data-product]` dentro do artigo e monta os componentes
  * interativos correspondentes ali mesmo (React dentro do TipTap).
  */
 export function ToolEmbedHost({ scope }: { scope: string }) {
@@ -21,7 +22,7 @@ export function ToolEmbedHost({ scope }: { scope: string }) {
       const rootEl = document.querySelector(scope);
       if (!rootEl) return;
       const slots = rootEl.querySelectorAll<HTMLElement>(
-        "[data-tool-embed], [data-decisor], [data-fotos-modelos], [data-buy-card], [data-galeria-produto]",
+        "[data-tool-embed], [data-decisor], [data-fotos-modelos], [data-buy-card], [data-galeria-produto], [data-product]",
       );
       slots.forEach((slot) => {
         if (done.has(slot) || !slot.isConnected) return;
@@ -64,6 +65,22 @@ export function ToolEmbedHost({ scope }: { scope: string }) {
               slot.innerHTML = "";
               const root = createRoot(slot);
               root.render(<BuyCardWidget data={data} />);
+              roots.push(root);
+            }
+          } catch {
+            // JSON inválido: mantém o placeholder
+          }
+          return;
+        }
+
+        const productJson = slot.dataset.productJson;
+        if (productJson) {
+          try {
+            const data = JSON.parse(productJson) as ProductEmbedData;
+            if (data && data.slug) {
+              slot.innerHTML = "";
+              const root = createRoot(slot);
+              root.render(<ProductEmbedWidget data={data} />);
               roots.push(root);
             }
           } catch {
