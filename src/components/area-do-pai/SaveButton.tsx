@@ -4,18 +4,20 @@ import { toast } from "sonner";
 import { useLocation, useNavigate } from "@/lib/router-compat";
 import { useAuth } from "@/lib/auth-context";
 import { getAccessToken } from "@/lib/auth";
-import { toggleSavedItem } from "@/lib/area-do-pai/area.functions";
+import { listMySavedIds, toggleSavedItem } from "@/lib/area-do-pai/area.functions";
 import type { SavedItemType } from "@/lib/area-do-pai/types";
 import { cn } from "@/lib/utils";
 
 // Botão "Salvar" genérico da Área do Pai (doc 07 §5.2). Usado por post, produto,
 // ferramenta (item_id = slug), vaga e trilha. Anônimo → /entrar?next=<rota atual>.
-// `initialSaved` vem de listMySavedIds() quando a página quer marcar o estado.
+// `initialSaved` vem de listMySavedIds() quando a página já tem o estado; sem a prop,
+// o botão consulta o estado sozinho assim que o membro está logado.
 
 export interface SaveButtonProps {
   itemType: SavedItemType;
   /** uuid (post/produto/vaga/trilha) ou slug (ferramenta). */
   itemId: string;
+  /** Estado inicial. Omitido: o botão busca em listMySavedIds() quando há usuário. */
   initialSaved?: boolean;
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -27,19 +29,44 @@ export interface SaveButtonProps {
 export function SaveButton({
   itemType,
   itemId,
-  initialSaved = false,
+  initialSaved,
   size = "md",
   className,
   label = true,
   onChange,
 }: SaveButtonProps) {
   const { user, ready } = useAuth();
+  const userId = user?.id ?? null;
   const navigate = useNavigate();
   const location = useLocation();
-  const [saved, setSaved] = useState(initialSaved);
+  const [saved, setSaved] = useState(initialSaved ?? false);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => setSaved(initialSaved), [initialSaved]);
+  useEffect(() => {
+    if (initialSaved !== undefined) {
+      setSaved(initialSaved);
+      return;
+    }
+    if (!ready) return;
+    if (!userId) {
+      setSaved(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const accessToken = await getAccessToken();
+        if (!accessToken) return;
+        const ids = await listMySavedIds({ data: { accessToken, itemType } });
+        if (!cancelled) setSaved(ids.includes(itemId));
+      } catch {
+        // mantém o estado atual
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [initialSaved, ready, userId, itemType, itemId]);
 
   const onClick = async () => {
     if (!ready || busy) return;

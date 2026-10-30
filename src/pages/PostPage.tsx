@@ -1,15 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getRouteApi } from "@tanstack/react-router";
 import { Link } from "@/lib/router-compat";
-import {
-  Bookmark,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Heart,
-  Star,
-} from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Heart, Star } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -37,6 +29,7 @@ import { ContentNotice } from "@/components/blog/ContentNotice";
 import { ParaAEsposa } from "@/components/blog/ParaAEsposa";
 import { CategoryIcon } from "@/components/blog/category-icon";
 import { ToolEmbedHost } from "@/components/blog/ToolEmbedHost";
+import { SaveButton } from "@/components/area-do-pai/SaveButton";
 import { useAuth } from "@/lib/auth-context";
 
 const postRouteApi = getRouteApi("/_site/post/$slug");
@@ -326,19 +319,8 @@ function ArticleView({ post, initialRelated }: { post: BlogPost; initialRelated:
                   <Heart className={`h-4 w-4 ${reactions.likedByMe ? "fill-current" : ""}`} />
                   Curtir · {reactions.likes}
                 </button>
-                <button
-                  onClick={() => handleToggle("save")}
-                  disabled={!!toggling}
-                  aria-pressed={reactions.savedByMe}
-                  className={`inline-flex h-11 items-center gap-2 rounded-full border px-5 text-sm font-bold transition-all disabled:opacity-60 ${
-                    reactions.savedByMe
-                      ? "border-secondary bg-secondary text-secondary-foreground"
-                      : "border-border bg-card text-foreground hover:border-secondary hover:text-secondary-foreground"
-                  }`}
-                >
-                  <Bookmark className={`h-4 w-4 ${reactions.savedByMe ? "fill-current" : ""}`} />
-                  {reactions.savedByMe ? "Salvo" : "Salvar"}
-                </button>
+                {/* Salvar na Área do Pai (saved_items, item_type 'post') */}
+                <SaveButton itemType="post" itemId={post.id} className="px-5" />
                 <div className="ml-auto">
                   <ShareButtons title={post.title} slug={post.slug} />
                 </div>

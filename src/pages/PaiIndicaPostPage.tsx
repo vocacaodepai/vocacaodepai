@@ -15,6 +15,7 @@ import { AdSlot } from "@/components/blog/AdSlot";
 import { ToolEmbedHost } from "@/components/blog/ToolEmbedHost";
 import { StickyBuyBar } from "@/components/blog/StickyBuyBar";
 import { Comments } from "@/components/blog/Comments";
+import { SaveButton } from "@/components/area-do-pai/SaveButton";
 import { AffiliateButton } from "@/components/pai-indica/AffiliateButton";
 import { AffiliateDisclosure } from "@/components/pai-indica/AffiliateDisclosure";
 import { ComparisonTable } from "@/components/pai-indica/ComparisonTable";
@@ -347,8 +348,16 @@ export default function PaiIndicaPostPage({
               </section>
             )}
 
-            <div className="mt-10 flex flex-wrap items-center justify-end gap-3 border-y border-border py-5">
-              <ShareButtons title={post.title} slug={post.slug} path={`/pai-indica/${post.slug}`} />
+            <div className="mt-10 flex flex-wrap items-center gap-3 border-y border-border py-5">
+              {/* Salvar na Área do Pai (saved_items, item_type 'post') */}
+              <SaveButton itemType="post" itemId={post.id} className="px-5" />
+              <div className="ml-auto">
+                <ShareButtons
+                  title={post.title}
+                  slug={post.slug}
+                  path={`/pai-indica/${post.slug}`}
+                />
+              </div>
             </div>
 
             <Comments postId={post.id} />

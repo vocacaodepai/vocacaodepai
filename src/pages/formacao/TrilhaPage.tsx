@@ -8,6 +8,7 @@ import { Breadcrumbs } from "@/components/blog/Breadcrumbs";
 import { TrackPlayer } from "@/components/formacao/TrackPlayer";
 import { ProgressRing } from "@/components/formacao/ProgressRing";
 import { PILLAR_ICON } from "@/components/formacao/TrackCard";
+import { SaveButton } from "@/components/area-do-pai/SaveButton";
 import { completeStepFn, getMyTrackProgressFn } from "@/lib/tracks.functions";
 import { LEVEL_LABEL, PILLAR_LABEL, type TrackProgressRow } from "@/lib/formacao/types";
 
@@ -92,7 +93,11 @@ export default function TrilhaPage() {
             </ul>
           )}
         </div>
-        {user && <ProgressRing done={progress.length} total={steps.length} size={80} />}
+        <div className="flex flex-wrap items-center gap-4 md:flex-col md:items-end">
+          {user && <ProgressRing done={progress.length} total={steps.length} size={80} />}
+          {/* Salvar na Área do Pai (saved_items, item_type 'track') */}
+          <SaveButton itemType="track" itemId={track.id} />
+        </div>
       </header>
       {ready && !user && (
         <p className="mt-6 rounded-2xl border border-dashed border-border p-4 text-sm">

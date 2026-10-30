@@ -1,6 +1,6 @@
 import { getRouteApi } from "@tanstack/react-router";
 import { Link } from "@/lib/router-compat";
-import { ArrowLeft, Bookmark, CheckCircle2, Info, Star } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Info, Star } from "lucide-react";
 import { MARKETPLACE_NAMES, AFFILIATE_REL } from "@/lib/loja/affiliate";
 import { subcategoryName } from "@/lib/loja/categories";
 import { formatDateShort } from "@/lib/site";
@@ -11,6 +11,7 @@ import { AffiliateNotice } from "@/components/loja/AffiliateNotice";
 import { BuyButton } from "@/components/loja/BuyButton";
 import { PriceRange } from "@/components/loja/PriceRange";
 import { StickyProductBar } from "@/components/loja/StickyProductBar";
+import { SaveButton } from "@/components/area-do-pai/SaveButton";
 import { Breadcrumbs } from "@/components/blog/Breadcrumbs";
 import { AdSlot } from "@/components/blog/AdSlot";
 import { productPriceRange } from "@/lib/loja/price-range";
@@ -132,15 +133,8 @@ export default function ProductPage() {
               size="lg"
               className="min-w-[220px] flex-1"
             />
-            <button
-              type="button"
-              disabled
-              title="Salvar na Área do Pai chega na Fase 5"
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border border-border bg-card px-5 text-sm font-bold text-muted-foreground opacity-60"
-            >
-              <Bookmark className="h-5 w-5" />
-              Salvar
-            </button>
+            {/* Salvar na Área do Pai (saved_items, item_type 'product') */}
+            <SaveButton itemType="product" itemId={product.id} size="lg" />
           </div>
           {marketplaces.length > 0 && (
             <p className="mt-3 text-xs text-muted-foreground">
