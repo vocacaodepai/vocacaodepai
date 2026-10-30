@@ -1,10 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// Busca fotos de estoque no Pixabay, Pexels, Wikimedia Commons ou Google
-// (Custom Search, só imagens com direitos de reuso), usando chaves guardadas
-// no Supabase Vault (nunca expostas ao cliente). Chamar autenticado (JWT),
-// com body JSON:
+// Vocação de Pai — busca fotos de estoque no Pexels, Pixabay, Wikimedia
+// Commons ou Google (Custom Search, só imagens com direitos de reuso). As
+// chaves (`PEXELS_API_KEY`, `PIXABAY_API_KEY`; doc 02 §8) vêm dos secrets da
+// edge function (`Deno.env`) ou, como fallback, do Vault via `public.get_secret`
+// — nunca expostas ao cliente. Chamar autenticado (JWT), com body JSON:
 // { "source": "pixabay" | "pexels" | "wikimedia" | "google", "query": "...", "perPage": 10 }
 //
 // Para "google": o filtro `rights` é fixo no servidor (não vem do client) e
@@ -19,7 +20,18 @@ const GOOGLE_RIGHTS_FILTER = "cc_publicdomain|cc_attribute|cc_sharealike";
 // metadado de licença (extmetadata) vem do próprio arquivo, então a
 // `license` devolvida aqui é real, não um filtro de busca.
 const WIKIMEDIA_USER_AGENT =
-  "VocacaoDeMae-StockPhotos/1.0 (https://vocacaodemae.com.br)";
+  "VocacaoDePai-StockPhotos/1.0 (https://vocacaodepai.com.br)";
+
+// Secret da edge function primeiro; Vault (`public.get_secret`) como fallback.
+async function readSecret(
+  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message?: string } | null }> },
+  name: string,
+): Promise<{ value: string | null; error?: string }> {
+  const fromEnv = Deno.env.get(name);
+  if (fromEnv) return { value: fromEnv };
+  const { data, error } = await supabase.rpc("get_secret", { secret_name: name });
+  return { value: typeof data === "string" && data ? data : null, error: error?.message };
+}
 
 function stripHtml(value: string): string {
   return value.replace(/<[^>]+>/g, "").trim();
@@ -116,16 +128,16 @@ Deno.serve(async (req: Request) => {
     }
 
     if (source === "google") {
-      const [{ data: apiKey, error: keyError }, { data: cx, error: cxError }] = await Promise.all([
-        supabase.rpc("get_secret", { secret_name: "GOOGLE_CSE_API_KEY" }),
-        supabase.rpc("get_secret", { secret_name: "GOOGLE_CSE_CX" }),
+      const [{ value: apiKey, error: keyError }, { value: cx, error: cxError }] = await Promise.all([
+        readSecret(supabase, "GOOGLE_CSE_API_KEY"),
+        readSecret(supabase, "GOOGLE_CSE_CX"),
       ]);
 
       if (keyError || cxError || !apiKey || !cx) {
         return new Response(
           JSON.stringify({
             error: "Não foi possível obter as credenciais do Google Custom Search",
-            details: keyError?.message || cxError?.message,
+            details: keyError || cxError,
           }),
           { status: 500, headers: { "Content-Type": "application/json" } },
         );
@@ -169,14 +181,11 @@ Deno.serve(async (req: Request) => {
     }
 
     const secretName = source === "pixabay" ? "PIXABAY_API_KEY" : "PEXELS_API_KEY";
-    const { data: apiKey, error: secretError } = await supabase.rpc(
-      "get_secret",
-      { secret_name: secretName },
-    );
+    const { value: apiKey, error: secretError } = await readSecret(supabase, secretName);
 
     if (secretError || !apiKey) {
       return new Response(
-        JSON.stringify({ error: "Não foi possível obter a chave de API", details: secretError?.message }),
+        JSON.stringify({ error: `Não foi possível obter ${secretName}`, details: secretError }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
