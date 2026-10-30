@@ -106,6 +106,51 @@ const PROIBIDOS_RE = PROIBIDOS.map((t) => [
   ),
 ]);
 
+// ---------------------------------------------------------------- Pai Indica (doc 04 §11; CLAUDE.md §7)
+// Taxonomia e pesos vêm de scripts/lib/*.json (gerados por `npm run taxonomia:json` a partir de src/lib/pai-indica/*.ts).
+const readJson = (f) => (existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null);
+const TAX = readJson(join(ROOT, "scripts", "lib", "taxonomia.json"));
+const PESOS = readJson(join(ROOT, "scripts", "lib", "criterios.json"));
+const PI_CATEGORY_SLUG = "pai-indica";
+const PI_CATEGORY_ID = "10000000-0000-0000-0000-000000000010";
+const PI_PROIBIDOS = [
+  "ver preço",
+  "cupom",
+  "frete grátis",
+  "menor preço",
+  "% de desconto",
+  "em promoção",
+  "testamos",
+  "usamos por",
+  "na nossa casa",
+];
+const COMPARATIVO_ROLES = [
+  "vencedor",
+  "custo-beneficio",
+  "premium",
+  "alternativa",
+  "nao-indicamos",
+];
+const LISTA_ROLES = [
+  "escolha-do-editor",
+  "melhor-custo-beneficio",
+  "melhor-premium",
+  "melhor-barato",
+  "melhor-para-iniciantes",
+  "melhor-compacto",
+  "melhor-para-familias",
+  "melhor-silencioso",
+  "melhor-desempenho",
+  "sem-selo",
+];
+const weighted = (cs) =>
+  Math.round(
+    (cs.reduce((s, c) => s + Number(c.weight) * Number(c.score), 0) /
+      cs.reduce((s, c) => s + Number(c.weight), 0)) *
+      10,
+  ) / 10;
+const AMAZON_PLACEHOLDER = /^\{AMAZON:([a-z0-9-]+)\}$/;
+
 // ---------------------------------------------------------------- helpers de Tiptap
 const walk = (n, f) => {
   if (Array.isArray(n)) n.forEach((x) => walk(x, f));
@@ -460,7 +505,7 @@ if (FILES_MODE) {
       ))
         if (!universePosts.has(p.slug)) universePosts.set(p.slug, { ...p, __db: true });
       for (const pr of await dbGet(
-        `/products?select=slug,active,price_min,price_max,review&active=eq.true&limit=5000`,
+        `/products?select=slug,active,asin,affiliate_url,image_url,images,price_min,price_max,review&active=eq.true&limit=5000`,
       ))
         if (!universeProducts.has(pr.slug)) universeProducts.set(pr.slug, pr);
       for (const c of await dbGet(`/categories?select=slug&limit=1000`)) categories.add(c.slug);
@@ -575,9 +620,9 @@ function linkExists(href) {
 const WORDS = {
   artigo: [1200, 2200],
   noticia: [350, 600],
-  review: [1000, 4000],
+  review: [1100, 4000],
   comparativo: [1100, 4000],
-  lista: [900, 4000],
+  lista: [1100, 4000],
 };
 const MIN_LINKS = { artigo: 10, noticia: 5, review: 8, comparativo: 8, lista: 8 };
 
@@ -621,14 +666,27 @@ function validatePost(p) {
   for (const l of links)
     if (l.href.startsWith("/post/") && base(l.href).slice(6) === p.slug)
       w.push(`link para o próprio post (${l.href})`);
+  const buyButtons = [];
   for (const l of linkNodes(body)) {
+    const isAmazon = /amazon\.com\.br/i.test(l.href) || AMAZON_PLACEHOLDER.test(l.href);
+    if (!isAmazon) continue;
+    buyButtons.push(l);
+    if (!/^Comprar (?:.+ )?agora na Amazon$/.test(l.text.trim()))
+      e.push(
+        `botão de afiliado com texto diferente de "Comprar agora na Amazon": "${l.text.trim()}"`,
+      );
+    // CLAUDE.md §5.1: rel="sponsored nofollow noopener" (ordem exata) e target="_blank"
+    if (String(l.attrs?.rel || "") !== "sponsored nofollow noopener")
+      e.push(`link da Amazon sem rel="sponsored nofollow noopener" exato (${l.href.slice(0, 60)})`);
+    if (String(l.attrs?.target || "") !== "_blank")
+      e.push(`link da Amazon sem target="_blank" (${l.href.slice(0, 60)})`);
     if (/amazon\.com\.br/i.test(l.href)) {
-      if (!/^Comprar (?:.+ )?agora na Amazon$/.test(l.text.trim()))
+      if (!/amazon\.com\.br\/dp\/[A-Z0-9]{10}/i.test(l.href) || !/[?&]tag=/.test(l.href))
         e.push(
-          `botão de afiliado com texto diferente de "Comprar agora na Amazon": "${l.text.trim()}"`,
+          `href de afiliado fora do padrão amazon.com.br/dp/<ASIN>/?tag=… (${l.href.slice(0, 70)})`,
         );
-      if (!/sponsored/.test(String(l.attrs?.rel || "")))
-        e.push(`link da Amazon sem rel="sponsored nofollow noopener" (${l.href.slice(0, 60)})`);
+      if (/linkCode/i.test(l.href))
+        e.push(`href de afiliado com linkCode (${l.href.slice(0, 70)})`);
     }
   }
   if (/ver pre[çc]o/i.test(text))
@@ -841,6 +899,9 @@ function validatePost(p) {
 
   // Pai Indica
   if (["review", "comparativo", "lista"].includes(kind)) {
+    const pi = validatePaiIndica(p, { kind, body, text, words, links, distinct, buyButtons });
+    e.push(...pi.e);
+    w.push(...pi.w);
     if (!p.product_category || !p.product_subcategory)
       e.push("Pai Indica sem product_category/product_subcategory");
     if (!(Number(p.product_score) >= 0 && Number(p.product_score) <= 10))
@@ -909,8 +970,280 @@ function validatePost(p) {
   return { e, w, words, links: links.length, distinct: distinct.size };
 }
 
+// Regras comuns e por kind do Pai Indica (doc 04 §11). Devolve {e, w}.
+function validatePaiIndica(p, ctx) {
+  const e = [],
+    w = [];
+  const { kind, body, text, words, buyButtons } = ctx;
+  const slugsOf = (post) =>
+    post.kind === "review"
+      ? [post.review?.product_slug].filter(Boolean)
+      : (post.comparison?.products || []).map((x) => x.product_slug).filter(Boolean);
+  const productSlugs = slugsOf(p);
+
+  // categoria editorial e taxonomia de produto
+  if (p.category_slug != null && p.category_slug !== PI_CATEGORY_SLUG)
+    e.push(`category "${p.category_slug}" (Pai Indica usa sempre "${PI_CATEGORY_SLUG}")`);
+  if (typeof p.category_id === "string" && p.category_id !== PI_CATEGORY_ID && !p.category_slug)
+    e.push(`category_id ≠ ${PI_CATEGORY_ID} (categoria pai-indica)`);
+  if (TAX && p.product_category && !TAX.categories.some((c) => c.slug === p.product_category))
+    e.push(`product_category "${p.product_category}" fora da taxonomia`);
+  if (
+    TAX &&
+    p.product_category &&
+    p.product_subcategory &&
+    !TAX.subcategories.some(
+      (s) => s.slug === p.product_subcategory && s.category === p.product_category,
+    )
+  )
+    e.push(`product_subcategory "${p.product_subcategory}" não pertence a "${p.product_category}"`);
+  if (
+    p.product_score != null &&
+    Math.round(Number(p.product_score) * 10) / 10 !== Number(p.product_score)
+  )
+    e.push("product_score precisa ter 1 casa decimal");
+
+  // capa composta única em /images/covers/<slug>.jpg (doc 04 §6)
+  const cover = String(p.cover_image_url || "");
+  if (!cover.startsWith("/images/covers/"))
+    e.push("cover_image_url de Pai Indica precisa ser /images/covers/<slug>.jpg (capa composta)");
+  else if (!existsSync(join(ROOT, "public", cover)))
+    e.push(`capa composta não encontrada em public${cover}`);
+
+  // metadados
+  const tl = String(p.title || "").length;
+  if (tl < 20 || tl > 100) e.push(`title com ${tl} caracteres (precisa 20-100)`);
+  if ((p.excerpt || "").length > 155)
+    e.push(`excerpt com ${p.excerpt.length} caracteres (Pai Indica: máximo 155)`);
+  const st = String(p.subtitle || "").trim().length;
+  if (st < 50 || st > 220)
+    e.push(`subtitle com ${st} caracteres (Pai Indica: 50-220, obrigatório)`);
+  if (p.subtitle && p.excerpt && fold(p.subtitle) === fold(p.excerpt))
+    e.push("subtitle igual ao excerpt");
+  if (
+    /\d+\.\d{3}\b|\bR\s?\d/.test(`${p.title} ${p.subtitle} ${p.excerpt}`) &&
+    /R\$?\s?\d/.test(`${p.title} ${p.subtitle} ${p.excerpt}`)
+  )
+    e.push("preço no título/subtítulo/excerpt");
+
+  // termos proibidos específicos (promoção, teste físico)
+  const corpus = fold(
+    `${p.title} ${p.subtitle} ${p.excerpt} ${text} ${JSON.stringify(p.review || {})} ${JSON.stringify(p.comparison || {})} ${JSON.stringify(p.faq || [])}`,
+  );
+  for (const t of PI_PROIBIDOS)
+    if (corpus.includes(fold(t))) e.push(`termo proibido no Pai Indica: "${t}"`);
+  if (
+    /\{FAIXA:[a-z0-9-]+\}/.test(JSON.stringify(p.review || {})) ||
+    /\{FAIXA:/.test(JSON.stringify(p.faq || []))
+  )
+    e.push("{FAIXA:slug} só pode aparecer no body e nas células de comparison.table");
+  for (const m of text.matchAll(/\{FAIXA:([a-z0-9-]+)\}/g))
+    if (!productSlugs.includes(m[1]))
+      e.push(`{FAIXA:${m[1]}} aponta para produto que não está no post`);
+
+  // estrutura do body
+  const h2 = (body.content || [])
+    .filter((n) => n.type === "heading" && Number(n.attrs?.level) === 2)
+    .map((n) => textOf(n).trim());
+  if (h2.length < 6) e.push(`${h2.length} headings nível 2 (mínimo 6)`);
+  const hasH2 = (re) => h2.some((t) => re.test(t));
+  if (!hasH2(/^em 3 pontos/i)) e.push('falta o heading "Em 3 pontos"');
+  if (!hasH2(/^como avaliamos/i)) e.push('falta o heading "Como avaliamos"');
+  if (!hasH2(/^varia[çc][ãa]o de pre[çc]o/i)) e.push('falta o heading "Variação de preço"');
+  if (
+    !/n[ãa]o fizemos teste f[íi]sico|sem teste f[íi]sico/i.test(
+      `${text} ${p.review?.how_we_evaluated || ""} ${p.comparison?.how_we_evaluated || ""}`,
+    )
+  )
+    e.push('"Como avaliamos" precisa dizer que não houve teste físico');
+  if (!(body.content?.[0]?.type === "paragraph"))
+    e.push("abertura: o body deve começar com parágrafo");
+  const postLinks = (ctx.links || [])
+    .filter((l) => l.href.startsWith("/post/"))
+    .map((l) => base(l.href));
+  if (new Set(postLinks).size < 4)
+    e.push(`${new Set(postLinks).size} links para /post/ (mínimo 4)`);
+  for (const s of productSlugs)
+    if (!(ctx.links || []).some((l) => base(l.href) === `/loja/${s}`))
+      e.push(`sem link /loja/${s}`);
+
+  // botões: hrefs {AMAZON:slug} precisam apontar para produtos do post
+  for (const b of buyButtons || []) {
+    const m = AMAZON_PLACEHOLDER.exec(b.href);
+    if (m && !productSlugs.includes(m[1]))
+      e.push(`botão {AMAZON:${m[1]}} aponta para produto que não está no post`);
+  }
+  const buttonsFor = (slug) =>
+    (buyButtons || []).filter(
+      (b) =>
+        AMAZON_PLACEHOLDER.exec(b.href)?.[1] === slug ||
+        (universeProducts.get(slug)?.affiliate_url &&
+          b.href === universeProducts.get(slug).affiliate_url),
+    ).length;
+
+  // fotosModelos com os mesmos slugs
+  const fotos = (body.content || []).find((n) => n.type === "fotosModelos");
+  const fotosSlugs = (fotos?.attrs?.data?.modelos || []).map((m) => m.slug).filter(Boolean);
+  if (kind !== "review" && !fotos)
+    e.push("comparativo/lista sem nó fotosModelos (fotos oficiais lado a lado)");
+  if (
+    fotos &&
+    (fotosSlugs.length !== productSlugs.length || productSlugs.some((s) => !fotosSlugs.includes(s)))
+  )
+    e.push("fotosModelos com slugs diferentes dos produtos do post");
+
+  // faq ≥ 4
+  const faq = Array.isArray(p.faq) ? p.faq : [];
+  if (faq.length < 4) e.push(`faq com ${faq.length} itens (Pai Indica: mínimo 4)`);
+
+  // produtos: ativos, com affiliate_url, image_url, images ≥ 3 e review longa (pendências viram aviso só em --files)
+  for (const s of productSlugs) {
+    const pr = universeProducts.get(s);
+    if (!pr) continue; // já reportado como "não é produto ativo"
+    const pending = FILES_MODE && pr.asin == null;
+    const push = pending
+      ? (m) => w.push(`PENDENTE (${s}): ${m}`)
+      : (m) => e.push(`produto ${s}: ${m}`);
+    if (!pr.affiliate_url || !/amazon\.com\.br\/dp\/[A-Z0-9]{10}/i.test(pr.affiliate_url))
+      push("affiliate_url sem /dp/<ASIN>");
+    if (!pr.image_url) push("sem image_url (foto oficial da Amazon)");
+    const imgs = Array.isArray(pr.images) ? pr.images : [];
+    if (imgs.length < 3) push(`images com ${imgs.length} fotos (mínimo 3)`);
+    if (!pr.review || typeof pr.review !== "object") push("sem review longa (products.review)");
+  }
+
+  if (kind === "review") {
+    const r = p.review || {};
+    if (p.comparison != null) e.push("review com comparison preenchido (deve ser null)");
+    if (Array.isArray(r.criteria) && r.criteria.length === 5) {
+      const base_ = PESOS?.[p.product_category];
+      if (base_ && !r.criteria.every((c, i) => Number(c.weight) === base_[i].weight))
+        e.push(
+          `review.criteria: pesos ≠ ${base_.map((x) => x.weight).join("/")} da categoria ${p.product_category}`,
+        );
+      const calc = weighted(r.criteria);
+      if (Math.abs(calc - Number(r.score)) > 0.15)
+        e.push(`review.score ${r.score} ≠ média ponderada ${calc}`);
+      for (const c of r.criteria) {
+        if (!(Number(c.score) >= 0 && Number(c.score) <= 10))
+          e.push(`critério "${c.name}" fora de 0-10`);
+        if (!String(c.comment || "").trim()) e.push(`critério "${c.name}" sem comment`);
+      }
+    }
+    if (!hasH2(/o que dizem outros compradores/i))
+      e.push('falta o heading "O que dizem outros compradores"');
+    if ((buyButtons || []).length < 4)
+      e.push(`${(buyButtons || []).length} botões de compra (review: mínimo 4)`);
+    if (r.other_buyers && typeof r.other_buyers === "object") {
+      if (!Array.isArray(r.other_buyers.praises) || !Array.isArray(r.other_buyers.complaints))
+        e.push("review.other_buyers precisa de praises[] e complaints[]");
+    }
+  } else {
+    const c = p.comparison || {};
+    if (p.review != null) e.push("comparativo/lista com review preenchido (deve ser null)");
+    const prods = Array.isArray(c.products) ? c.products : [];
+    const roles = kind === "lista" ? LISTA_ROLES : COMPARATIVO_ROLES;
+    const max = kind === "lista" ? 7 : 3;
+    if (prods.length > max) e.push(`comparison.products com ${prods.length} itens (máximo ${max})`);
+    for (const x of prods) {
+      if (!roles.includes(x.role)) e.push(`role "${x.role}" inválido para ${kind}`);
+      if (!(Number(x.score) >= 0 && Number(x.score) <= 10))
+        e.push(`score de ${x.product_slug} fora de 0-10`);
+      if (Array.isArray(c.criteria) && Array.isArray(x.criteria_scores)) {
+        if (x.criteria_scores.length !== c.criteria.length)
+          e.push(
+            `criteria_scores de ${x.product_slug} com ${x.criteria_scores.length} notas (criteria tem ${c.criteria.length})`,
+          );
+        else {
+          const calc = weighted(
+            c.criteria.map((k, i) => ({ weight: k.weight, score: x.criteria_scores[i] })),
+          );
+          if (Math.abs(calc - Number(x.score)) > 0.15)
+            e.push(`score de ${x.product_slug} (${x.score}) ≠ média ponderada ${calc}`);
+        }
+      }
+      if (!String(x.name || "").trim()) e.push(`produto ${x.product_slug} sem name`);
+      if (buttonsFor(x.product_slug) < 1) e.push(`sem botão de compra para ${x.product_slug}`);
+    }
+    if (Array.isArray(c.criteria)) {
+      if (c.criteria.length !== 5) e.push("comparison.criteria precisa de 5 itens");
+      else {
+        const sum = c.criteria.reduce((s_, k) => s_ + Number(k.weight || 0), 0);
+        if (sum !== 100) e.push(`comparison.criteria: pesos somam ${sum} (precisa 100)`);
+        const base_ = PESOS?.[p.product_category];
+        if (base_ && !c.criteria.every((k, i) => Number(k.weight) === base_[i].weight))
+          e.push(
+            `comparison.criteria: pesos ≠ ${base_.map((x) => x.weight).join("/")} da categoria ${p.product_category}`,
+          );
+      }
+    }
+    if (kind === "comparativo") {
+      const winners = prods.filter((x) => x.role === "vencedor");
+      if (winners.length !== 1 || winners[0].product_slug !== c.winner_slug)
+        e.push('comparativo precisa de exatamente 1 role "vencedor" igual a winner_slug');
+      if (c.table && Array.isArray(c.table.columns) && Array.isArray(c.table.rows)) {
+        if (c.table.rows.length !== prods.length) e.push("comparison.table.rows ≠ nº de produtos");
+        c.table.rows.forEach((r_, i) => {
+          if (!Array.isArray(r_) || r_.length !== c.table.columns.length)
+            e.push(`linha ${i + 1} da tabela com nº de células ≠ colunas`);
+        });
+        for (const cell of c.table.rows.flat())
+          for (const m of String(cell).matchAll(/\{FAIXA:([a-z0-9-]+)\}/g))
+            if (!productSlugs.includes(m[1]))
+              e.push(`tabela: {FAIXA:${m[1]}} de produto fora do post`);
+      }
+    } else {
+      const counts = {};
+      for (const x of prods) if (x.role !== "sem-selo") counts[x.role] = (counts[x.role] || 0) + 1;
+      for (const [r_, n] of Object.entries(counts))
+        if (n > 1) e.push(`selo "${r_}" repetido em ${n} produtos (máximo 1)`);
+      const win = prods.find((x) => x.product_slug === c.winner_slug);
+      if (win && win.role !== "escolha-do-editor")
+        e.push('winner_slug da lista precisa ter o selo "escolha-do-editor"');
+      if (!hasH2(/^como escolhemos/i)) e.push('lista sem heading "Como escolhemos"');
+      if (!hasH2(/^o que n[ãa]o recomendamos/i))
+        e.push('lista sem heading "O que não recomendamos"');
+      // heading por produto (contém o nome) e ≥ 120 palavras até o heading seguinte
+      const top = body.content || [];
+      for (const x of prods) {
+        const i = top.findIndex(
+          (n) =>
+            n.type === "heading" &&
+            Number(n.attrs?.level) === 2 &&
+            fold(textOf(n)).includes(fold(x.name)),
+        );
+        if (i < 0) {
+          e.push(`lista sem heading nível 2 com o nome de ${x.name}`);
+          continue;
+        }
+        let j = i + 1,
+          wc = 0;
+        while (j < top.length && !(top[j].type === "heading" && Number(top[j].attrs?.level) === 2))
+          wc += wordsOf(textOf(top[j++]));
+        if (wc < 120) e.push(`seção de ${x.name} com ${wc} palavras (mínimo 120)`);
+      }
+    }
+    const vbp = Array.isArray(c.verdict_by_profile) ? c.verdict_by_profile : [];
+    if (vbp.length < 2) e.push("comparison.verdict_by_profile precisa de ≥ 2 perfis");
+    for (const v of vbp) {
+      if (!prods.some((x) => x.product_slug === v.pick_slug))
+        e.push(`verdict_by_profile: pick_slug "${v.pick_slug}" não está em products`);
+      if (!String(v.profile || "").trim() || !String(v.reason || "").trim())
+        e.push("verdict_by_profile com profile/reason vazio");
+    }
+    if (!String(c.how_we_evaluated || "").trim()) e.push("comparison.how_we_evaluated vazio");
+  }
+  void words;
+  return { e, w };
+}
+
 function validateProduct(pr) {
-  const e = [];
+  const e = [],
+    w = [];
+  // Seed com ASIN ainda não confirmado (asin null): affiliate_url/foto ficam PENDENTES (aviso, só em --files);
+  // no banco continuam erro (produto não pode ir ao ar assim).
+  const pending = FILES_MODE && pr.asin == null;
+  const hard = (m) => (pending ? w.push(`PENDENTE: ${m}`) : e.push(m));
   if (!pr.slug) e.push("sem slug");
   if (!pr.name) e.push("sem name");
   if (pr.active === false) return e;
@@ -925,12 +1258,17 @@ function validateProduct(pr) {
   }
   if (!pr.affiliate_url) e.push("sem affiliate_url");
   else if (!/amazon\.com\.br\/dp\/[A-Z0-9]{10}/i.test(pr.affiliate_url))
-    e.push(
+    hard(
       "affiliate_url fora do padrão https://www.amazon.com.br/dp/<ASIN>/?tag=<PUBLIC_AMAZON_TAG>",
     );
-  if (!pr.image_url) e.push("sem image_url");
+  if (!pr.image_url) hard("sem image_url");
   else if (!/media-amazon\.com/.test(pr.image_url))
     e.push("image_url não é a foto oficial da Amazon (m.media-amazon.com)");
+  const imgs = Array.isArray(pr.images) ? pr.images : [];
+  if (imgs.length < 3) hard(`images com ${imgs.length} fotos oficiais (mínimo 3)`);
+  if (pr.subcategory && TAX && !TAX.subcategories.some((s) => s.slug === pr.subcategory))
+    e.push(`subcategory "${pr.subcategory}" fora da taxonomia do Pai Indica`);
+  if (!pr.review || typeof pr.review !== "object") hard("sem review longa (products.review)");
   const blob = JSON.stringify({
     d: pr.description,
     s: pr.short_description,
@@ -940,10 +1278,9 @@ function validateProduct(pr) {
   });
   if (/R\$\s?\d/.test(blob)) e.push('"R$" em texto do produto (nunca preço exato)');
   if (/ver pre[çc]o/i.test(blob)) e.push('texto "Ver preço" é proibido');
-  if (pr.category_slug && categories.size && !categories.has(pr.category_slug)) {
-    /* product_categories é outra tabela: sem checagem na Fase 1 */
-  }
-  return e;
+  if (pr.category_slug && TAX && !TAX.categories.some((c) => c.slug === pr.category_slug))
+    e.push(`category "${pr.category_slug}" fora da taxonomia (product_categories = taxonomia.ts)`);
+  return { e, w };
 }
 
 async function checkImages(p, e) {
@@ -984,12 +1321,13 @@ for (const p of posts) {
 let pfailed = 0;
 const toCheck = FILES_MODE ? products : WANT_PRODUCTS ? products : [];
 for (const pr of toCheck) {
-  const e = validateProduct(pr);
+  const { e, w } = validateProduct(pr);
   if (e.length) {
     pfailed++;
     console.log(`✗ produto ${pr.slug || "?"} [${pr.__origin || "banco"}]`);
     e.forEach((x) => console.log(`   - ${x}`));
   } else console.log(`✓ produto ${pr.slug}`);
+  w.forEach((x) => console.log(`   ! ${x}`));
 }
 if (!posts.length && !toCheck.length)
   console.log(

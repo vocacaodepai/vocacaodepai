@@ -42,7 +42,7 @@ async function queryPaiIndica(db: SupabaseClient): Promise<PostWire[]> {
     .lte("publish_at", new Date().toISOString())
     .in("kind", ["review", "comparativo", "lista"])
     .order("publish_at", { ascending: false })
-    .limit(3);
+    .limit(6);
   if (error) throw error;
   // Cards não precisam do corpo nem do texto de busca (mesmo padrão de hub.functions).
   return (data ?? []).map((row: Record<string, unknown>) => {

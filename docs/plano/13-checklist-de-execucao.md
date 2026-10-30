@@ -31,17 +31,17 @@
 
 ## Fase 2 — Pai Indica (`04-fase-2-pai-indica-reviews.md`)
 
-- [ ] 2.1 `src/lib/product-taxonomy.ts`: categorias e subcategorias de produto (churrasco, ferramentas, cozinha, eletrônicos, casa, carro, esporte, vestuário, livros, bebê-e-criança) com slugs fixos
-- [ ] 2.2 Tipos TypeScript `ReviewJson` e `ComparisonJson` (`src/lib/types/pai-indica.ts`) espelhando o `CLAUDE.md` §7; validação com Zod
-- [ ] 2.3 Componentes `ReviewBadge` (nota no card), `ScoreScaleNote` (régua de nota), `CriteriaTable` (5 critérios), `ProsCons`, `BotaoComprar` (texto fixo "Comprar agora na Amazon", `rel="sponsored nofollow noopener"`)
-- [ ] 2.4 Nó Tiptap `fotosModelos` (fotos oficiais lado a lado com faixa de preço e botão por produto) + `PriceRange` ("Faixa de preço pesquisada em <data>")
-- [ ] 2.5 Rota `/pai-indica`: lista de posts `kind in (review, comparativo, lista)`, `ScoreScaleNote` no topo, filtro de duas camadas (`ProductCategoryFilter`), ordenação por data/nota
-- [ ] 2.6 Rota `/pai-indica/$slug`: layout de review (header com nota, critérios, prós/contras, veredito, botão) e de comparativo/lista (tabela de specs, seção por produto, "Qual comprar")
-- [ ] 2.7 JSON-LD `Product` + `Review` (review) e `ItemList` (comparativo/lista); `aggregateRating` só com dados reais
+- [x] 2.1 (feito em `src/lib/pai-indica/taxonomia.ts`, nome do doc 04 §3) `src/lib/product-taxonomy.ts`: categorias e subcategorias de produto (churrasco, ferramentas, cozinha, eletrônicos, casa, carro, esporte, vestuário, livros, bebê-e-criança) com slugs fixos
+- [x] 2.2 (feito em `src/lib/pai-indica/types.ts` + `score.ts`; validação no `validate-content.mjs`, sem Zod) Tipos TypeScript `ReviewJson` e `ComparisonJson` (`src/lib/types/pai-indica.ts`) espelhando o `CLAUDE.md` §7; validação com Zod
+- [x] 2.3 (`CriteriaScores` e `AffiliateButton`, nomes do doc 04 §4) Componentes `ReviewBadge` (nota no card), `ScoreScaleNote` (régua de nota), `CriteriaTable` (5 critérios), `ProsCons`, `BotaoComprar` (texto fixo "Comprar agora na Amazon", `rel="sponsored nofollow noopener"`)
+- [x] 2.4 (faixa resolvida em `src/lib/pai-indica/body.ts`; `PriceRange.tsx`) Nó Tiptap `fotosModelos` (fotos oficiais lado a lado com faixa de preço e botão por produto) + `PriceRange` ("Faixa de preço pesquisada em <data>")
+- [x] 2.5 (sem ordenação por nota: doc 04 §5.1 não prevê) Rota `/pai-indica`: lista de posts `kind in (review, comparativo, lista)`, `ScoreScaleNote` no topo, filtro de duas camadas (`ProductCategoryFilter`), ordenação por data/nota
+- [x] 2.6 Rota `/pai-indica/$slug`: layout de review (header com nota, critérios, prós/contras, veredito, botão) e de comparativo/lista (tabela de specs, seção por produto, "Qual comprar")
+- [x] 2.7 (sem `aggregateRating`, doc 04 §7) JSON-LD `Product` + `Review` (review) e `ItemList` (comparativo/lista); `aggregateRating` só com dados reais
 - [ ] 2.8 `/admin`: formulário de review (campos do JSON, cálculo automático de `product_score`) e de comparativo (N produtos, vencedor)
-- [ ] 2.9 Bloco "Pai Indica" na home e no fim de artigos do Blog da mesma categoria de produto
-- [ ] 2.10 `validate-content.mjs`: regras de Pai Indica (JSON válido, 5 critérios, `product_score` coerente, faixa de preço, botão)
-- [ ] 2.11 Publicar os 20 Pai Indica do doc 04 §10 em 4 rodadas de 5 (mínimo R1+R2 = 10; R3/R4 registradas como pendência em `PROGRESSO.md`), cada um com capa composta, fotos oficiais Amazon, produtos na loja com review longa e faixa pesquisada em 2 lojas
+- [x] 2.9 (home: `PaiIndicaTeaser` com selo; fim de artigos do Blog fica para a Fase 3/8) Bloco "Pai Indica" na home e no fim de artigos do Blog da mesma categoria de produto
+- [x] 2.10 `validate-content.mjs`: regras de Pai Indica (JSON válido, 5 critérios, `product_score` coerente, faixa de preço, botão)
+- [ ] 2.11 (6 prontos na `0011_seed_pai_indica.sql`, não aplicados; ASIN/fotos/review longa PENDENTES — ver `progresso-fase-2.md`) Publicar os 20 Pai Indica do doc 04 §10 em 4 rodadas de 5 (mínimo R1+R2 = 10; R3/R4 registradas como pendência em `PROGRESSO.md`), cada um com capa composta, fotos oficiais Amazon, produtos na loja com review longa e faixa pesquisada em 2 lojas
 - [ ] 2.12 Validar, abrir PR "Fase 2 — Pai Indica", atualizar `PROGRESSO.md`
 
 ## Fase 3 — Loja do Pai (`05-fase-3-loja.md`)

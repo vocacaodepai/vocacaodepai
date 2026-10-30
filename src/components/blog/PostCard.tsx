@@ -4,6 +4,8 @@ import { Clock } from "lucide-react";
 import type { PostWithRelations } from "@/lib/types";
 import { formatDate } from "@/lib/site";
 import { readingTime } from "@/lib/content";
+import { ReviewBadge } from "@/components/pai-indica/ReviewBadge";
+import { isPaiIndicaKind } from "@/lib/pai-indica/types";
 
 export function PostCard({
   post,
@@ -18,6 +20,10 @@ export function PostCard({
     post.reading_minutes ??
     (post.body?.content && post.body.content.length > 0 ? readingTime(post.body) : null);
   const score = (post as { product_score?: number | null }).product_score;
+  const kind = (post as { kind?: string }).kind;
+  // Pai Indica mora em /pai-indica/<slug> (Fase 2); o selo de nota só aparece nesses kinds.
+  const isPaiIndica = isPaiIndicaKind(kind);
+  const href = isPaiIndica ? `/pai-indica/${post.slug}` : `/post/${post.slug}`;
   return (
     <article
       className={`group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant ${
@@ -25,7 +31,7 @@ export function PostCard({
       }`}
     >
       <Link
-        to={`/post/${post.slug}`}
+        to={href}
         aria-label={`Ler o artigo completo: ${post.title}`}
         className={`relative block overflow-hidden ${
           featured ? "md:w-1/2" : "aspect-video w-full"
@@ -52,13 +58,8 @@ export function PostCard({
             {post.category.name}
           </span>
         )}
-        {typeof score === "number" && (
-          <span
-            className="absolute right-3 top-3 rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground shadow-sm"
-            title="Nota editorial do Pai Indica (0 a 10)"
-          >
-            {score.toFixed(1).replace(".", ",")}
-          </span>
+        {isPaiIndica && typeof score === "number" && (
+          <ReviewBadge score={score} size="md" className="absolute right-3 top-3" />
         )}
       </Link>
 
@@ -74,7 +75,7 @@ export function PostCard({
             featured ? "text-2xl md:text-3xl" : "text-lg"
           }`}
         >
-          <Link to={`/post/${post.slug}`} className="transition-colors hover:text-primary">
+          <Link to={href} className="transition-colors hover:text-primary">
             {post.title}
           </Link>
         </h3>

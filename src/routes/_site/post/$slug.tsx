@@ -1,4 +1,5 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { isPaiIndicaKind } from "@/lib/pai-indica/types";
 import PostPage from "@/pages/PostPage";
 import { getPostFull, getPostSeo, getRelatedPosts } from "@/lib/seo.functions";
 import type { BlogPost } from "@/lib/queries";
@@ -13,6 +14,10 @@ export const Route = createFileRoute("/_site/post/$slug")({
     ]);
     if (!seo || !full) throw notFound();
     const post = full as unknown as BlogPost;
+    // Pai Indica (review/comparativo/lista) mora em /pai-indica/$slug (doc 04 §5.2): 301.
+    if (isPaiIndicaKind(post.kind)) {
+      throw redirect({ to: "/pai-indica/$slug", params: { slug: params.slug }, statusCode: 301 });
+    }
     // "Continue lendo": 3 posts da mesma categoria, já no servidor.
     const related = await getRelatedPosts({
       data: { postId: post.id, categoryId: post.category_id ?? null },

@@ -78,18 +78,22 @@ const BRANDS = [
 export function ShareButtons({
   title,
   slug,
+  path,
   compact = false,
 }: {
   title: string;
   slug: string;
+  /** Caminho da página quando não for /post/<slug> (ex.: /pai-indica/<slug>). */
+  path?: string;
   compact?: boolean;
 }) {
-  const url = encodeURIComponent(`${SITE_URL}/post/${slug}`);
+  const pagePath = path ?? `/post/${slug}`;
+  const url = encodeURIComponent(`${SITE_URL}${pagePath}`);
   const text = encodeURIComponent(title);
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(`${SITE_URL}/post/${slug}`);
+      await navigator.clipboard.writeText(`${SITE_URL}${pagePath}`);
       toast.success("Link copiado!");
     } catch {
       toast.error("Link copiado!");

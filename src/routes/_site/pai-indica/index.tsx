@@ -1,36 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/home/ComingSoon";
-import { SITE_NAME } from "@/lib/site";
+import PaiIndicaListPage from "@/pages/PaiIndicaListPage";
+import { getPaiIndicaList } from "@/lib/pai-indica.functions";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "@/lib/site";
 
-// Placeholder da Fase 1 (doc 03 §5.3): noindex e fora do sitemap até a seção abrir.
+const TITLE = `Pai Indica: reviews e comparativos com nota de 0 a 10 | ${SITE_NAME}`;
+const DESCRIPTION =
+  "Reviews, comparativos e listas de produtos para o pai: nota por critério, prós e contras, faixa de preço pesquisada e link direto para comprar.";
+
 export const Route = createFileRoute("/_site/pai-indica/")({
+  loader: async () => ({ posts: await getPaiIndicaList() }),
   head: () => ({
     meta: [
-      { title: `Pai Indica | ${SITE_NAME}` },
+      { title: TITLE },
+      { name: "description", content: DESCRIPTION },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESCRIPTION },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: `${SITE_URL}/pai-indica` },
+      { property: "og:image", content: SITE_OG_IMAGE },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/pai-indica` }],
+    scripts: [
       {
-        name: "description",
-        content:
-          "Reviews honestos de produto para a casa, o carro, a churrasqueira e o filho, com nota de 0 a 10.",
+        type: "application/ld+json",
+        children: JSON.stringify(breadcrumbJsonLd([{ name: "Pai Indica", path: "/pai-indica" }])),
       },
-      { name: "robots", content: "noindex" },
     ],
   }),
   component: Page,
 });
 
 function Page() {
-  return (
-    <ComingSoon
-      title="Pai Indica"
-      description="Reviews honestos de produto para a casa, o carro, a churrasqueira e o filho: nota de 0 a 10, prós, contras e para quem é."
-      eta="Próxima seção a abrir no site."
-      source="em-breve-pai-indica"
-      highlights={[
-        "Review individual com cinco critérios e nota de 0 a 10",
-        "Comparativos de 2 a 4 modelos lado a lado",
-        "Listas dos melhores por faixa de preço pesquisada",
-        "Defeito no mesmo tamanho do elogio, sem preço exato",
-      ]}
-    />
-  );
+  const { posts } = Route.useLoaderData();
+  return <PaiIndicaListPage posts={posts} />;
 }

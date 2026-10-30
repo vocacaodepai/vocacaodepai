@@ -1,4 +1,6 @@
-import { ArrowRight, BadgeCheck, Star } from "lucide-react";
+import { ArrowRight, BadgeCheck } from "lucide-react";
+import { ReviewBadge } from "@/components/pai-indica/ReviewBadge";
+import { ScoreScaleNote } from "@/components/pai-indica/ScoreScaleNote";
 import { Link } from "@/lib/router-compat";
 import { isProductCover } from "@/lib/cover";
 import type { PaiIndicaPost } from "@/lib/home.functions";
@@ -9,11 +11,6 @@ const KIND_LABEL: Record<string, string> = {
   comparativo: "Comparativo",
   lista: "Lista",
 };
-
-function formatScore(score: number | null | undefined) {
-  if (score == null || Number.isNaN(Number(score))) return null;
-  return Number(score).toFixed(1).replace(".", ",");
-}
 
 // Seção 3 da home: reviews, comparativos e listas (kind review/comparativo/lista).
 // Na Fase 1 costuma vir vazio: mostra o cartão-convite do plano (doc 03 §5.2).
@@ -29,66 +26,68 @@ export function PaiIndicaTeaser({ posts }: { posts: PaiIndicaPost[] }) {
         linkLabel="Ver o Pai Indica"
       />
       {posts.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => {
-            const score = formatScore(post.product_score);
-            return (
-              <article
-                key={post.id}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant"
-              >
-                <Link
-                  to={`/post/${post.slug}`}
-                  aria-label={`Ler: ${post.title}`}
-                  className={`relative block aspect-video overflow-hidden ${
-                    isProductCover(post) ? "bg-white" : ""
-                  }`}
+        <>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post) => {
+              const score =
+                post.product_score == null || Number.isNaN(Number(post.product_score))
+                  ? null
+                  : Number(post.product_score);
+              return (
+                <article
+                  key={post.id}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant"
                 >
-                  {post.cover_image_url ? (
-                    <img
-                      src={post.cover_image_url}
-                      alt={post.cover_image_alt ?? post.title}
-                      loading="lazy"
-                      decoding="async"
-                      width={640}
-                      height={360}
-                      className={`h-full w-full transition-transform duration-500 group-hover:scale-105 ${
-                        isProductCover(post) ? "object-contain p-3" : "object-cover"
-                      }`}
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-gradient-soft" />
-                  )}
-                  {score && (
-                    <span
-                      className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow-sm"
-                      title="Nota editorial do Vocação de Pai, de 0 a 10"
-                    >
-                      <Star className="h-3 w-3" />
-                      {score}
-                    </span>
-                  )}
-                </Link>
-                <div className="flex flex-1 flex-col p-5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-primary">
-                    {KIND_LABEL[post.kind] ?? "Pai Indica"}
-                  </p>
-                  <h3 className="mt-2 font-display text-lg font-bold leading-snug">
-                    <Link
-                      to={`/post/${post.slug}`}
-                      className="transition-colors hover:text-primary"
-                    >
-                      {post.title}
-                    </Link>
-                  </h3>
-                  {post.subtitle && (
-                    <p className="mt-2 line-clamp-2 text-sm text-foreground/70">{post.subtitle}</p>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                  <Link
+                    to={`/pai-indica/${post.slug}`}
+                    aria-label={`Ler: ${post.title}`}
+                    className={`relative block aspect-video overflow-hidden ${
+                      isProductCover(post) ? "bg-white" : ""
+                    }`}
+                  >
+                    {post.cover_image_url ? (
+                      <img
+                        src={post.cover_image_url}
+                        alt={post.cover_image_alt ?? post.title}
+                        loading="lazy"
+                        decoding="async"
+                        width={640}
+                        height={360}
+                        className={`h-full w-full transition-transform duration-500 group-hover:scale-105 ${
+                          isProductCover(post) ? "object-contain p-3" : "object-cover"
+                        }`}
+                      />
+                    ) : (
+                      <div className="h-full w-full bg-gradient-soft" />
+                    )}
+                    {score != null && (
+                      <ReviewBadge score={score} size="md" className="absolute right-3 top-3" />
+                    )}
+                  </Link>
+                  <div className="flex flex-1 flex-col p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                      {KIND_LABEL[post.kind] ?? "Pai Indica"}
+                    </p>
+                    <h3 className="mt-2 font-display text-lg font-bold leading-snug">
+                      <Link
+                        to={`/pai-indica/${post.slug}`}
+                        className="transition-colors hover:text-primary"
+                      >
+                        {post.title}
+                      </Link>
+                    </h3>
+                    {post.subtitle && (
+                      <p className="mt-2 line-clamp-2 text-sm text-foreground/70">
+                        {post.subtitle}
+                      </p>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <ScoreScaleNote className="mt-6" />
+        </>
       ) : (
         <div className="grid gap-6 rounded-3xl border border-secondary bg-secondary/25 p-6 shadow-soft md:grid-cols-[auto_1fr_auto] md:items-center md:p-8">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">

@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import CategoryPage from "@/pages/CategoryPage";
 import { getCategoryData } from "@/lib/hub.functions";
 import { breadcrumbJsonLd } from "@/lib/seo";
@@ -16,6 +16,8 @@ export const Route = createFileRoute("/_site/categoria/$slug")({
     page: Math.max(1, Number((search as Record<string, unknown>)["page"] ?? 1) || 1),
   }),
   loader: async ({ params, deps }) => {
+    // Categoria técnica "pai-indica": a listagem oficial é /pai-indica (doc 04 §5.3).
+    if (params.slug === "pai-indica") throw redirect({ to: "/pai-indica", statusCode: 301 });
     const data = await getCategoryData({ data: { slug: params.slug, page: deps.page } });
     if (!data.category) throw notFound();
     return data;

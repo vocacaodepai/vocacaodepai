@@ -33,6 +33,7 @@ import { Route as SiteFormacaoIndexRouteImport } from './routes/_site/formacao/i
 import { Route as SiteLojaIndexRouteImport } from './routes/_site/loja/index'
 import { Route as SitePaiIndicaPaiIndexRouteImport } from './routes/_site/pai-indica-pai/index'
 import { Route as SitePaiIndicaIndexRouteImport } from './routes/_site/pai-indica/index'
+import { Route as SitePaiIndicaSlugRouteImport } from './routes/_site/pai-indica/$slug'
 import { Route as SitePostSlugRouteImport } from './routes/_site/post/$slug'
 import { Route as ApiImgSplatRouteImport } from './routes/api/img/$'
 import { Route as ApiNewsletterConfirmarRouteImport } from './routes/api/newsletter.confirmar'
@@ -158,6 +159,11 @@ const SitePaiIndicaIndexRoute = SitePaiIndicaIndexRouteImport.update({
   path: '/pai-indica/',
   getParentRoute: () => SiteRoute,
 } as any)
+const SitePaiIndicaSlugRoute = SitePaiIndicaSlugRouteImport.update({
+  id: '/pai-indica/$slug',
+  path: '/pai-indica/$slug',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SitePostSlugRoute = SitePostSlugRouteImport.update({
   id: '/post/$slug',
   path: '/post/$slug',
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
@@ -262,6 +270,7 @@ export interface FileRoutesById {
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/_site/': typeof SiteIndexRoute
   '/_site/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/_site/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/_site/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
@@ -293,6 +302,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/newsletter'
     | '/categoria/$slug'
+    | '/pai-indica/$slug'
     | '/post/$slug'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/newsletter'
     | '/categoria/$slug'
+    | '/pai-indica/$slug'
     | '/post/$slug'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
@@ -353,6 +364,7 @@ export interface FileRouteTypes {
     | '/api/newsletter'
     | '/_site/'
     | '/_site/categoria/$slug'
+    | '/_site/pai-indica/$slug'
     | '/_site/post/$slug'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
@@ -546,6 +558,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitePaiIndicaIndexRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/pai-indica/$slug': {
+      id: '/_site/pai-indica/$slug'
+      path: '/pai-indica/$slug'
+      fullPath: '/pai-indica/$slug'
+      preLoaderRoute: typeof SitePaiIndicaSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/post/$slug': {
       id: '/_site/post/$slug'
       path: '/post/$slug'
@@ -611,6 +630,7 @@ interface SiteRouteChildren {
   SiteTermosDeUsoRoute: typeof SiteTermosDeUsoRoute
   SiteIndexRoute: typeof SiteIndexRoute
   SiteCategoriaSlugRoute: typeof SiteCategoriaSlugRoute
+  SitePaiIndicaSlugRoute: typeof SitePaiIndicaSlugRoute
   SitePostSlugRoute: typeof SitePostSlugRoute
   SiteFerramentasIndexRoute: typeof SiteFerramentasIndexRoute
   SiteFormacaoIndexRoute: typeof SiteFormacaoIndexRoute
@@ -632,6 +652,7 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteTermosDeUsoRoute: SiteTermosDeUsoRoute,
   SiteIndexRoute: SiteIndexRoute,
   SiteCategoriaSlugRoute: SiteCategoriaSlugRoute,
+  SitePaiIndicaSlugRoute: SitePaiIndicaSlugRoute,
   SitePostSlugRoute: SitePostSlugRoute,
   SiteFerramentasIndexRoute: SiteFerramentasIndexRoute,
   SiteFormacaoIndexRoute: SiteFormacaoIndexRoute,

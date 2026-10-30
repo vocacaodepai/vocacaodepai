@@ -13,6 +13,8 @@ export interface FotoModelo {
   href: string;
   /** Slug do produto na Loja do Pai. */
   slug?: string;
+  /** Faixa de preço já resolvida ("R$ X a R$ Y"), preenchida por prepareBody (Fase 2). */
+  faixa?: string;
 }
 
 export interface FotosModelosData {
@@ -20,9 +22,9 @@ export interface FotosModelosData {
 }
 
 /* ------------------------------------------------------------------ */
-/* Widget React: fotos oficiais lado a lado com botão de compra.       */
-/* TODO Fase 2/3: buscar faixa de preço em `products` (price_min/max)  */
-/* e exibir "Faixa de preço pesquisada em <data>: R$ X a R$ Y".        */
+/* Widget React: fotos oficiais lado a lado com faixa e botão de compra.*/
+/* A faixa (products.price_min/max) chega em `faixa`, resolvida por     */
+/* src/lib/pai-indica/body.ts (prepareBody) a partir de `products`.     */
 /* ------------------------------------------------------------------ */
 
 export function FotosModelosWidget({ data }: { data: FotosModelosData }) {
@@ -32,23 +34,36 @@ export function FotosModelosWidget({ data }: { data: FotosModelosData }) {
 
   return (
     <div className="fotos-modelos my-6">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div
+        className={`grid grid-cols-2 gap-3 sm:grid-cols-3 ${data.modelos.length >= 4 ? "lg:grid-cols-5" : ""}`}
+      >
         {data.modelos.map((m, i) => (
           <div
             key={i}
             className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-soft"
           >
             <div className="flex aspect-square items-center justify-center bg-white p-2">
-              <img
-                src={m.src}
-                alt={m.name}
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-contain"
-              />
+              {m.src ? (
+                <img
+                  src={m.src}
+                  alt={m.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <span className="px-2 text-center text-[11px] text-muted-foreground">
+                  Foto oficial em breve
+                </span>
+              )}
             </div>
             <div className="flex flex-1 flex-col items-center gap-1.5 p-2.5 text-center">
               <p className="text-xs font-bold leading-snug text-foreground">{m.name}</p>
+              {m.faixa && (
+                <p className="text-[11px] leading-snug text-muted-foreground">
+                  Faixa de preço: {m.faixa}
+                </p>
+              )}
               <a
                 href={m.href}
                 target="_blank"

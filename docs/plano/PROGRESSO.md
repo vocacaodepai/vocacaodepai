@@ -22,7 +22,9 @@
 | Fase | Etapa | Status | Data | PR | Observações |
 |---|---|---|---|---|---|
 | F1 Fundação | — | pendente | 2026-10-24 | | Aguarda projeto Supabase e Vercel (ver Pendências do dono) |
-| F2 Pai Indica | — | pendente | 2026-10-24 | | Depende de F1 |
+| F2 Pai Indica | — | em andamento | 2026-10-30 | claude/fase-2-pai-indica | Etapas 2.1–2.7, 2.9, 2.10 prontas; 2.11 com 6 de 20 (seed 0011 não aplicada: banco não existe); detalhes em `progresso-fase-2.md` |
+| F2 Pai Indica | 2.1–2.10 | concluída | 2026-10-30 | claude/fase-2-pai-indica | Taxonomia, tipos, 13 componentes, `/pai-indica`, `/pai-indica/$slug`, JSON-LD, validador, briefs, `cover_cmp.py`, `amz.py` |
+| F2 Pai Indica | 2.11 | em andamento | 2026-10-30 | claude/fase-2-pai-indica | 6 posts (3 reviews, 2 comparativos, 1 lista) + 14 produtos na `0011`; ASIN, fotos oficiais, review longa e faixa em 2 lojas PENDENTES |
 | F3 Loja do Pai | — | pendente | 2026-10-24 | | Depende de F1 |
 | F4 Caixa de Ferramentas | — | pendente | 2026-10-24 | | Depende de F1 |
 | F5 Área do Pai | — | pendente | 2026-10-24 | | Depende de F1, F3, F4 |
@@ -73,6 +75,8 @@
 - 2026-10-30 · F1/2.6 · `eslint.config.js` ignora `.vercel`, `.tanstack` e `supabase/functions` · `eslint .` passava Prettier nos 168 bundles de `.vercel/output` (lint levava >25 min) e as edge functions são Deno (fora do tsconfig; 26 erros de Prettier e 6 `any` herdados do VDM) — ajustá-las quando forem reimplantadas.
 - 2026-10-30 · F1/2.6 · Lint do escopo da etapa 2 (`src`, `vite.config.ts`, `eslint.config.js`) = 0 erros / 7 avisos `react-refresh/only-export-components` herdados do VDM (`Callout.tsx`, `CookieConsent.tsx`, `router-compat.tsx`) · avisos não falham o lint; `scripts/validate-content.mjs` (etapa 9, outro agente) ainda precisa de `npx prettier --write`.
 
+- 2026-10-30 · F2 · Decisões da Fase 2 (placeholder `{AMAZON:slug}` nos botões, `/pai-indica#como-avaliamos` no lugar de `/politica-editorial`, produtos com `asin null` + aviso PENDENTE no validador em `--files`, capas placeholder) registradas em `docs/plano/progresso-fase-2.md`.
+
 ## Pendências do dono
 
 > Itens que só o dono resolve. O Sonnet registra aqui, usa placeholder/fallback e segue.
@@ -100,6 +104,7 @@
 - [ ] Textos finais de `/sobre` (história do casal fundador) e foto do dono para a página — o Sonnet publica um rascunho na Fase 1 e marca aqui para revisão
 - [ ] Decidir preço e nome do plano pago da Área do Pai (fica `active=false` até então)
 - [ ] Depois de aplicar `0008_seed_autor.sql`: definir a senha do usuário `contato@vocacaodepai.com.br` (autor "Equipe Vocação de Pai") no Supabase Dashboard › Authentication › Users ("Reset password" / "Send password recovery") e guardá-la; a migration cria o usuário com senha aleatória
+- [ ] Confirmar o ASIN dos 14 produtos da `0011_seed_pai_indica.sql` (ou liberar a consulta à Amazon fora do container) para preencher `asin`, `affiliate_url`, fotos oficiais e regerar as capas compostas (ver `progresso-fase-2.md`)
 - [ ] Revisar visualmente as capas da seed (posts 1-5 e 6-10, listadas em "Decisões") e trocar qualquer uma que contrarie a linha editorial (CLAUDE.md §3)
 
 ## Histórico de sessões
@@ -111,3 +116,4 @@
 | 2026-10-24 | Planejamento | — | Plano escrito: `PLANO-MESTRE.md`, `CLAUDE.md`, `README.md`, `docs/plano/00…13`, `PROGRESSO.md` |
 | 2026-10-29 | Planejamento | #1 | Docs 09 (Irmandade e Formação) e 12 (backlog) escritos; revisão cruzada de coerência (59 ajustes em 16 arquivos); pesquisas em `docs/plano/anexos/` |
 | 2026-10-30 | F1 etapas 2-9 | #2 | Base copiada e adaptada; migrations 0001-0010 escritas e validadas localmente; layout, home, blog, institucionais, admin e 10 artigos prontos; build/lint/validador verdes; detalhes em `progresso-etapa-{4,5-7,6,8}.md`. Pendente: projeto Supabase (limite do plano gratuito) e projeto Vercel (permissão) — etapas 1, 3 (aplicar), 10 |
+| 2026-10-30 | F2 etapas 2.1–2.11 | — (branch `claude/fase-2-pai-indica`, sem push) | Pai Indica completo no código (taxonomia, componentes, listagem com filtro, página de review/comparativo/lista, JSON-LD, validador, briefs, cover_cmp/amz) + seed 0011 com 6 Pai Indica e 14 produtos (ASIN/fotos PENDENTES); tsc/lint/build/validador verdes |

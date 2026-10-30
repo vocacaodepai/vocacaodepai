@@ -3,13 +3,14 @@ import { createReadOnlySupabaseClient } from "@/lib/seo.functions";
 import { PUBLISHED, nowIso } from "@/lib/queries";
 import { SITE_URL } from "@/lib/site";
 
-// Sitemap da Fase 1 (doc 03 §6.6): home, páginas institucionais, categorias e
-// posts publicados. SEM os placeholders das seções futuras (/pai-indica, /loja,
+// Sitemap (doc 03 §6.6 + doc 04 §5.3): home, blog, Pai Indica, páginas institucionais,
+// categorias e posts publicados. SEM os placeholders das seções futuras (/loja,
 // /ferramentas, /area-do-pai, /pai-indica-pai, /irmandade, /formacao): cada
 // fase acrescenta as suas rotas quando elas existirem de verdade.
 const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }> = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/blog", changefreq: "daily", priority: "0.9" },
+  { path: "/pai-indica", changefreq: "daily", priority: "0.9" },
   { path: "/sobre", changefreq: "monthly", priority: "0.5" },
   { path: "/contato", changefreq: "monthly", priority: "0.4" },
   { path: "/politica-de-privacidade", changefreq: "yearly", priority: "0.2" },
@@ -32,9 +33,11 @@ function urlEntry(loc: string, lastmod: string, changefreq: string, priority: st
 
 interface PostRow {
   slug: string;
+  kind: string | null;
   updated_at: string | null;
   publish_at: string | null;
 }
+const PAI_INDICA_KINDS = new Set(["review", "comparativo", "lista"]);
 
 interface CategoryRow {
   slug: string;
@@ -45,12 +48,12 @@ interface CategoryRow {
 async function buildSitemap(): Promise<string> {
   const supabase = await createReadOnlySupabaseClient();
 
-  // TODO Fase 2 (Pai Indica), 3 (Loja), 4 (Ferramentas), 6 (vagas) e 7 (histórias):
+  // TODO Fase 3 (Loja), 4 (Ferramentas), 6 (vagas) e 7 (histórias):
   // acrescentar as rotas quando as páginas existirem.
   const [postsRes, categoriesRes] = await Promise.all([
     supabase
       .from("posts")
-      .select("slug, updated_at, publish_at")
+      .select("slug, kind, updated_at, publish_at")
       .eq("status", PUBLISHED)
       .lte("publish_at", nowIso())
       .order("publish_at", { ascending: false }),
@@ -77,10 +80,13 @@ async function buildSitemap(): Promise<string> {
     );
   }
 
+  // Pai Indica (review/comparativo/lista) tem canônico único em /pai-indica/<slug>;
+  // /post/<slug> desses posts redireciona (301) e fica fora do sitemap.
   for (const post of (postsRes.data ?? []) as unknown as PostRow[]) {
+    const prefix = PAI_INDICA_KINDS.has(post.kind ?? "") ? "/pai-indica" : "/post";
     entries.push(
       urlEntry(
-        `${SITE_URL}/post/${post.slug}`,
+        `${SITE_URL}${prefix}/${post.slug}`,
         toLastmod(post.updated_at ?? post.publish_at),
         "weekly",
         "0.8",
