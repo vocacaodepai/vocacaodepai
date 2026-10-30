@@ -13,15 +13,24 @@ import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as SiteRouteImport } from './routes/_site'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SiteIndexRouteImport } from './routes/_site/index'
+import { Route as SiteAreaDoPaiRouteImport } from './routes/_site/area-do-pai'
 import { Route as SiteBlogRouteImport } from './routes/_site/blog'
 import { Route as SiteBuscaRouteImport } from './routes/_site/busca'
 import { Route as SiteContatoRouteImport } from './routes/_site/contato'
+import { Route as SiteEntrarRouteImport } from './routes/_site/entrar'
+import { Route as SiteIrmandadeRouteImport } from './routes/_site/irmandade'
+import { Route as SitePoliticaDeAfiliadosRouteImport } from './routes/_site/politica-de-afiliados'
 import { Route as SitePoliticaDePrivacidadeRouteImport } from './routes/_site/politica-de-privacidade'
 import { Route as SiteSobreRouteImport } from './routes/_site/sobre'
 import { Route as SiteTermosDeUsoRouteImport } from './routes/_site/termos-de-uso'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
 import { Route as SiteCategoriaSlugRouteImport } from './routes/_site/categoria/$slug'
+import { Route as SiteFerramentasIndexRouteImport } from './routes/_site/ferramentas/index'
+import { Route as SiteFormacaoIndexRouteImport } from './routes/_site/formacao/index'
+import { Route as SiteLojaIndexRouteImport } from './routes/_site/loja/index'
+import { Route as SitePaiIndicaPaiIndexRouteImport } from './routes/_site/pai-indica-pai/index'
+import { Route as SitePaiIndicaIndexRouteImport } from './routes/_site/pai-indica/index'
 import { Route as SitePostSlugRouteImport } from './routes/_site/post/$slug'
 import { Route as ApiImgSplatRouteImport } from './routes/api/img/$'
 import { Route as AdminAdminEditorIndexRouteImport } from './routes/_admin/admin/editor/index'
@@ -45,6 +54,11 @@ const SiteIndexRoute = SiteIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteAreaDoPaiRoute = SiteAreaDoPaiRouteImport.update({
+  id: '/area-do-pai',
+  path: '/area-do-pai',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteBlogRoute = SiteBlogRouteImport.update({
   id: '/blog',
   path: '/blog',
@@ -58,6 +72,21 @@ const SiteBuscaRoute = SiteBuscaRouteImport.update({
 const SiteContatoRoute = SiteContatoRouteImport.update({
   id: '/contato',
   path: '/contato',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteEntrarRoute = SiteEntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteIrmandadeRoute = SiteIrmandadeRouteImport.update({
+  id: '/irmandade',
+  path: '/irmandade',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SitePoliticaDeAfiliadosRoute = SitePoliticaDeAfiliadosRouteImport.update({
+  id: '/politica-de-afiliados',
+  path: '/politica-de-afiliados',
   getParentRoute: () => SiteRoute,
 } as any)
 const SitePoliticaDePrivacidadeRoute =
@@ -91,6 +120,31 @@ const SiteCategoriaSlugRoute = SiteCategoriaSlugRouteImport.update({
   path: '/categoria/$slug',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteFerramentasIndexRoute = SiteFerramentasIndexRouteImport.update({
+  id: '/ferramentas/',
+  path: '/ferramentas/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteFormacaoIndexRoute = SiteFormacaoIndexRouteImport.update({
+  id: '/formacao/',
+  path: '/formacao/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteLojaIndexRoute = SiteLojaIndexRouteImport.update({
+  id: '/loja/',
+  path: '/loja/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SitePaiIndicaPaiIndexRoute = SitePaiIndicaPaiIndexRouteImport.update({
+  id: '/pai-indica-pai/',
+  path: '/pai-indica-pai/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SitePaiIndicaIndexRoute = SitePaiIndicaIndexRouteImport.update({
+  id: '/pai-indica/',
+  path: '/pai-indica/',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SitePostSlugRoute = SitePostSlugRouteImport.update({
   id: '/post/$slug',
   path: '/post/$slug',
@@ -115,9 +169,13 @@ const AdminAdminEditorIdRoute = AdminAdminEditorIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof SiteIndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/area-do-pai': typeof SiteAreaDoPaiRoute
   '/blog': typeof SiteBlogRoute
   '/busca': typeof SiteBuscaRoute
   '/contato': typeof SiteContatoRoute
+  '/entrar': typeof SiteEntrarRoute
+  '/irmandade': typeof SiteIrmandadeRoute
+  '/politica-de-afiliados': typeof SitePoliticaDeAfiliadosRoute
   '/politica-de-privacidade': typeof SitePoliticaDePrivacidadeRoute
   '/sobre': typeof SiteSobreRoute
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
@@ -126,15 +184,24 @@ export interface FileRoutesByFullPath {
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/admin/': typeof AdminAdminIndexRoute
+  '/ferramentas/': typeof SiteFerramentasIndexRoute
+  '/formacao/': typeof SiteFormacaoIndexRoute
+  '/loja/': typeof SiteLojaIndexRoute
+  '/pai-indica-pai/': typeof SitePaiIndicaPaiIndexRoute
+  '/pai-indica/': typeof SitePaiIndicaIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
   '/admin/editor/': typeof AdminAdminEditorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof SiteIndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/area-do-pai': typeof SiteAreaDoPaiRoute
   '/blog': typeof SiteBlogRoute
   '/busca': typeof SiteBuscaRoute
   '/contato': typeof SiteContatoRoute
+  '/entrar': typeof SiteEntrarRoute
+  '/irmandade': typeof SiteIrmandadeRoute
+  '/politica-de-afiliados': typeof SitePoliticaDeAfiliadosRoute
   '/politica-de-privacidade': typeof SitePoliticaDePrivacidadeRoute
   '/sobre': typeof SiteSobreRoute
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
@@ -143,6 +210,11 @@ export interface FileRoutesByTo {
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/admin': typeof AdminAdminIndexRoute
+  '/ferramentas': typeof SiteFerramentasIndexRoute
+  '/formacao': typeof SiteFormacaoIndexRoute
+  '/loja': typeof SiteLojaIndexRoute
+  '/pai-indica-pai': typeof SitePaiIndicaPaiIndexRoute
+  '/pai-indica': typeof SitePaiIndicaIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
   '/admin/editor': typeof AdminAdminEditorIndexRoute
 }
@@ -151,9 +223,13 @@ export interface FileRoutesById {
   '/_admin': typeof AdminRouteWithChildren
   '/_site': typeof SiteRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_site/area-do-pai': typeof SiteAreaDoPaiRoute
   '/_site/blog': typeof SiteBlogRoute
   '/_site/busca': typeof SiteBuscaRoute
   '/_site/contato': typeof SiteContatoRoute
+  '/_site/entrar': typeof SiteEntrarRoute
+  '/_site/irmandade': typeof SiteIrmandadeRoute
+  '/_site/politica-de-afiliados': typeof SitePoliticaDeAfiliadosRoute
   '/_site/politica-de-privacidade': typeof SitePoliticaDePrivacidadeRoute
   '/_site/sobre': typeof SiteSobreRoute
   '/_site/termos-de-uso': typeof SiteTermosDeUsoRoute
@@ -163,6 +239,11 @@ export interface FileRoutesById {
   '/_site/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/_admin/admin/': typeof AdminAdminIndexRoute
+  '/_site/ferramentas/': typeof SiteFerramentasIndexRoute
+  '/_site/formacao/': typeof SiteFormacaoIndexRoute
+  '/_site/loja/': typeof SiteLojaIndexRoute
+  '/_site/pai-indica-pai/': typeof SitePaiIndicaPaiIndexRoute
+  '/_site/pai-indica/': typeof SitePaiIndicaIndexRoute
   '/_admin/admin/editor/$id': typeof AdminAdminEditorIdRoute
   '/_admin/admin/editor/': typeof AdminAdminEditorIndexRoute
 }
@@ -171,9 +252,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/sitemap.xml'
+    | '/area-do-pai'
     | '/blog'
     | '/busca'
     | '/contato'
+    | '/entrar'
+    | '/irmandade'
+    | '/politica-de-afiliados'
     | '/politica-de-privacidade'
     | '/sobre'
     | '/termos-de-uso'
@@ -182,15 +267,24 @@ export interface FileRouteTypes {
     | '/post/$slug'
     | '/api/img/$'
     | '/admin/'
+    | '/ferramentas/'
+    | '/formacao/'
+    | '/loja/'
+    | '/pai-indica-pai/'
+    | '/pai-indica/'
     | '/admin/editor/$id'
     | '/admin/editor/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/sitemap.xml'
+    | '/area-do-pai'
     | '/blog'
     | '/busca'
     | '/contato'
+    | '/entrar'
+    | '/irmandade'
+    | '/politica-de-afiliados'
     | '/politica-de-privacidade'
     | '/sobre'
     | '/termos-de-uso'
@@ -199,6 +293,11 @@ export interface FileRouteTypes {
     | '/post/$slug'
     | '/api/img/$'
     | '/admin'
+    | '/ferramentas'
+    | '/formacao'
+    | '/loja'
+    | '/pai-indica-pai'
+    | '/pai-indica'
     | '/admin/editor/$id'
     | '/admin/editor'
   id:
@@ -206,9 +305,13 @@ export interface FileRouteTypes {
     | '/_admin'
     | '/_site'
     | '/sitemap.xml'
+    | '/_site/area-do-pai'
     | '/_site/blog'
     | '/_site/busca'
     | '/_site/contato'
+    | '/_site/entrar'
+    | '/_site/irmandade'
+    | '/_site/politica-de-afiliados'
     | '/_site/politica-de-privacidade'
     | '/_site/sobre'
     | '/_site/termos-de-uso'
@@ -218,6 +321,11 @@ export interface FileRouteTypes {
     | '/_site/post/$slug'
     | '/api/img/$'
     | '/_admin/admin/'
+    | '/_site/ferramentas/'
+    | '/_site/formacao/'
+    | '/_site/loja/'
+    | '/_site/pai-indica-pai/'
+    | '/_site/pai-indica/'
     | '/_admin/admin/editor/$id'
     | '/_admin/admin/editor/'
   fileRoutesById: FileRoutesById
@@ -260,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteIndexRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/area-do-pai': {
+      id: '/_site/area-do-pai'
+      path: '/area-do-pai'
+      fullPath: '/area-do-pai'
+      preLoaderRoute: typeof SiteAreaDoPaiRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/blog': {
       id: '/_site/blog'
       path: '/blog'
@@ -279,6 +394,27 @@ declare module '@tanstack/react-router' {
       path: '/contato'
       fullPath: '/contato'
       preLoaderRoute: typeof SiteContatoRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/entrar': {
+      id: '/_site/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof SiteEntrarRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/irmandade': {
+      id: '/_site/irmandade'
+      path: '/irmandade'
+      fullPath: '/irmandade'
+      preLoaderRoute: typeof SiteIrmandadeRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/politica-de-afiliados': {
+      id: '/_site/politica-de-afiliados'
+      path: '/politica-de-afiliados'
+      fullPath: '/politica-de-afiliados'
+      preLoaderRoute: typeof SitePoliticaDeAfiliadosRouteImport
       parentRoute: typeof SiteRoute
     }
     '/_site/politica-de-privacidade': {
@@ -321,6 +457,41 @@ declare module '@tanstack/react-router' {
       path: '/categoria/$slug'
       fullPath: '/categoria/$slug'
       preLoaderRoute: typeof SiteCategoriaSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/ferramentas/': {
+      id: '/_site/ferramentas/'
+      path: '/ferramentas'
+      fullPath: '/ferramentas/'
+      preLoaderRoute: typeof SiteFerramentasIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/formacao/': {
+      id: '/_site/formacao/'
+      path: '/formacao'
+      fullPath: '/formacao/'
+      preLoaderRoute: typeof SiteFormacaoIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/loja/': {
+      id: '/_site/loja/'
+      path: '/loja'
+      fullPath: '/loja/'
+      preLoaderRoute: typeof SiteLojaIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/': {
+      id: '/_site/pai-indica-pai/'
+      path: '/pai-indica-pai'
+      fullPath: '/pai-indica-pai/'
+      preLoaderRoute: typeof SitePaiIndicaPaiIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica/': {
+      id: '/_site/pai-indica/'
+      path: '/pai-indica'
+      fullPath: '/pai-indica/'
+      preLoaderRoute: typeof SitePaiIndicaIndexRouteImport
       parentRoute: typeof SiteRoute
     }
     '/_site/post/$slug': {
@@ -369,27 +540,45 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface SiteRouteChildren {
+  SiteAreaDoPaiRoute: typeof SiteAreaDoPaiRoute
   SiteBlogRoute: typeof SiteBlogRoute
   SiteBuscaRoute: typeof SiteBuscaRoute
   SiteContatoRoute: typeof SiteContatoRoute
+  SiteEntrarRoute: typeof SiteEntrarRoute
+  SiteIrmandadeRoute: typeof SiteIrmandadeRoute
+  SitePoliticaDeAfiliadosRoute: typeof SitePoliticaDeAfiliadosRoute
   SitePoliticaDePrivacidadeRoute: typeof SitePoliticaDePrivacidadeRoute
   SiteSobreRoute: typeof SiteSobreRoute
   SiteTermosDeUsoRoute: typeof SiteTermosDeUsoRoute
   SiteIndexRoute: typeof SiteIndexRoute
   SiteCategoriaSlugRoute: typeof SiteCategoriaSlugRoute
   SitePostSlugRoute: typeof SitePostSlugRoute
+  SiteFerramentasIndexRoute: typeof SiteFerramentasIndexRoute
+  SiteFormacaoIndexRoute: typeof SiteFormacaoIndexRoute
+  SiteLojaIndexRoute: typeof SiteLojaIndexRoute
+  SitePaiIndicaPaiIndexRoute: typeof SitePaiIndicaPaiIndexRoute
+  SitePaiIndicaIndexRoute: typeof SitePaiIndicaIndexRoute
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
+  SiteAreaDoPaiRoute: SiteAreaDoPaiRoute,
   SiteBlogRoute: SiteBlogRoute,
   SiteBuscaRoute: SiteBuscaRoute,
   SiteContatoRoute: SiteContatoRoute,
+  SiteEntrarRoute: SiteEntrarRoute,
+  SiteIrmandadeRoute: SiteIrmandadeRoute,
+  SitePoliticaDeAfiliadosRoute: SitePoliticaDeAfiliadosRoute,
   SitePoliticaDePrivacidadeRoute: SitePoliticaDePrivacidadeRoute,
   SiteSobreRoute: SiteSobreRoute,
   SiteTermosDeUsoRoute: SiteTermosDeUsoRoute,
   SiteIndexRoute: SiteIndexRoute,
   SiteCategoriaSlugRoute: SiteCategoriaSlugRoute,
   SitePostSlugRoute: SitePostSlugRoute,
+  SiteFerramentasIndexRoute: SiteFerramentasIndexRoute,
+  SiteFormacaoIndexRoute: SiteFormacaoIndexRoute,
+  SiteLojaIndexRoute: SiteLojaIndexRoute,
+  SitePaiIndicaPaiIndexRoute: SitePaiIndicaPaiIndexRoute,
+  SitePaiIndicaIndexRoute: SitePaiIndicaIndexRoute,
 }
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
