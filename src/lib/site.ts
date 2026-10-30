@@ -26,3 +26,8 @@ export function formatDateShort(iso?: string | null): string {
     year: "numeric",
   }).format(d);
 }
+
+// E-mail de contato (CLAUDE.md §13: RESEND_FROM e CONTACT_TO_EMAIL são constantes, não variáveis).
+// O dono troca o destinatário aqui se quiser receber o formulário em outra caixa.
+export const CONTACT_TO_EMAIL = "contato@vocacaodepai.com.br";
+export const RESEND_FROM = `${SITE_NAME} <contato@vocacaodepai.com.br>`;
