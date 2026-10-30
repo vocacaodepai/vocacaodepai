@@ -20,10 +20,12 @@ import { Route as SitePoliticaDePrivacidadeRouteImport } from './routes/_site/po
 import { Route as SiteSobreRouteImport } from './routes/_site/sobre'
 import { Route as SiteTermosDeUsoRouteImport } from './routes/_site/termos-de-uso'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as ApiNewsletterRouteImport } from './routes/api/newsletter'
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
 import { Route as SiteCategoriaSlugRouteImport } from './routes/_site/categoria/$slug'
 import { Route as SitePostSlugRouteImport } from './routes/_site/post/$slug'
 import { Route as ApiImgSplatRouteImport } from './routes/api/img/$'
+import { Route as ApiNewsletterConfirmarRouteImport } from './routes/api/newsletter.confirmar'
 import { Route as AdminAdminEditorIndexRouteImport } from './routes/_admin/admin/editor/index'
 import { Route as AdminAdminEditorIdRouteImport } from './routes/_admin/admin/editor/$id'
 
@@ -81,6 +83,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNewsletterRoute = ApiNewsletterRouteImport.update({
+  id: '/api/newsletter',
+  path: '/api/newsletter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAdminIndexRoute = AdminAdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -100,6 +107,11 @@ const ApiImgSplatRoute = ApiImgSplatRouteImport.update({
   id: '/api/img/$',
   path: '/api/img/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNewsletterConfirmarRoute = ApiNewsletterConfirmarRouteImport.update({
+  id: '/confirmar',
+  path: '/confirmar',
+  getParentRoute: () => ApiNewsletterRoute,
 } as any)
 const AdminAdminEditorIndexRoute = AdminAdminEditorIndexRouteImport.update({
   id: '/admin/editor/',
@@ -122,9 +134,11 @@ export interface FileRoutesByFullPath {
   '/sobre': typeof SiteSobreRoute
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
+  '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/admin/': typeof AdminAdminIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
   '/admin/editor/': typeof AdminAdminEditorIndexRoute
@@ -139,9 +153,11 @@ export interface FileRoutesByTo {
   '/sobre': typeof SiteSobreRoute
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
+  '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/admin': typeof AdminAdminIndexRoute
   '/admin/editor/$id': typeof AdminAdminEditorIdRoute
   '/admin/editor': typeof AdminAdminEditorIndexRoute
@@ -158,10 +174,12 @@ export interface FileRoutesById {
   '/_site/sobre': typeof SiteSobreRoute
   '/_site/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/_site/': typeof SiteIndexRoute
   '/_site/categoria/$slug': typeof SiteCategoriaSlugRoute
   '/_site/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
+  '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/_admin/admin/': typeof AdminAdminIndexRoute
   '/_admin/admin/editor/$id': typeof AdminAdminEditorIdRoute
   '/_admin/admin/editor/': typeof AdminAdminEditorIndexRoute
@@ -178,9 +196,11 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/termos-de-uso'
     | '/admin/login'
+    | '/api/newsletter'
     | '/categoria/$slug'
     | '/post/$slug'
     | '/api/img/$'
+    | '/api/newsletter/confirmar'
     | '/admin/'
     | '/admin/editor/$id'
     | '/admin/editor/'
@@ -195,9 +215,11 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/termos-de-uso'
     | '/admin/login'
+    | '/api/newsletter'
     | '/categoria/$slug'
     | '/post/$slug'
     | '/api/img/$'
+    | '/api/newsletter/confirmar'
     | '/admin'
     | '/admin/editor/$id'
     | '/admin/editor'
@@ -213,10 +235,12 @@ export interface FileRouteTypes {
     | '/_site/sobre'
     | '/_site/termos-de-uso'
     | '/admin/login'
+    | '/api/newsletter'
     | '/_site/'
     | '/_site/categoria/$slug'
     | '/_site/post/$slug'
     | '/api/img/$'
+    | '/api/newsletter/confirmar'
     | '/_admin/admin/'
     | '/_admin/admin/editor/$id'
     | '/_admin/admin/editor/'
@@ -227,6 +251,7 @@ export interface RootRouteChildren {
   SiteRoute: typeof SiteRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  ApiNewsletterRoute: typeof ApiNewsletterRouteWithChildren
   ApiImgSplatRoute: typeof ApiImgSplatRoute
 }
 
@@ -309,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/newsletter': {
+      id: '/api/newsletter'
+      path: '/api/newsletter'
+      fullPath: '/api/newsletter'
+      preLoaderRoute: typeof ApiNewsletterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_admin/admin/': {
       id: '/_admin/admin/'
       path: '/admin'
@@ -336,6 +368,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/img/$'
       preLoaderRoute: typeof ApiImgSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/newsletter/confirmar': {
+      id: '/api/newsletter/confirmar'
+      path: '/confirmar'
+      fullPath: '/api/newsletter/confirmar'
+      preLoaderRoute: typeof ApiNewsletterConfirmarRouteImport
+      parentRoute: typeof ApiNewsletterRoute
     }
     '/_admin/admin/editor/': {
       id: '/_admin/admin/editor/'
@@ -394,11 +433,24 @@ const SiteRouteChildren: SiteRouteChildren = {
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
 
+interface ApiNewsletterRouteChildren {
+  ApiNewsletterConfirmarRoute: typeof ApiNewsletterConfirmarRoute
+}
+
+const ApiNewsletterRouteChildren: ApiNewsletterRouteChildren = {
+  ApiNewsletterConfirmarRoute: ApiNewsletterConfirmarRoute,
+}
+
+const ApiNewsletterRouteWithChildren = ApiNewsletterRoute._addFileChildren(
+  ApiNewsletterRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   SiteRoute: SiteRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AdminLoginRoute: AdminLoginRoute,
+  ApiNewsletterRoute: ApiNewsletterRouteWithChildren,
   ApiImgSplatRoute: ApiImgSplatRoute,
 }
 export const routeTree = rootRouteImport
