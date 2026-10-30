@@ -1,26 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Contact from "@/pages/Contact";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
+
+const TITLE = `Contato | ${SITE_NAME}`;
+const DESCRIPTION =
+  "Fale com o Vocação de Pai: dúvidas, sugestões de pauta, correções e parcerias. Respondemos por e-mail.";
 
 export const Route = createFileRoute("/_site/contato")({
   head: () => ({
     meta: [
-      { title: "Contato | Voca\u00e7\u00e3o de M\u00e3e" },
-      {
-        name: "description",
-        content:
-          "Fale com a equipe da Voca\u00e7\u00e3o de M\u00e3e: d\u00favidas, parcerias e sugest\u00f5es.",
-      },
-      { property: "og:title", content: "Contato | Voca\u00e7\u00e3o de M\u00e3e" },
-      {
-        property: "og:description",
-        content:
-          "Fale com a equipe da Voca\u00e7\u00e3o de M\u00e3e: d\u00favidas, parcerias e sugest\u00f5es.",
-      },
+      { title: TITLE },
+      { name: "description", content: DESCRIPTION },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESCRIPTION },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: `${SITE_URL}/contato` },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:url", content: "https://vocacaodepai.com.br/contato" },
     ],
-    links: [{ rel: "canonical", href: "https://vocacaodepai.com.br/contato" }],
+    links: [{ rel: "canonical", href: `${SITE_URL}/contato` }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(breadcrumbJsonLd([{ name: "Contato", path: "/contato" }])),
+      },
+    ],
   }),
   component: Contact,
 });

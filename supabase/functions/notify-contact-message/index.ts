@@ -1,14 +1,14 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// Notifica contato@vocacaodemae.com.br por e-mail quando alguém envia o
+// Notifica o e-mail de contato do Vocação de Pai quando alguém envia o
 // formulário de contato do site. Disparada por um trigger AFTER INSERT na
 // tabela public.contact_messages (via pg_net), nunca chamada direto pelo
 // cliente — por isso a autenticação é só o segredo interno, não JWT de
 // usuário. Body esperado: { name, email, subject, message }.
 
-const RESEND_FROM = "Vocação de Mãe <contato@vocacaodemae.com.br>";
-const NOTIFY_TO = "contato@vocacaodemae.com.br";
+const RESEND_FROM = "Vocação de Pai <contato@vocacaodepai.com.br>";
+const NOTIFY_TO = "contato@vocacaodepai.com.br";
 
 function escapeHtml(s: string): string {
   return s
