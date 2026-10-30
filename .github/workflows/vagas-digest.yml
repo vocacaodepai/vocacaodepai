@@ -1,0 +1,24 @@
+# Pai Indica Pai (doc 08 §5.2): digest diário de vagas novas por UF/área + expiração redundante.
+# O agendamento principal da expiração é o pg_cron `vdp-expire-jobs` (0008_cron.sql); a chamada
+# a /api/cron/expire-jobs aqui é só redundância. Segredo único: CRON_SECRET (CLAUDE.md §13).
+name: Vagas — digest diário
+
+on:
+  schedule:
+    - cron: "0 11 * * *" # 08:00 Brasília
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Expirar vagas e indicações vencidas
+        run: |
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://vocacaodepai.com.br/api/cron/expire-jobs
+      - name: Enviar digest de vagas novas
+        run: |
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://vocacaodepai.com.br/api/cron/vagas-digest

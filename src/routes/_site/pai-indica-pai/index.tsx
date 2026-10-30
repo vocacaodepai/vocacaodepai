@@ -1,36 +1,40 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/home/ComingSoon";
-import { SITE_NAME } from "@/lib/site";
+import PipHubPage from "@/pages/pai-indica-pai/PipHubPage";
+import { getPipHubData } from "@/lib/pai-indica-pai/functions";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "@/lib/site";
 
-// Placeholder da Fase 1 (doc 03 §5.3): noindex e fora do sitemap até a seção abrir.
+const TITLE = `Pai Indica Pai | ${SITE_NAME}`;
+const DESCRIPTION =
+  "Um pai ajuda outro pai a sustentar a família: vagas, indicações, Pai Profissional e mentoria. Gratuito, moderado, sem intermediação.";
+
+// Hub do Pai Indica Pai (doc 08 §3.1). `?alertas=cancelar&email=` vem do link de cancelamento do digest.
 export const Route = createFileRoute("/_site/pai-indica-pai/")({
+  validateSearch: (s: Record<string, unknown>): { alertas?: string; email?: string } => ({
+    ...(typeof s["alertas"] === "string" ? { alertas: s["alertas"] as string } : {}),
+    ...(typeof s["email"] === "string" ? { email: s["email"] as string } : {}),
+  }),
+  loader: () => getPipHubData(),
   head: () => ({
     meta: [
-      { title: `Pai Indica Pai | ${SITE_NAME}` },
+      { title: TITLE },
+      { name: "description", content: DESCRIPTION },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESCRIPTION },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: `${SITE_URL}/pai-indica-pai` },
+      { property: "og:image", content: SITE_OG_IMAGE },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/pai-indica-pai` }],
+    scripts: [
       {
-        name: "description",
-        content:
-          "Pai ajuda pai a trabalhar: vagas indicadas, profissionais de confiança e mentoria de quem já passou por isso.",
+        type: "application/ld+json",
+        children: JSON.stringify(
+          breadcrumbJsonLd([{ name: "Pai Indica Pai", path: "/pai-indica-pai" }]),
+        ),
       },
-      { name: "robots", content: "noindex" },
     ],
   }),
-  component: Page,
+  component: PipHubPage,
 });
-
-function Page() {
-  return (
-    <ComingSoon
-      title="Pai Indica Pai"
-      description="Pai ajuda pai a trabalhar: vagas indicadas, profissionais de confiança e mentoria de quem já passou por isso."
-      eta="Abre depois da Área do Pai, porque depende de cadastro."
-      source="em-breve-pai-indica-pai"
-      highlights={[
-        "Vagas indicadas por pais, com moderação antes de publicar",
-        "Pai Profissional: diretório de quem faz bem o que faz",
-        "Mentoria de pai para pai em carreira e negócio",
-        "Sem promessa de enriquecer: trabalho honesto, indicação honesta",
-      ]}
-    />
-  );
-}

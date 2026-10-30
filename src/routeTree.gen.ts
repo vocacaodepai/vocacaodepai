@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as SiteRouteImport } from './routes/_site'
 import { Route as RssDotxmlRouteImport } from './routes/rss[.]xml'
+import { Route as SitemapVagasDotxmlRouteImport } from './routes/sitemap-vagas[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SiteIndexRouteImport } from './routes/_site/index'
 import { Route as SiteAreaDoPaiRouteImport } from './routes/_site/area-do-pai'
@@ -27,6 +28,8 @@ import { Route as SiteTermosDeUsoRouteImport } from './routes/_site/termos-de-us
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiNewsletterRouteImport } from './routes/api/newsletter'
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
+import { Route as AdminAdminModeracaoRouteImport } from './routes/_admin/admin/moderacao'
+import { Route as AdminAdminPaiIndicaPaiRouteImport } from './routes/_admin/admin/pai-indica-pai'
 import { Route as SiteCategoriaSlugRouteImport } from './routes/_site/categoria/$slug'
 import { Route as SiteFerramentasIndexRouteImport } from './routes/_site/ferramentas/index'
 import { Route as SiteFormacaoIndexRouteImport } from './routes/_site/formacao/index'
@@ -36,6 +39,8 @@ import { Route as SitePaiIndicaPaiIndexRouteImport } from './routes/_site/pai-in
 import { Route as SitePaiIndicaIndexRouteImport } from './routes/_site/pai-indica/index'
 import { Route as SitePaiIndicaSlugRouteImport } from './routes/_site/pai-indica/$slug'
 import { Route as SitePostSlugRouteImport } from './routes/_site/post/$slug'
+import { Route as ApiCronExpireJobsRouteImport } from './routes/api/cron/expire-jobs'
+import { Route as ApiCronVagasDigestRouteImport } from './routes/api/cron/vagas-digest'
 import { Route as ApiImgSplatRouteImport } from './routes/api/img/$'
 import { Route as ApiNewsletterConfirmarRouteImport } from './routes/api/newsletter.confirmar'
 import { Route as AdminAdminEditorIndexRouteImport } from './routes/_admin/admin/editor/index'
@@ -46,6 +51,16 @@ import { Route as AdminAdminProdutosFilaFotosRouteImport } from './routes/_admin
 import { Route as AdminAdminProdutosFilaPrecosRouteImport } from './routes/_admin/admin/produtos/fila-precos'
 import { Route as AdminAdminProdutosNovoRouteImport } from './routes/_admin/admin/produtos/novo'
 import { Route as SiteLojaCategoriaSlugRouteImport } from './routes/_site/loja/categoria/$slug'
+import { Route as SitePaiIndicaPaiIndicacoesIndexRouteImport } from './routes/_site/pai-indica-pai/indicacoes/index'
+import { Route as SitePaiIndicaPaiIndicacoesNovaRouteImport } from './routes/_site/pai-indica-pai/indicacoes/nova'
+import { Route as SitePaiIndicaPaiMentoriaIndexRouteImport } from './routes/_site/pai-indica-pai/mentoria/index'
+import { Route as SitePaiIndicaPaiProfissionaisIndexRouteImport } from './routes/_site/pai-indica-pai/profissionais/index'
+import { Route as SitePaiIndicaPaiProfissionaisIdRouteImport } from './routes/_site/pai-indica-pai/profissionais/$id'
+import { Route as SitePaiIndicaPaiProfissionaisNovoRouteImport } from './routes/_site/pai-indica-pai/profissionais/novo'
+import { Route as SitePaiIndicaPaiVagasIndexRouteImport } from './routes/_site/pai-indica-pai/vagas/index'
+import { Route as SitePaiIndicaPaiVagasSlugRouteImport } from './routes/_site/pai-indica-pai/vagas/$slug'
+import { Route as SitePaiIndicaPaiVagasNovaRouteImport } from './routes/_site/pai-indica-pai/vagas/nova'
+import { Route as SitePaiIndicaPaiVagasRssDotxmlRouteImport } from './routes/_site/pai-indica-pai/vagas/rss[.]xml'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
@@ -58,6 +73,11 @@ const SiteRoute = SiteRouteImport.update({
 const RssDotxmlRoute = RssDotxmlRouteImport.update({
   id: '/rss.xml',
   path: '/rss.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapVagasDotxmlRoute = SitemapVagasDotxmlRouteImport.update({
+  id: '/sitemap-vagas.xml',
+  path: '/sitemap-vagas.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -136,6 +156,16 @@ const AdminAdminIndexRoute = AdminAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminModeracaoRoute = AdminAdminModeracaoRouteImport.update({
+  id: '/admin/moderacao',
+  path: '/admin/moderacao',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminPaiIndicaPaiRoute = AdminAdminPaiIndicaPaiRouteImport.update({
+  id: '/admin/pai-indica-pai',
+  path: '/admin/pai-indica-pai',
+  getParentRoute: () => AdminRoute,
+} as any)
 const SiteCategoriaSlugRoute = SiteCategoriaSlugRouteImport.update({
   id: '/categoria/$slug',
   path: '/categoria/$slug',
@@ -180,6 +210,16 @@ const SitePostSlugRoute = SitePostSlugRouteImport.update({
   id: '/post/$slug',
   path: '/post/$slug',
   getParentRoute: () => SiteRoute,
+} as any)
+const ApiCronExpireJobsRoute = ApiCronExpireJobsRouteImport.update({
+  id: '/api/cron/expire-jobs',
+  path: '/api/cron/expire-jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronVagasDigestRoute = ApiCronVagasDigestRouteImport.update({
+  id: '/api/cron/vagas-digest',
+  path: '/api/cron/vagas-digest',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiImgSplatRoute = ApiImgSplatRouteImport.update({
   id: '/api/img/$',
@@ -233,10 +273,71 @@ const SiteLojaCategoriaSlugRoute = SiteLojaCategoriaSlugRouteImport.update({
   path: '/loja/categoria/$slug',
   getParentRoute: () => SiteRoute,
 } as any)
+const SitePaiIndicaPaiIndicacoesIndexRoute =
+  SitePaiIndicaPaiIndicacoesIndexRouteImport.update({
+    id: '/pai-indica-pai/indicacoes/',
+    path: '/pai-indica-pai/indicacoes/',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SitePaiIndicaPaiIndicacoesNovaRoute =
+  SitePaiIndicaPaiIndicacoesNovaRouteImport.update({
+    id: '/pai-indica-pai/indicacoes/nova',
+    path: '/pai-indica-pai/indicacoes/nova',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SitePaiIndicaPaiMentoriaIndexRoute =
+  SitePaiIndicaPaiMentoriaIndexRouteImport.update({
+    id: '/pai-indica-pai/mentoria/',
+    path: '/pai-indica-pai/mentoria/',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SitePaiIndicaPaiProfissionaisIndexRoute =
+  SitePaiIndicaPaiProfissionaisIndexRouteImport.update({
+    id: '/pai-indica-pai/profissionais/',
+    path: '/pai-indica-pai/profissionais/',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SitePaiIndicaPaiProfissionaisIdRoute =
+  SitePaiIndicaPaiProfissionaisIdRouteImport.update({
+    id: '/pai-indica-pai/profissionais/$id',
+    path: '/pai-indica-pai/profissionais/$id',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SitePaiIndicaPaiProfissionaisNovoRoute =
+  SitePaiIndicaPaiProfissionaisNovoRouteImport.update({
+    id: '/pai-indica-pai/profissionais/novo',
+    path: '/pai-indica-pai/profissionais/novo',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SitePaiIndicaPaiVagasIndexRoute =
+  SitePaiIndicaPaiVagasIndexRouteImport.update({
+    id: '/pai-indica-pai/vagas/',
+    path: '/pai-indica-pai/vagas/',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SitePaiIndicaPaiVagasSlugRoute =
+  SitePaiIndicaPaiVagasSlugRouteImport.update({
+    id: '/pai-indica-pai/vagas/$slug',
+    path: '/pai-indica-pai/vagas/$slug',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SitePaiIndicaPaiVagasNovaRoute =
+  SitePaiIndicaPaiVagasNovaRouteImport.update({
+    id: '/pai-indica-pai/vagas/nova',
+    path: '/pai-indica-pai/vagas/nova',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SitePaiIndicaPaiVagasRssDotxmlRoute =
+  SitePaiIndicaPaiVagasRssDotxmlRouteImport.update({
+    id: '/pai-indica-pai/vagas/rss.xml',
+    path: '/pai-indica-pai/vagas/rss.xml',
+    getParentRoute: () => SiteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof SiteIndexRoute
   '/rss.xml': typeof RssDotxmlRoute
+  '/sitemap-vagas.xml': typeof SitemapVagasDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/area-do-pai': typeof SiteAreaDoPaiRoute
   '/blog': typeof SiteBlogRoute
@@ -250,10 +351,14 @@ export interface FileRoutesByFullPath {
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
+  '/admin/moderacao': typeof AdminAdminModeracaoRoute
+  '/admin/pai-indica-pai': typeof AdminAdminPaiIndicaPaiRoute
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
   '/loja/$slug': typeof SiteLojaSlugRoute
   '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
+  '/api/cron/expire-jobs': typeof ApiCronExpireJobsRoute
+  '/api/cron/vagas-digest': typeof ApiCronVagasDigestRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/admin/': typeof AdminAdminIndexRoute
@@ -268,12 +373,23 @@ export interface FileRoutesByFullPath {
   '/admin/produtos/fila-precos': typeof AdminAdminProdutosFilaPrecosRoute
   '/admin/produtos/novo': typeof AdminAdminProdutosNovoRoute
   '/loja/categoria/$slug': typeof SiteLojaCategoriaSlugRoute
+  '/pai-indica-pai/indicacoes/nova': typeof SitePaiIndicaPaiIndicacoesNovaRoute
+  '/pai-indica-pai/profissionais/$id': typeof SitePaiIndicaPaiProfissionaisIdRoute
+  '/pai-indica-pai/profissionais/novo': typeof SitePaiIndicaPaiProfissionaisNovoRoute
+  '/pai-indica-pai/vagas/$slug': typeof SitePaiIndicaPaiVagasSlugRoute
+  '/pai-indica-pai/vagas/nova': typeof SitePaiIndicaPaiVagasNovaRoute
+  '/pai-indica-pai/vagas/rss.xml': typeof SitePaiIndicaPaiVagasRssDotxmlRoute
   '/admin/editor/': typeof AdminAdminEditorIndexRoute
   '/admin/produtos/': typeof AdminAdminProdutosIndexRoute
+  '/pai-indica-pai/indicacoes/': typeof SitePaiIndicaPaiIndicacoesIndexRoute
+  '/pai-indica-pai/mentoria/': typeof SitePaiIndicaPaiMentoriaIndexRoute
+  '/pai-indica-pai/profissionais/': typeof SitePaiIndicaPaiProfissionaisIndexRoute
+  '/pai-indica-pai/vagas/': typeof SitePaiIndicaPaiVagasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof SiteIndexRoute
   '/rss.xml': typeof RssDotxmlRoute
+  '/sitemap-vagas.xml': typeof SitemapVagasDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/area-do-pai': typeof SiteAreaDoPaiRoute
   '/blog': typeof SiteBlogRoute
@@ -287,10 +403,14 @@ export interface FileRoutesByTo {
   '/termos-de-uso': typeof SiteTermosDeUsoRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
+  '/admin/moderacao': typeof AdminAdminModeracaoRoute
+  '/admin/pai-indica-pai': typeof AdminAdminPaiIndicaPaiRoute
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
   '/loja/$slug': typeof SiteLojaSlugRoute
   '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
+  '/api/cron/expire-jobs': typeof ApiCronExpireJobsRoute
+  '/api/cron/vagas-digest': typeof ApiCronVagasDigestRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/admin': typeof AdminAdminIndexRoute
@@ -305,14 +425,25 @@ export interface FileRoutesByTo {
   '/admin/produtos/fila-precos': typeof AdminAdminProdutosFilaPrecosRoute
   '/admin/produtos/novo': typeof AdminAdminProdutosNovoRoute
   '/loja/categoria/$slug': typeof SiteLojaCategoriaSlugRoute
+  '/pai-indica-pai/indicacoes/nova': typeof SitePaiIndicaPaiIndicacoesNovaRoute
+  '/pai-indica-pai/profissionais/$id': typeof SitePaiIndicaPaiProfissionaisIdRoute
+  '/pai-indica-pai/profissionais/novo': typeof SitePaiIndicaPaiProfissionaisNovoRoute
+  '/pai-indica-pai/vagas/$slug': typeof SitePaiIndicaPaiVagasSlugRoute
+  '/pai-indica-pai/vagas/nova': typeof SitePaiIndicaPaiVagasNovaRoute
+  '/pai-indica-pai/vagas/rss.xml': typeof SitePaiIndicaPaiVagasRssDotxmlRoute
   '/admin/editor': typeof AdminAdminEditorIndexRoute
   '/admin/produtos': typeof AdminAdminProdutosIndexRoute
+  '/pai-indica-pai/indicacoes': typeof SitePaiIndicaPaiIndicacoesIndexRoute
+  '/pai-indica-pai/mentoria': typeof SitePaiIndicaPaiMentoriaIndexRoute
+  '/pai-indica-pai/profissionais': typeof SitePaiIndicaPaiProfissionaisIndexRoute
+  '/pai-indica-pai/vagas': typeof SitePaiIndicaPaiVagasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_admin': typeof AdminRouteWithChildren
   '/_site': typeof SiteRouteWithChildren
   '/rss.xml': typeof RssDotxmlRoute
+  '/sitemap-vagas.xml': typeof SitemapVagasDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_site/area-do-pai': typeof SiteAreaDoPaiRoute
   '/_site/blog': typeof SiteBlogRoute
@@ -327,10 +458,14 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/_site/': typeof SiteIndexRoute
+  '/_admin/admin/moderacao': typeof AdminAdminModeracaoRoute
+  '/_admin/admin/pai-indica-pai': typeof AdminAdminPaiIndicaPaiRoute
   '/_site/categoria/$slug': typeof SiteCategoriaSlugRoute
   '/_site/loja/$slug': typeof SiteLojaSlugRoute
   '/_site/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/_site/post/$slug': typeof SitePostSlugRoute
+  '/api/cron/expire-jobs': typeof ApiCronExpireJobsRoute
+  '/api/cron/vagas-digest': typeof ApiCronVagasDigestRoute
   '/api/img/$': typeof ApiImgSplatRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/_admin/admin/': typeof AdminAdminIndexRoute
@@ -345,14 +480,25 @@ export interface FileRoutesById {
   '/_admin/admin/produtos/fila-precos': typeof AdminAdminProdutosFilaPrecosRoute
   '/_admin/admin/produtos/novo': typeof AdminAdminProdutosNovoRoute
   '/_site/loja/categoria/$slug': typeof SiteLojaCategoriaSlugRoute
+  '/_site/pai-indica-pai/indicacoes/nova': typeof SitePaiIndicaPaiIndicacoesNovaRoute
+  '/_site/pai-indica-pai/profissionais/$id': typeof SitePaiIndicaPaiProfissionaisIdRoute
+  '/_site/pai-indica-pai/profissionais/novo': typeof SitePaiIndicaPaiProfissionaisNovoRoute
+  '/_site/pai-indica-pai/vagas/$slug': typeof SitePaiIndicaPaiVagasSlugRoute
+  '/_site/pai-indica-pai/vagas/nova': typeof SitePaiIndicaPaiVagasNovaRoute
+  '/_site/pai-indica-pai/vagas/rss.xml': typeof SitePaiIndicaPaiVagasRssDotxmlRoute
   '/_admin/admin/editor/': typeof AdminAdminEditorIndexRoute
   '/_admin/admin/produtos/': typeof AdminAdminProdutosIndexRoute
+  '/_site/pai-indica-pai/indicacoes/': typeof SitePaiIndicaPaiIndicacoesIndexRoute
+  '/_site/pai-indica-pai/mentoria/': typeof SitePaiIndicaPaiMentoriaIndexRoute
+  '/_site/pai-indica-pai/profissionais/': typeof SitePaiIndicaPaiProfissionaisIndexRoute
+  '/_site/pai-indica-pai/vagas/': typeof SitePaiIndicaPaiVagasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/rss.xml'
+    | '/sitemap-vagas.xml'
     | '/sitemap.xml'
     | '/area-do-pai'
     | '/blog'
@@ -366,10 +512,14 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/admin/login'
     | '/api/newsletter'
+    | '/admin/moderacao'
+    | '/admin/pai-indica-pai'
     | '/categoria/$slug'
     | '/loja/$slug'
     | '/pai-indica/$slug'
     | '/post/$slug'
+    | '/api/cron/expire-jobs'
+    | '/api/cron/vagas-digest'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
     | '/admin/'
@@ -384,12 +534,23 @@ export interface FileRouteTypes {
     | '/admin/produtos/fila-precos'
     | '/admin/produtos/novo'
     | '/loja/categoria/$slug'
+    | '/pai-indica-pai/indicacoes/nova'
+    | '/pai-indica-pai/profissionais/$id'
+    | '/pai-indica-pai/profissionais/novo'
+    | '/pai-indica-pai/vagas/$slug'
+    | '/pai-indica-pai/vagas/nova'
+    | '/pai-indica-pai/vagas/rss.xml'
     | '/admin/editor/'
     | '/admin/produtos/'
+    | '/pai-indica-pai/indicacoes/'
+    | '/pai-indica-pai/mentoria/'
+    | '/pai-indica-pai/profissionais/'
+    | '/pai-indica-pai/vagas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/rss.xml'
+    | '/sitemap-vagas.xml'
     | '/sitemap.xml'
     | '/area-do-pai'
     | '/blog'
@@ -403,10 +564,14 @@ export interface FileRouteTypes {
     | '/termos-de-uso'
     | '/admin/login'
     | '/api/newsletter'
+    | '/admin/moderacao'
+    | '/admin/pai-indica-pai'
     | '/categoria/$slug'
     | '/loja/$slug'
     | '/pai-indica/$slug'
     | '/post/$slug'
+    | '/api/cron/expire-jobs'
+    | '/api/cron/vagas-digest'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
     | '/admin'
@@ -421,13 +586,24 @@ export interface FileRouteTypes {
     | '/admin/produtos/fila-precos'
     | '/admin/produtos/novo'
     | '/loja/categoria/$slug'
+    | '/pai-indica-pai/indicacoes/nova'
+    | '/pai-indica-pai/profissionais/$id'
+    | '/pai-indica-pai/profissionais/novo'
+    | '/pai-indica-pai/vagas/$slug'
+    | '/pai-indica-pai/vagas/nova'
+    | '/pai-indica-pai/vagas/rss.xml'
     | '/admin/editor'
     | '/admin/produtos'
+    | '/pai-indica-pai/indicacoes'
+    | '/pai-indica-pai/mentoria'
+    | '/pai-indica-pai/profissionais'
+    | '/pai-indica-pai/vagas'
   id:
     | '__root__'
     | '/_admin'
     | '/_site'
     | '/rss.xml'
+    | '/sitemap-vagas.xml'
     | '/sitemap.xml'
     | '/_site/area-do-pai'
     | '/_site/blog'
@@ -442,10 +618,14 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/newsletter'
     | '/_site/'
+    | '/_admin/admin/moderacao'
+    | '/_admin/admin/pai-indica-pai'
     | '/_site/categoria/$slug'
     | '/_site/loja/$slug'
     | '/_site/pai-indica/$slug'
     | '/_site/post/$slug'
+    | '/api/cron/expire-jobs'
+    | '/api/cron/vagas-digest'
     | '/api/img/$'
     | '/api/newsletter/confirmar'
     | '/_admin/admin/'
@@ -460,17 +640,30 @@ export interface FileRouteTypes {
     | '/_admin/admin/produtos/fila-precos'
     | '/_admin/admin/produtos/novo'
     | '/_site/loja/categoria/$slug'
+    | '/_site/pai-indica-pai/indicacoes/nova'
+    | '/_site/pai-indica-pai/profissionais/$id'
+    | '/_site/pai-indica-pai/profissionais/novo'
+    | '/_site/pai-indica-pai/vagas/$slug'
+    | '/_site/pai-indica-pai/vagas/nova'
+    | '/_site/pai-indica-pai/vagas/rss.xml'
     | '/_admin/admin/editor/'
     | '/_admin/admin/produtos/'
+    | '/_site/pai-indica-pai/indicacoes/'
+    | '/_site/pai-indica-pai/mentoria/'
+    | '/_site/pai-indica-pai/profissionais/'
+    | '/_site/pai-indica-pai/vagas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   SiteRoute: typeof SiteRouteWithChildren
   RssDotxmlRoute: typeof RssDotxmlRoute
+  SitemapVagasDotxmlRoute: typeof SitemapVagasDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AdminLoginRoute: typeof AdminLoginRoute
   ApiNewsletterRoute: typeof ApiNewsletterRouteWithChildren
+  ApiCronExpireJobsRoute: typeof ApiCronExpireJobsRoute
+  ApiCronVagasDigestRoute: typeof ApiCronVagasDigestRoute
   ApiImgSplatRoute: typeof ApiImgSplatRoute
 }
 
@@ -495,6 +688,13 @@ declare module '@tanstack/react-router' {
       path: '/rss.xml'
       fullPath: '/rss.xml'
       preLoaderRoute: typeof RssDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-vagas.xml': {
+      id: '/sitemap-vagas.xml'
+      path: '/sitemap-vagas.xml'
+      fullPath: '/sitemap-vagas.xml'
+      preLoaderRoute: typeof SitemapVagasDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -602,6 +802,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/moderacao': {
+      id: '/_admin/admin/moderacao'
+      path: '/admin/moderacao'
+      fullPath: '/admin/moderacao'
+      preLoaderRoute: typeof AdminAdminModeracaoRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/pai-indica-pai': {
+      id: '/_admin/admin/pai-indica-pai'
+      path: '/admin/pai-indica-pai'
+      fullPath: '/admin/pai-indica-pai'
+      preLoaderRoute: typeof AdminAdminPaiIndicaPaiRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_site/categoria/$slug': {
       id: '/_site/categoria/$slug'
       path: '/categoria/$slug'
@@ -664,6 +878,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/post/$slug'
       preLoaderRoute: typeof SitePostSlugRouteImport
       parentRoute: typeof SiteRoute
+    }
+    '/api/cron/expire-jobs': {
+      id: '/api/cron/expire-jobs'
+      path: '/api/cron/expire-jobs'
+      fullPath: '/api/cron/expire-jobs'
+      preLoaderRoute: typeof ApiCronExpireJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/vagas-digest': {
+      id: '/api/cron/vagas-digest'
+      path: '/api/cron/vagas-digest'
+      fullPath: '/api/cron/vagas-digest'
+      preLoaderRoute: typeof ApiCronVagasDigestRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/img/$': {
       id: '/api/img/$'
@@ -735,10 +963,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteLojaCategoriaSlugRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/pai-indica-pai/indicacoes/': {
+      id: '/_site/pai-indica-pai/indicacoes/'
+      path: '/pai-indica-pai/indicacoes'
+      fullPath: '/pai-indica-pai/indicacoes/'
+      preLoaderRoute: typeof SitePaiIndicaPaiIndicacoesIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/indicacoes/nova': {
+      id: '/_site/pai-indica-pai/indicacoes/nova'
+      path: '/pai-indica-pai/indicacoes/nova'
+      fullPath: '/pai-indica-pai/indicacoes/nova'
+      preLoaderRoute: typeof SitePaiIndicaPaiIndicacoesNovaRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/mentoria/': {
+      id: '/_site/pai-indica-pai/mentoria/'
+      path: '/pai-indica-pai/mentoria'
+      fullPath: '/pai-indica-pai/mentoria/'
+      preLoaderRoute: typeof SitePaiIndicaPaiMentoriaIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/profissionais/': {
+      id: '/_site/pai-indica-pai/profissionais/'
+      path: '/pai-indica-pai/profissionais'
+      fullPath: '/pai-indica-pai/profissionais/'
+      preLoaderRoute: typeof SitePaiIndicaPaiProfissionaisIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/profissionais/$id': {
+      id: '/_site/pai-indica-pai/profissionais/$id'
+      path: '/pai-indica-pai/profissionais/$id'
+      fullPath: '/pai-indica-pai/profissionais/$id'
+      preLoaderRoute: typeof SitePaiIndicaPaiProfissionaisIdRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/profissionais/novo': {
+      id: '/_site/pai-indica-pai/profissionais/novo'
+      path: '/pai-indica-pai/profissionais/novo'
+      fullPath: '/pai-indica-pai/profissionais/novo'
+      preLoaderRoute: typeof SitePaiIndicaPaiProfissionaisNovoRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/vagas/': {
+      id: '/_site/pai-indica-pai/vagas/'
+      path: '/pai-indica-pai/vagas'
+      fullPath: '/pai-indica-pai/vagas/'
+      preLoaderRoute: typeof SitePaiIndicaPaiVagasIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/vagas/$slug': {
+      id: '/_site/pai-indica-pai/vagas/$slug'
+      path: '/pai-indica-pai/vagas/$slug'
+      fullPath: '/pai-indica-pai/vagas/$slug'
+      preLoaderRoute: typeof SitePaiIndicaPaiVagasSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/vagas/nova': {
+      id: '/_site/pai-indica-pai/vagas/nova'
+      path: '/pai-indica-pai/vagas/nova'
+      fullPath: '/pai-indica-pai/vagas/nova'
+      preLoaderRoute: typeof SitePaiIndicaPaiVagasNovaRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/pai-indica-pai/vagas/rss.xml': {
+      id: '/_site/pai-indica-pai/vagas/rss.xml'
+      path: '/pai-indica-pai/vagas/rss.xml'
+      fullPath: '/pai-indica-pai/vagas/rss.xml'
+      preLoaderRoute: typeof SitePaiIndicaPaiVagasRssDotxmlRouteImport
+      parentRoute: typeof SiteRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminAdminModeracaoRoute: typeof AdminAdminModeracaoRoute
+  AdminAdminPaiIndicaPaiRoute: typeof AdminAdminPaiIndicaPaiRoute
   AdminAdminIndexRoute: typeof AdminAdminIndexRoute
   AdminAdminEditorIdRoute: typeof AdminAdminEditorIdRoute
   AdminAdminProdutosIdRoute: typeof AdminAdminProdutosIdRoute
@@ -750,6 +1050,8 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminModeracaoRoute: AdminAdminModeracaoRoute,
+  AdminAdminPaiIndicaPaiRoute: AdminAdminPaiIndicaPaiRoute,
   AdminAdminIndexRoute: AdminAdminIndexRoute,
   AdminAdminEditorIdRoute: AdminAdminEditorIdRoute,
   AdminAdminProdutosIdRoute: AdminAdminProdutosIdRoute,
@@ -784,6 +1086,16 @@ interface SiteRouteChildren {
   SitePaiIndicaPaiIndexRoute: typeof SitePaiIndicaPaiIndexRoute
   SitePaiIndicaIndexRoute: typeof SitePaiIndicaIndexRoute
   SiteLojaCategoriaSlugRoute: typeof SiteLojaCategoriaSlugRoute
+  SitePaiIndicaPaiIndicacoesNovaRoute: typeof SitePaiIndicaPaiIndicacoesNovaRoute
+  SitePaiIndicaPaiProfissionaisIdRoute: typeof SitePaiIndicaPaiProfissionaisIdRoute
+  SitePaiIndicaPaiProfissionaisNovoRoute: typeof SitePaiIndicaPaiProfissionaisNovoRoute
+  SitePaiIndicaPaiVagasSlugRoute: typeof SitePaiIndicaPaiVagasSlugRoute
+  SitePaiIndicaPaiVagasNovaRoute: typeof SitePaiIndicaPaiVagasNovaRoute
+  SitePaiIndicaPaiVagasRssDotxmlRoute: typeof SitePaiIndicaPaiVagasRssDotxmlRoute
+  SitePaiIndicaPaiIndicacoesIndexRoute: typeof SitePaiIndicaPaiIndicacoesIndexRoute
+  SitePaiIndicaPaiMentoriaIndexRoute: typeof SitePaiIndicaPaiMentoriaIndexRoute
+  SitePaiIndicaPaiProfissionaisIndexRoute: typeof SitePaiIndicaPaiProfissionaisIndexRoute
+  SitePaiIndicaPaiVagasIndexRoute: typeof SitePaiIndicaPaiVagasIndexRoute
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
@@ -808,6 +1120,18 @@ const SiteRouteChildren: SiteRouteChildren = {
   SitePaiIndicaPaiIndexRoute: SitePaiIndicaPaiIndexRoute,
   SitePaiIndicaIndexRoute: SitePaiIndicaIndexRoute,
   SiteLojaCategoriaSlugRoute: SiteLojaCategoriaSlugRoute,
+  SitePaiIndicaPaiIndicacoesNovaRoute: SitePaiIndicaPaiIndicacoesNovaRoute,
+  SitePaiIndicaPaiProfissionaisIdRoute: SitePaiIndicaPaiProfissionaisIdRoute,
+  SitePaiIndicaPaiProfissionaisNovoRoute:
+    SitePaiIndicaPaiProfissionaisNovoRoute,
+  SitePaiIndicaPaiVagasSlugRoute: SitePaiIndicaPaiVagasSlugRoute,
+  SitePaiIndicaPaiVagasNovaRoute: SitePaiIndicaPaiVagasNovaRoute,
+  SitePaiIndicaPaiVagasRssDotxmlRoute: SitePaiIndicaPaiVagasRssDotxmlRoute,
+  SitePaiIndicaPaiIndicacoesIndexRoute: SitePaiIndicaPaiIndicacoesIndexRoute,
+  SitePaiIndicaPaiMentoriaIndexRoute: SitePaiIndicaPaiMentoriaIndexRoute,
+  SitePaiIndicaPaiProfissionaisIndexRoute:
+    SitePaiIndicaPaiProfissionaisIndexRoute,
+  SitePaiIndicaPaiVagasIndexRoute: SitePaiIndicaPaiVagasIndexRoute,
 }
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
@@ -828,9 +1152,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   SiteRoute: SiteRouteWithChildren,
   RssDotxmlRoute: RssDotxmlRoute,
+  SitemapVagasDotxmlRoute: SitemapVagasDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AdminLoginRoute: AdminLoginRoute,
   ApiNewsletterRoute: ApiNewsletterRouteWithChildren,
+  ApiCronExpireJobsRoute: ApiCronExpireJobsRoute,
+  ApiCronVagasDigestRoute: ApiCronVagasDigestRoute,
   ApiImgSplatRoute: ApiImgSplatRoute,
 }
 export const routeTree = rootRouteImport
