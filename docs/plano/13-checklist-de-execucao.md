@@ -106,19 +106,19 @@
 
 ## Fase 7 — Irmandade e Formação (`09-fase-7-irmandade-e-formacao.md`)
 
-- [ ] 7.1 Rota `/irmandade` (hub: últimas histórias, perguntas sem resposta, próximos eventos, regras da casa)
-- [ ] 7.2 Histórias: `/historias` (lista approved), `/historias/nova` (editor Tiptap simplificado, capa, `pending`), `/historias/$id` (leitura, curtir)
-- [ ] 7.3 Perguntas e respostas: `/perguntas` (lista, filtro por categoria), `/perguntas/$slug` (respostas, votos, melhor resposta pelo autor), nova pergunta (autenticado)
-- [ ] 7.4 Eventos: `/eventos` (lista futuros/passados, online/presencial), detalhe, RSVP (`event_rsvps`), lembrete por e-mail 24 h antes
-- [ ] 7.5 `/admin/moderacao`: filas de histórias e perguntas/respostas; `moderation_log`
-- [ ] 7.6 Formação: `/formacao` (trilhas por nível), `/formacao/$slug` (passos, progresso, próximo passo), marcar passo concluído (`track_progress`)
-- [ ] 7.7 Desafios: `/desafios` (lista), `/desafios/$slug` (dia a dia, tarefa + reflexão, iniciar, marcar dia; `challenge_progress`)
-- [ ] 7.8 Badges: motor de regras (`badges.rule` JSON avaliado em função SQL `award_badges(user_id)` chamada ao concluir passo/dia); seeds "Pai presente", "Leitor", "Irmão", "Provedor", "Filho de São José"
-- [ ] 7.9 Seeds (doc 09 §5.2, §6.2 e §7): 8 trilhas (107 passos; T1 `pai-de-primeira-viagem-em-30-dias` e T6 `mestre-do-churrasco` completas, demais com `summary`), 3 desafios de 30 dias (`30-dias-de-presenca-com-os-filhos`, `30-dias-do-provedor`, `30-dias-de-disciplina-do-homem`), 20 insígnias; `scripts/seed-formacao.mjs` gera e aplica `0008_seed_formacao.sql`
+- [x] 7.1 Rota `/irmandade` (hub: últimas histórias, perguntas sem resposta, próximos eventos, regras da casa)
+- [x] 7.2 Histórias: `/historias` (lista approved), `/historias/nova` (editor Tiptap simplificado, capa, `pending`), `/historias/$id` (leitura, curtir)
+- [x] 7.3 Perguntas e respostas: `/perguntas` (lista, filtro por categoria), `/perguntas/$slug` (respostas, votos, melhor resposta pelo autor), nova pergunta (autenticado)
+- [x] 7.4 Eventos: `/eventos` (lista futuros/passados, online/presencial), detalhe, RSVP (`event_rsvps`), lembrete por e-mail 24 h antes
+- [x] 7.5 `/admin/moderacao`: filas de histórias e perguntas/respostas; `moderation_log`
+- [x] 7.6 Formação: `/formacao` (trilhas por nível), `/formacao/$slug` (passos, progresso, próximo passo), marcar passo concluído (`track_progress`)
+- [x] 7.7 Desafios: `/desafios` (lista), `/desafios/$slug` (dia a dia, tarefa + reflexão, iniciar, marcar dia; `challenge_progress`)
+- [x] 7.8 Badges: motor de regras (`badges.rule` JSON avaliado em função SQL `award_badges(user_id)` chamada ao concluir passo/dia); seeds "Pai presente", "Leitor", "Irmão", "Provedor", "Filho de São José"
+- [x] 7.9 Seeds (doc 09 §5.2, §6.2 e §7): 8 trilhas (107 passos; T1 `pai-de-primeira-viagem-em-30-dias` e T6 `mestre-do-churrasco` completas, demais com `summary`), 3 desafios de 30 dias (`30-dias-de-presenca-com-os-filhos`, `30-dias-do-provedor`, `30-dias-de-disciplina-do-homem`), 20 insígnias; `scripts/seed-formacao.mjs` gera e aplica `0008_seed_formacao.sql`
 - [ ] 7.9b Biblioteca do Pai + `/loja/digital/$slug` (doc 09 §12b): migration `0010_biblioteca_do_pai.sql` (`digital_products`, `digital_purchases`, bucket privado `digital-products`), `/area-do-pai/biblioteca`, página de vendas, edge function `hotmart-webhook` + e-mail de entrega, `/admin/biblioteca`; 3 produtos cadastrados em `draft` até o dono publicar
 - [ ] 7.10 Widgets reais no `/area-do-pai`: trilhas em andamento, desafio do dia, badges conquistadas
 - [ ] 7.11 Testar RLS e fluxo completo de moderação
-- [ ] 7.12 Validar, abrir PR "Fase 7 — Irmandade e Formação", atualizar `PROGRESSO.md`
+- [ ] 7.12 Validar, abrir PR "Fase 7 — Irmandade e Formação", atualizar `PROGRESSO.md` (build/lint/tsc verdes e `progresso-fase-7.md` feitos em 2026-10-30; PR e migrations no Supabase pendentes)
 
 ## Fase 8 — Automação, rotinas e painel (`10-fase-8-automacao-rotinas-e-painel.md`)
 

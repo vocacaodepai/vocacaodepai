@@ -159,12 +159,33 @@ export default function AdminDashboard() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl font-bold">Painel do Vocação de Pai</h1>
-        <Link
-          to="/admin/editor"
-          className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground shadow-soft transition-colors hover:bg-primary/90"
-        >
-          Novo artigo
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {/* Fase 7 (doc 09 §13): filas de moderação da Irmandade, eventos e Formação. */}
+          <Link
+            to="/admin/moderacao"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Moderação
+          </Link>
+          <Link
+            to="/admin/eventos"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Eventos
+          </Link>
+          <Link
+            to="/admin/formacao"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Formação
+          </Link>
+          <Link
+            to="/admin/editor"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground shadow-soft transition-colors hover:bg-primary/90"
+          >
+            Novo artigo
+          </Link>
+        </div>
       </div>
 
       {/* Cartões-resumo */}

@@ -1,36 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/home/ComingSoon";
-import { SITE_NAME } from "@/lib/site";
+import IrmandadePage from "@/pages/irmandade/IrmandadePage";
+import { getIrmandadeHubData } from "@/lib/community.functions";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { IRMANDADE_POSICIONAMENTO } from "@/content/irmandade/codigo-de-conduta";
 
-// Placeholder da Fase 1 (doc 03 §5.3): noindex e fora do sitemap até a seção abrir.
+// /irmandade (doc 09 §0): hub da comunidade + código de conduta.
 export const Route = createFileRoute("/_site/irmandade")({
-  head: () => ({
-    meta: [
-      { title: `Irmandade | ${SITE_NAME}` },
-      {
-        name: "description",
-        content:
-          "Comunidade de homens que querem ser pais melhores: histórias, perguntas e respostas, encontros e grupos pequenos.",
-      },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
-  component: Page,
+  loader: () => getIrmandadeHubData(),
+  head: () => {
+    const title = `Irmandade | ${SITE_NAME}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: IRMANDADE_POSICIONAMENTO },
+        { property: "og:title", content: title },
+        { property: "og:description", content: IRMANDADE_POSICIONAMENTO },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: `${SITE_URL}/irmandade` },
+      ],
+      links: [{ rel: "canonical", href: `${SITE_URL}/irmandade` }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(breadcrumbJsonLd([{ name: "Irmandade", path: "/irmandade" }])),
+        },
+      ],
+    };
+  },
+  component: IrmandadePage,
 });
-
-function Page() {
-  return (
-    <ComingSoon
-      title="Irmandade"
-      description="Comunidade de homens que querem ser pais melhores: histórias, perguntas e respostas, encontros e grupos pequenos. Você não precisa caminhar sozinho."
-      eta="Abre depois da Área do Pai."
-      source="em-breve-irmandade"
-      highlights={[
-        "Histórias de pai contadas por quem viveu",
-        "Perguntas da Irmandade, respondidas por outros pais",
-        "Encontros e grupos pequenos, presenciais e on-line",
-        "Regras claras: respeito, sem vulgaridade, sem ataques",
-      ]}
-    />
-  );
-}

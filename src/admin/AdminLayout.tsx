@@ -144,6 +144,13 @@ export function AdminLayout() {
                 Membros
               </Link>
             )}
+            <Link
+              to="/admin/irmandade"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Users className="h-4 w-4" />
+              Irmandade
+            </Link>
             <span className="hidden text-sm text-muted-foreground md:block">
               {session.profile.display_name} · {session.profile.role}
             </span>

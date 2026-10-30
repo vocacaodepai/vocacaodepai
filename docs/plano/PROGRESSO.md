@@ -30,7 +30,8 @@
 | F5 Área do Pai | — | em andamento | 2026-10-30 | claude/fase-5-area-do-pai (sem push) | Etapas 5.1–5.5, 5.7, 5.9, 5.10 prontas no código; 5.6 parcial (SaveButton pronto, não inserido nas páginas); 5.8, 5.11, 5.12 pendentes; migration `0013_membros_extra.sql` não aplicada (banco não existe); detalhes em `progresso-fase-5.md` |
 | F5 Área do Pai | 5.1–5.10 | concluída | 2026-10-30 | claude/fase-5-area-do-pai | `/entrar`, `/cadastro`, `/recuperar-senha`, `/auth/callback`, onboarding 3 passos, painel 10 blocos, filhos, salvos, `/minha-conta` (LGPD), `/area-do-pai/plano`, `SaveButton`, `usePlan`, e-mails Resend + `/api/newsletter/weekly` + workflow, admin Membros |
 | F6 Pai Indica Pai | — | pendente | 2026-10-24 | | Depende de F5 |
-| F7 Irmandade e Formação | — | pendente | 2026-10-24 | | Depende de F5 |
+| F7 Irmandade e Formação | — | em andamento | 2026-10-30 | claude/fase-7-irmandade-formacao | 7.1–7.9 prontas em código (0015 + seeds 0016 não aplicadas: banco não existe); 7.9b, 7.10, 7.11 pendentes; detalhes em `progresso-fase-7.md` |
+| F7 Irmandade e Formação | 7.1–7.9 | concluída | 2026-10-30 | claude/fase-7-irmandade-formacao | Hub, histórias, perguntas, eventos, admin de moderação/eventos/formação, trilhas (8/107), desafios (3×30), insígnias (BadgeGrid + motor), seeds e sitemap |
 | F8 Automação, rotinas e painel | — | pendente | 2026-10-24 | | Depende de F1 a F7 |
 
 ## Decisões tomadas durante a execução

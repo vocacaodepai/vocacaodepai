@@ -1,36 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/home/ComingSoon";
-import { SITE_NAME } from "@/lib/site";
+import FormacaoPage from "@/pages/formacao/FormacaoPage";
+import { getFormacaoData } from "@/lib/tracks.functions";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
-// Placeholder da Fase 1 (doc 03 §5.3): noindex e fora do sitemap até a seção abrir.
+// /formacao (doc 09 §5): catálogo das 8 trilhas por pilar + desafios.
 export const Route = createFileRoute("/_site/formacao/")({
-  head: () => ({
-    meta: [
-      { title: `Formação | ${SITE_NAME}` },
-      {
-        name: "description",
-        content:
-          "Trilhas e desafios para crescer como pai, marido e homem de fé, com turmas, insígnias e o Caderno do Pai.",
-      },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
-  component: Page,
+  loader: () => getFormacaoData(),
+  head: () => {
+    const title = `Formação | ${SITE_NAME}`;
+    const description =
+      "Trilhas e desafios para crescer como pai, marido e homem de fé: passos no seu ritmo, insígnias e o Caderno do Pai.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: `${SITE_URL}/formacao` },
+      ],
+      links: [{ rel: "canonical", href: `${SITE_URL}/formacao` }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(breadcrumbJsonLd([{ name: "Formação", path: "/formacao" }])),
+        },
+      ],
+    };
+  },
+  component: FormacaoPage,
 });
-
-function Page() {
-  return (
-    <ComingSoon
-      title="Formação"
-      description="Trilhas e desafios para crescer como pai, marido e homem de fé, com turmas, insígnias e o Caderno do Pai."
-      eta="Abre junto com a Irmandade."
-      source="em-breve-formacao"
-      highlights={[
-        "Trilhas de formação passo a passo, no seu ritmo",
-        "Desafios do Pai, como os 33 dias com São José",
-        "Insígnias por etapa concluída e Badge de pai presente",
-        "Caderno do Pai para anotar o que mudou em casa",
-      ]}
-    />
-  );
-}
