@@ -3,7 +3,7 @@
 Uso: python3 scripts/rotina/photo_upgrade.py N [OFFSET]
   -> processa N produtos da fila (image_url sem _AC_SL1500_ ou menos de 5 fotos, ordem featured desc, sort_order),
      grava photo_upgrade_out.sql (um UPDATE pequeno por produto; images é jsonb) e photo_upgrade_log.txt.
-Ambiente: VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (CLAUDE.md §13), do ambiente ou do .env/.env.local.
+Ambiente: SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY (ou VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY; CLAUDE.md §13), do ambiente ou do .env/.env.local.
 Não escreve no banco: quem aplica o SQL é a rotina/agente (mcp__Supabase__execute_sql). Nunca DELETE/DROP.
 Adaptado do Vocação de Mãe (doc 05 §8.2)."""
 import sys, json, re, subprocess, time, urllib.request, urllib.parse, os
@@ -26,8 +26,8 @@ def _env(name):
                 return m.group(2).strip("\"'")
     return None
 
-URL = (_env("VITE_SUPABASE_URL") or "").rstrip("/")
-KEY = _env("VITE_SUPABASE_ANON_KEY") or ""
+URL = (_env("SUPABASE_URL") or _env("VITE_SUPABASE_URL") or "").rstrip("/")
+KEY = _env("SUPABASE_SERVICE_ROLE_KEY") or _env("VITE_SUPABASE_ANON_KEY") or ""
 if not URL.startswith("http") or not KEY or KEY.startswith("<"):
     print("Faltam VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY (ambiente ou .env).", file=sys.stderr)
     sys.exit(2)

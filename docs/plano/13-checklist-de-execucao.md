@@ -122,11 +122,11 @@
 
 ## Fase 8 — Automação, rotinas e painel (`10-fase-8-automacao-rotinas-e-painel.md`)
 
-- [ ] 8.1 `scripts/rotina/`: Python herdado do VDM conforme doc 10 §4.1 (`art_gen.py`, `cmp_gen.py`, `rev_art_gen.py`, `review_gen.py`, `cover_cmp.py`, `amz.py`, `photo_upgrade.py`, `price_range.py`, `news_gen.py`, `slugs.sh`, `proibidos.json`) + `backlog.mjs` (doc 12 §9.3) e briefs `BRIEF_ARTIGO_PAI.md`, `BRIEF_COMPARATIVO.md`, `BRIEF_REVIEW_UNICA.md`, `BRIEF_REVIEW.md`, `BRIEF_NOTICIA.md` (nomes fixados no doc 02 §3 e doc 10 §4.1)
+- [x] 8.1 (parcial: faltam `jogada_gen.py`, `backlog.mjs`; ver `progresso-fase-8.md`) `scripts/rotina/`: Python herdado do VDM conforme doc 10 §4.1 (`art_gen.py`, `cmp_gen.py`, `rev_art_gen.py`, `review_gen.py`, `cover_cmp.py`, `amz.py`, `photo_upgrade.py`, `price_range.py`, `news_gen.py`, `slugs.sh`, `proibidos.json`) + `backlog.mjs` (doc 12 §9.3) e briefs `BRIEF_ARTIGO_PAI.md`, `BRIEF_COMPARATIVO.md`, `BRIEF_REVIEW_UNICA.md`, `BRIEF_REVIEW.md`, `BRIEF_NOTICIA.md` (nomes fixados no doc 02 §3 e doc 10 §4.1)
 - [ ] 8.2 Rotina diária (Claude Code Routine): escolher tema do `12-backlog-de-conteudo.md`, gerar artigo, validar, inserir publicado, abrir PR `claude/rotina-<data>`
 - [ ] 8.3 Rotina semanal de Pai Indica (1 review ou comparativo) e rotina semanal de checagem de faixa de preço (`product_price_checks`)
-- [ ] 8.4 Workflow `.github/workflows/ci.yml`: build + lint + validate-content em todo PR
-- [ ] 8.5 Workflow `.github/workflows/auto-merge.yml`: mescla PRs `claude/*` quando CI e deploy da Vercel passam (ligar só após 8.4 verde)
+- [x] 8.4 Workflow `.github/workflows/validate.yml` (nome do doc 10 §10.2; era `ci.yml`): build + lint + validate-content em todo PR
+- [ ] 8.5 (preparado em `.github/workflows-disabled/`, desligado) Workflow `.github/workflows/auto-merge.yml`: mescla PRs `claude/*` quando CI e deploy da Vercel passam (ligar só após 8.4 verde)
 - [ ] 8.6 Links cruzados automáticos com o Vocação de Mãe (`ParaAMae`/`ParaOPai` por mapeamento de slugs) e newsletter conjunta
 - [ ] 8.7 Newsletter semanal automática por segmento (Resend Broadcast ou rota `/api/cron/newsletter`), bloco "Mercado do pai" diário na home via cache
 - [ ] 8.8 GA4 (`PUBLIC_GA4_ID`), Search Console, AdSense (slots nas páginas de artigo, Pai Indica e Loja; nunca em `/admin` nem na Área do Pai)

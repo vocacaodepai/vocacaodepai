@@ -1,1 +1,5 @@
-google.com, pub-5212610948635761, DIRECT, f08c47fec0942fa0
+# ads.txt do Vocação de Pai (vocacaodepai.com.br) — Google AdSense.
+# PLACEHOLDER: a conta AdSense do Vocação de Pai ainda não existe (pendência do dono, docs/plano/PROGRESSO.md).
+# Quando o publisher for criado, substituir a linha abaixo pelo ID real (sem o "#") e trocar
+# ADSENSE_PUBLISHER_ID em src/lib/adsense.ts no mesmo commit:
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

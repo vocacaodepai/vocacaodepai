@@ -11,7 +11,7 @@ achados.json = [{"slug": "...", "checks": [{"store": "Mercado Livre", "price": 3
 Regras: mesmo item (marca, modelo, cor/quantidade) em >= 2 lojas diferentes; min = menor, max = maior;
 se max > 3 x min, descarta (provável item diferente) e não grava nada. Sem confirmação: não grava.
 Quem aplica o SQL é a rotina/agente (mcp__Supabase__execute_sql). Nunca DELETE/DROP.
-Ambiente: VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (ambiente ou .env/.env.local)."""
+Ambiente: SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY (ou VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY), do ambiente ou .env/.env.local."""
 import sys, json, re, os, urllib.request
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -31,10 +31,10 @@ def _env(name):
     return None
 
 def q(path):
-    url = (_env("VITE_SUPABASE_URL") or "").rstrip("/")
-    key = _env("VITE_SUPABASE_ANON_KEY") or ""
+    url = (_env("SUPABASE_URL") or _env("VITE_SUPABASE_URL") or "").rstrip("/")
+    key = _env("SUPABASE_SERVICE_ROLE_KEY") or _env("VITE_SUPABASE_ANON_KEY") or ""
     if not url.startswith("http") or not key or key.startswith("<"):
-        print("Faltam VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY (ambiente ou .env).", file=sys.stderr)
+        print("Faltam SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (ou VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY) no ambiente ou .env.", file=sys.stderr)
         sys.exit(2)
     req = urllib.request.Request(url + "/rest/v1" + path, headers={"apikey": key, "Authorization": f"Bearer {key}"})
     return json.load(urllib.request.urlopen(req, timeout=60))

@@ -21,15 +21,15 @@ Cada produto comparado precisa existir em `products` (se não existir, crie como
 - Nunca "Ver preço na Amazon". Não fale mal de marca sem base. Segurança acima de tudo (ferramenta elétrica, churrasqueira, cadeirinha, suplemento): use "Sinal de alerta: " quando houver risco real.
 - Sem conteúdo LGBTQI ou casais do mesmo sexo. Sem vulgaridade.
 - Nunca DELETE/DROP. Não altere outros posts.
-- Título varia de formato entre os comparativos do dia (pergunta "A ou B: qual comprar?", "Os 3 melhores X de 2026", cenário "X para quem mora em apartamento", veredito antecipado). `seo_title` ≤ 62 caracteres.
+- Título varia de formato entre os comparativos do dia (pergunta "A ou B: qual comprar?", "Os 3 melhores X de 2026", cenário "X para quem mora em apartamento", veredito antecipado). `seo_title` ≤ 60 caracteres; `seo_description` 120–155.
 
 ## Passo a passo
-1. `python3 scripts/rotina/amz.py <ASIN>` para cada produto (cache em /tmp/amzcache-vocacaodepai; use run_in_background se demorar). `images[0]` = foto oficial (`_AC_SL1500_`).
+1. `python3 scripts/rotina/amz.py <ASIN>` para cada produto (cache em /tmp/amzcache-vocacaodepai (constante CACHE do amz.py); use run_in_background se demorar). `images[0]` = foto oficial (`_AC_SL1500_`).
 2. WebSearch: site do fabricante, manual, medidas, voltagem, Inmetro/Anatel, garantia. Cruze com os bullets.
 3. FAIXA DE PREÇO (antes do artigo): mesmo item em OUTRAS lojas (Mercado Livre, Magalu, Americanas, Casas Bahia, Shopee, Kabum, Leroy Merlin, fabricante). ≥ 2 lojas com preço em reais; min/max; descarte se max > 3×min. Confirmou: `update products set price_min=<n>, price_max=<n>, price_range_checked_at=now() where slug='<slug>' returning slug;`. Não confirmou: não grave.
 4. FOTOS: produto com < 3 fotos na galeria: `update products set image_url='<images[0]>', images=array['..','..']::text[], updated_at=now() where slug='<slug>' returning slug;` (até 8, só HTTP 200 e > 15 KB).
 5. CAPA COMPOSTA: `python3 scripts/rotina/cover_cmp.py <slug> "Nome 1=<images[0]>" "Nome 2=<...>" ["Nome 3=..."]` (mesma ordem da tabela). Grava `public/images/covers/<slug>.jpg`; coloque em `cover_image_url` e COMMITE o JPG no PR.
-6. Escreva o JSON (esquema abaixo) em `/tmp/rotina-cmp/<slug>.json` e rode `python3 <repo>/scripts/rotina/cmp_gen.py <slug>.json` nesse diretório até "OK". Mínimo 1100 palavras (mire 1500-2000), 8 links internos distintos (≥ 4 `/post/`, os `/loja/<slug>`, ≥ 1 `/pai-indica/` se houver).
+6. Escreva o JSON (esquema abaixo) em `/tmp/rotina-pai/<slug>.json` e rode `python3 scripts/rotina/cmp_gen.py /tmp/rotina-pai/<slug>.json --out /tmp/rotina-pai` até "OK" (`--offline` só em teste, pula o HEAD das fotos; `--slugs /tmp/rotina-pai/slugs.txt` usa o universo gravado por `slugs.sh`). Mínimo 1100 palavras (mire 1500-2000), 8 links internos distintos (≥ 4 `/post/`, os `/loja/<slug>`, ≥ 1 `/pai-indica/` se houver).
 7. Aplique `<slug>.insert.sql` com `mcp__Supabase__execute_sql` (project_id `<SUPABASE_PROJECT_REF>`), conteúdo INTEIRO. Idempotente por slug.
 8. Rode `node scripts/validate-content.mjs --slug <slug>` (precisa dar "✓"). Verifique: `select slug,kind,product_score,status,jsonb_array_length(body->'content') from posts where slug='<slug>'`. Responda em até 12 linhas: slug, palavras, links, faixas gravadas, fotos, problemas.
 
@@ -40,7 +40,7 @@ Cada produto comparado precisa existir em `products` (se não existir, crie como
  "kind": "comparativo",
  "title": "Bosch GSR 120-LI, Black+Decker LD12SP ou Makita HP333D: qual parafusadeira 12 V comprar?",
  "subtitle": "OBRIGATÓRIO (50-220 caracteres): o que comparamos e para quem serve; sem valor em reais",
- "seo_title": "(opcional) até 62 caracteres",
+ "seo_title": "até 60 caracteres (obrigatório quando o title passa de 60)", "seo_description": "120 a 155 caracteres (sem valor em reais)",
  "excerpt": "Até 155 caracteres.",
  "product_category": "ferramentas", "product_subcategory": "furadeiras-e-parafusadeiras",
  "cover_image_url": "/images/covers/<slug>.jpg",
@@ -56,14 +56,14 @@ Cada produto comparado precisa existir em `products` (se não existir, crie como
  ],
  "criteria": [{"name":"Desempenho","weight":30},{"name":"Ergonomia e peso","weight":15},{"name":"Durabilidade","weight":20},{"name":"Acessórios e garantia","weight":15},{"name":"Custo-benefício","weight":20}],
  "winner_slug": "bosch-gsr-120-li-12v",
- "verdict_by_profile": [{"profile":"Se você ...","pick_slug":"...","reason":"..."}],
+ "verdict_by_profile": [{"profile":"Se você ...","pick_slug":"...","reason":"..."}, "... mínimo 2 perfis"],
  "por_que_importa": ["1 a 3 parágrafos com links para /post/"],
  "variacao_preco": ["1 a 2 parágrafos; use {FAIXA:slug} se citar valores"],
  "qual_comprar": ["parágrafos por perfil com a opinião técnica final"],
- "como_avaliamos": ["fontes, sem teste físico, 5 critérios e pesos"],
+ "como_avaliamos": ["fontes, 5 critérios e pesos; a frase \"Não fizemos teste físico.\" é obrigatória"],
  "outros": ["links para outros posts, Pai Indica e loja"],
  "faq": [{"q":"..","a":".."}, "... mínimo 4"],
- "quiz": [{"question":"..","options":["a","b","c","d"],"answer":0,"explanation":".."}]
+ "quiz": [{"question":"..","options":["a","b","c","d"],"correct":0,"explanation":".."}]
 }
 ```
 Ordem de `tabela.linhas` = ordem de `produtos`. `role` ∈ vencedor | custo-beneficio | premium | alternativa | nao-indicamos. Para `kind: "lista"` (3 a 7 produtos) `role` é o selo (escolha-do-editor, melhor-custo-beneficio, melhor-premium, melhor-barato, melhor-para-iniciantes, melhor-compacto, melhor-para-familias, melhor-silencioso, melhor-desempenho, sem-selo), máximo 1 produto por selo, e as seções extras são "Como escolhemos" (no lugar da tabela, opcional) e "O que não recomendamos (e por quê)". Marcação: `**negrito**`, `[texto](/post/slug)`, `[texto](/loja/slug)`, `[texto](/pai-indica/slug)`.

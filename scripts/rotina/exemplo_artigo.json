@@ -1,0 +1,1252 @@
+{
+ "slug": "vai-ser-pai-guia-do-primeiro-trimestre-para-o-homem",
+ "title": "Vai ser pai: o guia do primeiro trimestre para o homem",
+ "subtitle": "O que muda no corpo dela, o que fazer nas consultas e como ser o apoio que sua esposa precisa nas primeiras 13 semanas.",
+ "excerpt": "Ela está grávida e você não sabe por onde começar. O que muda, o que fazer nas consultas e como apoiar sua esposa nas primeiras 13 semanas.",
+ "seo_title": "Vai ser pai: guia do primeiro trimestre para o homem",
+ "seo_description": "O que muda no corpo dela, como agir nas consultas de pré-natal, como ajudar com enjoo e sono e quando procurar a obstetra nas primeiras 13 semanas.",
+ "category": "gestacao-e-parto",
+ "kind": "artigo",
+ "cover": "https://images.unsplash.com/photo-1710897538265-93ca0abac2ff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+ "cover_alt": "Marido e esposa grávida com as mãos sobre a barriga",
+ "tags": [
+  "fase-gestacao"
+ ],
+ "_comentario": "Exemplo real (post 1 da seed 0009) na forma com `body` Tiptap pronto. A forma estruturada (abertura/secoes/semaforo/tabela/checklist/fechamento/continue_lendo) está descrita em BRIEF_ARTIGO_PAI.md; as duas são aceitas.",
+ "body": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Ela te mostrou o teste positivo e, no meio da alegria, veio a pergunta que todo homem faz em silêncio: e agora, o que eu faço? Ninguém te preparou para isso. Os amigos fazem piada, o pai da sua esposa te olha diferente e você sente que precisa ter respostas antes mesmo de entender as perguntas. Calma. As primeiras 13 semanas são justamente o tempo que Deus dá para o homem se organizar por dentro e por fora."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Este guia é o mapa do primeiro trimestre pelo olhar do pai: o que acontece no corpo dela e no bebê, como você se comporta nas consultas, o que fazer em casa quando o enjoo chega e por onde começar a "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/orcamento-familiar-para-quem-vai-ser-pai",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "arrumar o orçamento da casa"
+     },
+     {
+      "type": "text",
+      "text": " antes que a lista de gastos cresça. No fim, você sai sabendo o que é esperado, o que merece atenção e quando a situação exige um médico."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "O que acontece nas primeiras 13 semanas"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "O primeiro trimestre vai da concepção até o fim da 13ª semana. É o período em que o bebê sai de um aglomerado de células do tamanho de uma semente para um feto com braços, pernas, batimentos cardíacos e todos os órgãos em formação."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "No corpo da sua esposa, os hormônios disparam. O resultado costuma ser um pacote conhecido: enjoo (muitas vezes de manhã, mas não só), sono fora de hora, cansaço que parece desproporcional, seios doloridos, vontade de urinar toda hora e humor que muda sem aviso. Nada disso é frescura e nada disso é culpa dela. É o corpo construindo uma pessoa. Entender isso muda o jeito como você reage quando ela não consegue levantar do sofá às oito da noite."
+     }
+    ]
+   },
+   {
+    "type": "bulletList",
+    "content": [
+     {
+      "type": "listItem",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Semanas 4 a 6: o teste dá positivo, a menstruação não vem e começam os primeiros sintomas"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "listItem",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Semanas 7 a 9: o enjoo costuma atingir o pico; o coração do bebê já bate e pode aparecer no ultrassom"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "listItem",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Semanas 10 a 12: o risco de perda cai bastante e muitos casais escolhem contar para a família"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "listItem",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Semana 13: o enjoo tende a diminuir e o cansaço dá uma trégua; começa o segundo trimestre"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Esse calendário é uma média. Cada gestação tem o próprio ritmo, e quem acompanha de perto é a obstetra. O seu papel não é diagnosticar nada: é observar, anotar e estar presente. Os artigos da seção "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/categoria/paternidade-por-fase",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "Paternidade por fase"
+     },
+     {
+      "type": "text",
+      "text": " acompanham cada etapa daqui para a frente."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "O que muda para você, o marido"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Nada muda no seu corpo, e é exatamente por isso que muitos homens demoram a cair na real. Ela sente o bebê desde o primeiro enjoo; você só vai sentir quando ouvir o coração batendo ou quando pegar o recém-nascido no colo pela primeira vez. Não espere o sentimento chegar para começar a agir. Na vocação do pai, a ação vem antes da emoção."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "O medo é normal. Medo de não dar conta financeiramente, medo de repetir os erros do seu próprio pai e acabar "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/como-dar-limites-sem-gritar-autoridade-com-calma",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "gritando em vez de dar limite"
+     },
+     {
+      "type": "text",
+      "text": ", medo de perder a liberdade. Converse com sua esposa sobre eles, chame para um "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/cortes-de-carne-para-churrasco-guia-do-pai-iniciante",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "churrasco de fim de tarde"
+     },
+     {
+      "type": "text",
+      "text": " um amigo que já é pai e, se for católico praticante, leve isso para a confissão e para a direção espiritual. Homem que esconde o medo vira homem ausente; homem que nomeia o medo vira homem presente."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Comece também a pensar na sua saúde. Um pai precisa estar vivo e forte por muitas décadas, e os "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/exames-que-todo-homem-deve-fazer-a-partir-dos-30-anos",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "exames que todo homem deve fazer a partir dos 30 anos"
+     },
+     {
+      "type": "text",
+      "text": " não esperam o bebê nascer. Marque o seu check-up no mesmo mês em que ela marcar o pré-natal."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "Como se comportar nas consultas de pré-natal"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Vá junto. Não é opcional, não é favor: é o seu filho. Avise no trabalho com antecedência e, se precisar, use a lei a seu favor: a legislação trabalhista prevê ao pai o direito de acompanhar consultas e exames durante a gravidez em alguns dias ao longo da gestação. Confirme a regra atual com o RH e, se houver dúvida, com um advogado."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Durante a consulta, você tem três funções: ouvir, anotar e perguntar o que ela esqueceu. Grávida no primeiro trimestre está cansada e com a cabeça cheia; você é a memória do casal. Leve um caderno ou use o celular, mas registre:"
+     }
+    ]
+   },
+   {
+    "type": "bulletList",
+    "content": [
+     {
+      "type": "listItem",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Os exames pedidos e a data de cada um (tipagem sanguínea, sorologias, glicemia, exame de urina, ultrassom)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "listItem",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "O que ela pode e não pode tomar para o enjoo e para a dor de cabeça, segundo a médica"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "listItem",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "As datas da próxima consulta e do ultrassom de 11 a 14 semanas, um dos mais importantes do trimestre"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "listItem",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Os sinais que a obstetra disse para observar entre uma consulta e outra"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "listItem",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "As perguntas que surgiram em casa e ficaram sem resposta"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Não discuta com a médica na frente da sua esposa e não tente substituir a consulta por vídeos da internet. Se algo não fez sentido, pergunte com respeito."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "Enjoo, sono e humor: como ajudar sem atrapalhar"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Aqui o homem prático se destaca. Enjoo melhora com refeições pequenas e frequentes, então deixe biscoito salgado na cabeceira para ela comer antes de levantar. Cheiros fortes pioram tudo: cozinhar com a janela aberta, assumir o lixo e evitar perfume forte são gestos pequenos que ela nota. Se ela não consegue ficar na cozinha, a cozinha vira sua. Vai ser um bom treino para quando o bebê chegar e você precisar "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/rotina-do-pai-nos-primeiros-30-dias-do-bebe",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "segurar a rotina da casa nos primeiros 30 dias"
+     },
+     {
+      "type": "text",
+      "text": "."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Sobre o sono: deixe-a dormir. Não é preguiça, é construção de órgãos. Assuma a louça, a roupa e os compromissos do fim de semana sem reclamar e sem cobrar medalha. Sobre o humor: não leve para o pessoal. Se ela chorou porque o pão acabou, o problema não é o pão nem você. Abrace, resolva o que dá para resolver e não tente consertar sentimento com argumento."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Um erro comum é o marido se afastar fisicamente porque tem medo de machucar o bebê. Carinho não machuca. A intimidade do casal costuma seguir normalmente no primeiro trimestre, salvo orientação médica contrária; o que muda é o cansaço dela, e aí vale a regra de sempre: o desejo dela vem primeiro, sem pressão e sem ressentimento. Sobre isso, vale ler "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/como-ser-um-marido-presente-depois-que-o-bebe-chega",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "como ser um marido presente depois que o bebê chega"
+     },
+     {
+      "type": "text",
+      "text": ", porque os hábitos de agora definem o casamento de depois."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "Semáforo do pai: primeiro trimestre"
+     }
+    ]
+   },
+   {
+    "type": "callout",
+    "attrs": {
+     "tone": "ok"
+    },
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Sinal verde: enjoo que vai e volta, cansaço forte, sono fora de hora, seios doloridos, vontade frequente de urinar, pequenas mudanças de humor e um leve sangramento rosado nos primeiros dias depois do atraso menstrual. É o corpo fazendo o trabalho dele. Cuide da alimentação, do descanso e siga o calendário de consultas."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "callout",
+    "attrs": {
+     "tone": "warn"
+    },
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Sinal de atenção: vômitos que impedem de comer ou beber por mais de um dia, tontura ao levantar, dor de cabeça que não passa, tristeza ou ansiedade que duram dias seguidos, cólica persistente mesmo sem sangramento. Anote quando começou, o que piora e o que melhora, e antecipe o contato com a obstetra em vez de esperar a próxima consulta."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "callout",
+    "attrs": {
+     "tone": "bad"
+    },
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Sinal de alerta: sangramento vermelho vivo, principalmente com cólica forte; dor intensa em um dos lados do abdômen; febre alta; vômito sem parar com sinais de desidratação; desmaio. Não espere passar e não pesquise na internet: leve sua esposa ao pronto-socorro de obstetrícia ou ligue para a médica dela agora."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "O calendário do pai no primeiro trimestre"
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "content": [
+     {
+      "type": "tableRow",
+      "content": [
+       {
+        "type": "tableHeader",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Semanas"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableHeader",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "O que está acontecendo"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableHeader",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "O que o pai faz"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "tableRow",
+      "content": [
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "4 a 6"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Teste positivo, primeiros sintomas, primeira consulta"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Marca o pré-natal com ela, começa o caderno de anotações e revisa o orçamento"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "tableRow",
+      "content": [
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "7 a 9"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Pico do enjoo, coração do bebê já bate"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Assume a cozinha e o lixo, garante água e lanches, vai junto ao primeiro ultrassom"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "tableRow",
+      "content": [
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "10 a 12"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Risco de perda cai, hora de contar para a família"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Organiza o anúncio com ela, pesquisa plano de saúde e maternidade, faz o próprio check-up"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "tableRow",
+      "content": [
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "13"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Enjoo diminui, começa o segundo trimestre"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "tableCell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "Agenda o ultrassom morfológico, revisa a reserva de emergência e marca uma conversa com o padre"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Ser pai no primeiro trimestre é fazer o básico muito bem feito, todo dia, sem esperar aplauso."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "Dinheiro e trabalho: comece agora, não no oitavo mês"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "O primeiro trimestre é o melhor momento para encarar os números, porque ainda não existe pressa. Sente com sua esposa em um sábado de manhã e monte o "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/orcamento-familiar-para-quem-vai-ser-pai",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "orçamento familiar de quem vai ser pai"
+     },
+     {
+      "type": "text",
+      "text": ": renda da casa, gastos fixos, o que muda com o bebê e quanto dá para guardar por mês. Se a reserva de emergência não existe, ela nasce agora. Se existe dívida de cartão, ela entra na frente de qualquer compra de enxoval."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "No trabalho, não tome decisões bruscas. Não é hora de pedir demissão para empreender nem de aceitar uma transferência sem conversar em casa. É hora de entender como funciona a licença-paternidade na sua empresa, se existe extensão pelo programa Empresa Cidadã e como você vai organizar os dias de consulta."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "E cuide do corpo. Um plano simples de "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/treino-de-20-minutos-em-casa-para-pais-sem-tempo",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "treino de 20 minutos em casa"
+     },
+     {
+      "type": "text",
+      "text": " três vezes por semana custa zero e te dá energia para os meses que vêm. Enquanto isso, aproveite para deixar a casa em ordem: um "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/kit-basico-de-ferramentas-para-a-casa",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "kit básico de ferramentas"
+     },
+     {
+      "type": "text",
+      "text": " resolve a prateleira do quarto do bebê sem depender de ninguém."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "Fé: São José e a vocação que começa hoje"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "São José também recebeu a notícia de uma gravidez que mudou tudo, e a resposta dele não foi discurso: foi levantar e fazer o que precisava ser feito. É esse o modelo. Se você reza, inclua o bebê na oração da noite com sua esposa desde já; é o primeiro hábito de família que vocês constroem. Se faz tempo que não se confessa, o primeiro trimestre é um bom motivo. Um homem que quer ser pai precisa estar em paz com o próprio Pai."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Procure o padre da sua paróquia para conversar sobre o batismo. Não é cedo: é sinal de que você já está pensando no filho como pessoa, não como projeto. E, se o medo apertar, reze o terço com ela. Casal que reza junto atravessa o primeiro trimestre com outra serenidade, e chega ao dia de "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/como-segurar-um-recem-nascido-com-seguranca",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "segurar o recém-nascido no colo"
+     },
+     {
+      "type": "text",
+      "text": " sabendo que não está sozinho."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "Checklist do pai: primeiro trimestre"
+     }
+    ]
+   },
+   {
+    "type": "taskList",
+    "content": [
+     {
+      "type": "taskItem",
+      "attrs": {
+       "checked": false
+      },
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Ir a todas as consultas e anotar exames, datas e orientações"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "taskItem",
+      "attrs": {
+       "checked": false
+      },
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Assumir cozinha, lixo e compras enquanto o enjoo durar"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "taskItem",
+      "attrs": {
+       "checked": false
+      },
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Montar o orçamento da casa e começar a reserva de emergência"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "taskItem",
+      "attrs": {
+       "checked": false
+      },
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Marcar o próprio check-up e combinar a licença-paternidade com o RH"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "taskItem",
+      "attrs": {
+       "checked": false
+      },
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Rezar com a esposa pelo bebê todas as noites"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "taskItem",
+      "attrs": {
+       "checked": false
+      },
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Ficar atento aos sinais do semáforo acima"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Você não precisa saber tudo sobre gravidez para ser um bom pai nas primeiras 13 semanas. Precisa aparecer, observar, servir e decidir com calma. O homem que faz isso no primeiro trimestre chega ao parto como marido confiável e começa a paternidade do jeito certo: presente desde antes de o filho nascer."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Continue lendo: "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/rotina-do-pai-nos-primeiros-30-dias-do-bebe",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "Rotina do pai nos primeiros 30 dias do bebê"
+     },
+     {
+      "type": "text",
+      "text": ", "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/como-segurar-um-recem-nascido-com-seguranca",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "Como segurar um recém-nascido com segurança (e sem medo)"
+     },
+     {
+      "type": "text",
+      "text": ", "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/orcamento-familiar-para-quem-vai-ser-pai",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "Orçamento familiar para quem vai ser pai: passo a passo"
+     },
+     {
+      "type": "text",
+      "text": ", "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/como-ser-um-marido-presente-depois-que-o-bebe-chega",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "Como ser um marido presente depois que o bebê chega"
+     },
+     {
+      "type": "text",
+      "text": ", "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/exames-que-todo-homem-deve-fazer-a-partir-dos-30-anos",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "Exames que todo homem deve fazer a partir dos 30 anos"
+     },
+     {
+      "type": "text",
+      "text": " e "
+     },
+     {
+      "type": "text",
+      "marks": [
+       {
+        "type": "link",
+        "attrs": {
+         "href": "/post/treino-de-20-minutos-em-casa-para-pais-sem-tempo",
+         "class": null,
+         "rel": null,
+         "target": null
+        }
+       }
+      ],
+      "text": "Treino de 20 minutos em casa para pais sem tempo"
+     },
+     {
+      "type": "text",
+      "text": "."
+     }
+    ]
+   }
+  ]
+ },
+ "faq": [
+  {
+   "question": "Posso ir às consultas de pré-natal mesmo trabalhando?",
+   "answer": "Sim. A legislação trabalhista prevê ao pai dias para acompanhar consultas e exames da esposa durante a gestação. Confirme a regra em vigor com o RH e, em caso de dúvida, com um advogado; avise com antecedência e vá."
+  },
+  {
+   "question": "O enjoo dela é normal ou devo me preocupar?",
+   "answer": "Enjoo que vai e volta é esperado no primeiro trimestre. O sinal de atenção é vômito que impede de comer ou beber por mais de um dia; aí o casal antecipa o contato com a obstetra. Sinais de desidratação ou desmaio pedem pronto-socorro."
+  },
+  {
+   "question": "Quando contar para a família que ela está grávida?",
+   "answer": "Muitos casais esperam o fim da 12ª semana, quando o risco de perda cai bastante. Não existe regra: decidam juntos, e inclua os pais de vocês antes dos amigos."
+  },
+  {
+   "question": "A intimidade do casal muda no primeiro trimestre?",
+   "answer": "O que muda é o cansaço dela, não a segurança do bebê. Salvo orientação médica contrária, a vida íntima segue normalmente, sempre no ritmo e no desejo da esposa, sem pressão."
+  },
+  {
+   "question": "O que eu deveria resolver primeiro: enxoval ou dinheiro?",
+   "answer": "Dinheiro. Orçamento da casa e reserva de emergência vêm antes de qualquer compra. Enxoval se resolve no segundo e no terceiro trimestre, com lista e calma."
+  }
+ ],
+ "quiz": [
+  {
+   "question": "Qual é a principal tarefa do pai nas consultas de pré-natal?",
+   "options": [
+    "Discutir o diagnóstico com a médica",
+    "Ouvir, anotar e perguntar o que a esposa esqueceu",
+    "Esperar na recepção para não atrapalhar",
+    "Pesquisar na internet durante a consulta"
+   ],
+   "correct": 1,
+   "explanation": "No primeiro trimestre a esposa está cansada e com a cabeça cheia; o pai é a memória do casal. Anotar exames, datas e orientações é a função dele."
+  },
+  {
+   "question": "Sangramento vermelho vivo com cólica forte no primeiro trimestre é:",
+   "options": [
+    "Sinal verde, acontece com todas",
+    "Sinal de atenção, anotar e esperar a próxima consulta",
+    "Sinal de alerta: pronto-socorro de obstetrícia agora",
+    "Motivo para procurar um vídeo explicativo"
+   ],
+   "correct": 2,
+   "explanation": "Sangramento vermelho vivo com cólica forte é sinal de alerta. Não se espera: leva-se a esposa ao pronto-socorro obstétrico ou liga-se para a médica imediatamente."
+  },
+  {
+   "question": "Quando começar a organizar o orçamento da casa?",
+   "options": [
+    "No oitavo mês, quando o enxoval chega",
+    "Depois do parto, com os gastos reais",
+    "No primeiro trimestre, enquanto não há pressa",
+    "Só se a esposa parar de trabalhar"
+   ],
+   "correct": 2,
+   "explanation": "O primeiro trimestre é o melhor momento: dá tempo de construir reserva, quitar cartão e entender a licença-paternidade sem correria."
+  },
+  {
+   "question": "Como ajudar com o enjoo sem atrapalhar?",
+   "options": [
+    "Insistir para ela comer refeições grandes",
+    "Refeições pequenas e frequentes, evitar cheiros fortes e assumir a cozinha",
+    "Dizer que é frescura e passa",
+    "Comprar remédio por conta própria"
+   ],
+   "correct": 1,
+   "explanation": "Refeições pequenas, biscoito salgado na cabeceira, janela aberta ao cozinhar e o pai assumindo a cozinha ajudam de verdade. Remédio só com orientação da obstetra."
+  }
+ ]
+}

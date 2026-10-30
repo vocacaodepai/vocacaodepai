@@ -6,7 +6,18 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi", ".vercel", ".tanstack", "supabase/functions"] },
+  // scripts/agente.mjs é cópia byte a byte de grupovdp/scripts/agente.mjs (doc 10 §11.2): não formatar.
+  {
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      ".vercel",
+      ".tanstack",
+      "supabase/functions",
+      "scripts/agente.mjs",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

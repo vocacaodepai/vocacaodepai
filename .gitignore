@@ -15,3 +15,7 @@ dist/
 # supabase local
 supabase/.temp/
 supabase/.branches/
+
+# Python (scripts da rotina)
+__pycache__/
+*.pyc
