@@ -91,16 +91,16 @@
 
 ## Fase 6 — Pai Indica Pai (`08-fase-6-pai-indica-pai.md`)
 
-- [ ] 6.1 Rota `/pai-indica-pai` (hub: vagas recentes, profissionais em destaque, mentoria, botão "Indicar")
-- [ ] 6.2 Rota `/pai-indica-pai/vagas`: lista de `jobs` aprovadas, filtros (UF, cidade, remoto, tipo, área), busca, paginação
-- [ ] 6.3 Rota `/pai-indica-pai/vagas/nova` (autenticado): formulário com validação, `status='pending'`, `expires_at` padrão 45 dias, e-mail de recebimento
-- [ ] 6.4 Rota `/pai-indica-pai/vagas/$slug`: detalhe, "Como se candidatar", contador `views`, JSON-LD `JobPosting` completo (Google for Jobs), botão "Salvar vaga"
-- [ ] 6.5 Indicações (`job_referrals`): formulário "Indicar profissional/serviço/empresa", lista pública por categoria e cidade
-- [ ] 6.6 Rota `/pai-indica-pai/profissionais` (Pai Profissional): membro cria/edita perfil profissional (`professionals`), busca por profissão/cidade/UF, cartão com badge
-- [ ] 6.7 Rota `/pai-indica-pai/mentoria`: mentores por área, pedido de mentoria (`mentorships` pending → mentor aceita/recusa), e-mails via Resend
-- [ ] 6.8 `/admin/moderacao`: filas de vagas, indicações, profissionais; aprovar/reprovar com nota; gravar `moderation_log`; e-mail ao autor
-- [ ] 6.9 Rotina de expiração: função SQL `expire_jobs()` + cron (pg_cron ou rota `/api/cron/expire-jobs` chamada pela Vercel Cron)
-- [ ] 6.10 Sitemap de vagas (`/sitemap-vagas.xml`) e bloco "Vagas indicadas por pais" na home
+- [x] 6.1 Rota `/pai-indica-pai` (hub: vagas recentes, profissionais em destaque, mentoria, botão "Indicar")
+- [x] 6.2 Rota `/pai-indica-pai/vagas`: lista de `jobs` aprovadas, filtros (UF, cidade, remoto, tipo, área), busca, paginação
+- [x] 6.3 Rota `/pai-indica-pai/vagas/nova` (autenticado): formulário com validação, `status='pending'`, `expires_at` padrão 45 dias, e-mail de recebimento
+- [x] 6.4 Rota `/pai-indica-pai/vagas/$slug`: detalhe, "Como se candidatar", contador `views`, JSON-LD `JobPosting` completo (Google for Jobs), botão "Salvar vaga"
+- [x] 6.5 Indicações (`job_referrals`): formulário "Indicar profissional/serviço/empresa", lista pública por categoria e cidade
+- [x] 6.6 Rota `/pai-indica-pai/profissionais` (Pai Profissional): membro cria/edita perfil profissional (`professionals`), busca por profissão/cidade/UF, cartão com badge
+- [x] 6.7 Rota `/pai-indica-pai/mentoria`: mentores por área, pedido de mentoria (`mentorships` pending → mentor aceita/recusa), e-mails via Resend
+- [x] 6.8 `/admin/moderacao`: filas de vagas, indicações, profissionais; aprovar/reprovar com nota; gravar `moderation_log`; e-mail ao autor
+- [x] 6.9 Rotina de expiração: função SQL `expire_jobs()` + cron (pg_cron ou rota `/api/cron/expire-jobs` chamada pela Vercel Cron)
+- [x] 6.10 Sitemap de vagas (`/sitemap-vagas.xml`) e bloco "Vagas indicadas por pais" na home _(sitemap pronto; bloco da home fica para a consolidação — `Home.tsx` não editado nesta sessão)_
 - [ ] 6.11 Testar RLS (anônimo vê só approved; autor edita a própria pending; admin tudo)
 - [ ] 6.12 Validar, abrir PR "Fase 6 — Pai Indica Pai", atualizar `PROGRESSO.md`
 
