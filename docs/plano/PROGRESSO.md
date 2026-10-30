@@ -39,6 +39,7 @@
 | F8 Automação, rotinas e painel | 8.5 | em andamento | 2026-10-30 | claude/fase-8-automacao | `auto-merge.yml` copiado do VDM para `.github/workflows-disabled/` com README de como ligar (depende de decisão do dono) |
 | F8 Automação, rotinas e painel | 8.8 | em andamento | 2026-10-30 | claude/fase-8-automacao | AdSense com placeholder (`src/lib/adsense.ts`, `AdSlot` com `isNoAdsRoute`, `ads.txt` comentado); GA4/Search Console são pendência do dono |
 | F8 Automação, rotinas e painel | 8.9 | em andamento | 2026-10-30 | claude/fase-8-automacao | `scripts/agente.mjs`, `lisieux.sh`, `scripts/lisieux/registrar-site.md` (passos + diff); PR no grupovdp não aberto |
+| F9 Pai Indica Mídia | 9.1–9.9 | concluída (código) | 2026-10-30 | claude/fase-9-pai-indica-midia (sem push) | `media_reviews` (0017) + seed de 12 títulos (0018) não aplicadas (banco não existe); `/pai-indica/midia`, ficha, admin, validador, menu e sitemap prontos; 9.10 (aplicar SQL, conferir ClassInd, ASIN) é do dono; detalhes em `progresso-fase-9.md` |
 
 ## Decisões tomadas durante a execução
 

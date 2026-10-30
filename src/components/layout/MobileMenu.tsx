@@ -58,22 +58,37 @@ export function MobileMenu({
     >
       <div className="container flex flex-col gap-1 py-3">
         {NAV_MAIN.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            onClick={onClose}
-            className={({ isActive }) =>
-              cn(itemClass(isActive), item.store && !isActive && "text-accent")
-            }
-          >
-            {item.label}
-            {item.store && (
-              <span className="ml-2 text-xs font-bold uppercase tracking-wider text-accent/80">
-                O pai também quer desconto
-              </span>
+          <div key={item.to} className="flex flex-col">
+            <NavLink
+              to={item.to}
+              end={item.end}
+              onClick={onClose}
+              className={({ isActive }) =>
+                cn(itemClass(isActive), item.store && !isActive && "text-accent")
+              }
+            >
+              {item.label}
+              {item.store && (
+                <span className="ml-2 text-xs font-bold uppercase tracking-wider text-accent/80">
+                  O pai também quer desconto
+                </span>
+              )}
+            </NavLink>
+            {item.children && (
+              <div className="ml-4 flex flex-wrap gap-2 px-4 pb-2 pt-1">
+                {item.children.map((sub) => (
+                  <Link
+                    key={sub.to}
+                    to={sub.to}
+                    onClick={onClose}
+                    className="rounded-sm border-[1.5px] border-primary/60 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                  >
+                    {sub.label}
+                  </Link>
+                ))}
+              </div>
             )}
-          </NavLink>
+          </div>
         ))}
 
         {categories.length > 0 && (

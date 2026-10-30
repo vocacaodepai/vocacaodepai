@@ -7,11 +7,21 @@ export interface NavItem {
   end: boolean;
   /** Item da Loja do Pai: ganha destaque em âmbar ("O pai também quer desconto"). */
   store?: boolean;
+  /** Subitens (dropdown no desktop, lista recuada no menu móvel). Fase 9: Pai Indica → Mídia. */
+  children?: readonly NavItem[];
 }
 
 export const NAV_MAIN: readonly NavItem[] = [
   { to: "/blog", label: "Blog", end: false },
-  { to: "/pai-indica", label: "Pai Indica", end: false },
+  {
+    to: "/pai-indica",
+    label: "Pai Indica",
+    end: false,
+    children: [
+      { to: "/pai-indica", label: "Reviews de produtos", end: true },
+      { to: "/pai-indica/midia", label: "Mídia", end: false },
+    ],
+  },
   { to: "/loja", label: "Loja do Pai", end: false, store: true },
   { to: "/ferramentas", label: "Ferramentas", end: false },
   { to: "/pai-indica-pai", label: "Pai Indica Pai", end: false },

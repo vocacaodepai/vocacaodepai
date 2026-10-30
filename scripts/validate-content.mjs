@@ -9,7 +9,8 @@
 //   node scripts/validate-content.mjs --since 24h            # janela: Nh ou Nd
 //   node scripts/validate-content.mjs --slug a,b             # só esses slugs (banco)
 //   node scripts/validate-content.mjs --files f.sql g.json   # posts/produtos dentro de arquivos de seed, SEM banco
-//                                                            # (.sql: INSERTs em public.posts/public.products; .json: objeto ou array)
+//                                                            # (.sql: INSERTs em public.posts/public.products/public.media_reviews; .json: objeto ou array)
+//   node scripts/validate-content.mjs --media                # Fase 9: valida também as fichas de media_reviews (banco)
 //   opções: --products        valida também os produtos (banco ou arquivos)
 //           --images          faz HEAD em capa e imagens inline (exige 200 e content-type de imagem)
 //           --known-slugs a,b slugs de posts que vão existir (modo --files, para links entre arquivos ainda não gravados)
@@ -50,6 +51,7 @@ const SINCE = opt("--since", "7d");
 const ALL = has("--all");
 const WANT_PRODUCTS = has("--products");
 const WANT_IMAGES = has("--images");
+const WANT_MEDIA = has("--media");
 const FILES_MODE = FILES.length > 0;
 
 // ---------------------------------------------------------------- ambiente (.env sem dotenv)
@@ -404,6 +406,9 @@ function postsFromFile(file) {
         ...x,
         __origin: name,
       })),
+      media: (Array.isArray(j.media_reviews) ? j.media_reviews : []).map((x) =>
+        normalizeMedia(x, name),
+      ),
     };
   }
   return {
@@ -413,7 +418,38 @@ function postsFromFile(file) {
       category_slug: exprSlug(r.category_id),
       __origin: name,
     })),
+    media: parseSqlInserts(raw, "media_reviews").map((r) => normalizeMedia(r, name)),
   };
+}
+
+// Fase 9 (doc 14 §8): fichas do Pai Indica Mídia. Arrays text[] chegam como literal '{a,b}' nos seeds.
+const pgArray = (v) => {
+  if (Array.isArray(v)) return v;
+  if (v == null) return [];
+  const t = String(v).trim();
+  if (!t.startsWith("{")) return [t];
+  const out = [];
+  const re = /"((?:[^"\\]|\\.)*)"|([^,{}]+)/g;
+  let m;
+  while ((m = re.exec(t.slice(1, -1))))
+    out.push((m[1] != null ? m[1].replace(/\\(.)/g, "$1") : m[2]).trim());
+  return out.filter(Boolean);
+};
+function normalizeMedia(row, origin) {
+  const m = { ...row, __origin: origin };
+  for (const k of ["body", "content_scores"])
+    if (typeof m[k] === "string") {
+      try {
+        m[k] = JSON.parse(m[k]);
+      } catch {
+        m[k] = { __invalidJson: `coluna ${k} não é JSON válido` };
+      }
+    }
+  for (const k of ["platforms", "classind_descriptors", "talk_with_your_kids"])
+    m[k] = pgArray(m[k]);
+  if (m.status == null) m.status = "published";
+  if (m.classind != null) m.classind = String(m.classind);
+  return m;
 }
 
 // Fase 3: slugs de product_categories (0003_loja.sql e seeds) para validar products.category_id.
@@ -477,6 +513,7 @@ const seedFiles = () => {
 
 let posts = [],
   products = [],
+  media = [],
   universePosts = new Map(),
   universeProducts = new Map(),
   categories = new Set(),
@@ -494,6 +531,7 @@ if (FILES_MODE) {
       const r = postsFromFile(p);
       posts.push(...r.posts);
       products.push(...r.products);
+      media.push(...r.media);
     } catch (e) {
       console.error(`✗ ${f}: não consegui extrair os INSERTs (${e.message})`);
       process.exit(1);
@@ -566,6 +604,10 @@ if (FILES_MODE) {
   const prods = await dbGet(`/products?select=*&limit=5000`);
   for (const pr of prods) if (pr.active) universeProducts.set(pr.slug, pr);
   if (WANT_PRODUCTS) products = prods;
+  if (WANT_MEDIA)
+    media = (await dbGet(`/media_reviews?select=*&status=eq.published&limit=5000`)).map((m) =>
+      normalizeMedia(m, "banco"),
+    );
   const catRows = await dbGet(`/categories?select=id,slug&limit=1000`);
   const catById = new Map(catRows.map((c) => [c.id, c.slug]));
   for (const c of catRows) categories.add(c.slug);
@@ -1435,6 +1477,119 @@ async function checkImages(p, e) {
   }
 }
 
+// ---------------------------------------------------------------- Pai Indica Mídia (doc 14 §8)
+const MEDIA_TYPES = ["filme", "serie", "jogo", "app", "livro"];
+const CLASSIND = ["L", "10", "12", "14", "16", "18"];
+const CONTENT_KEYS = [
+  "violencia",
+  "sexo",
+  "linguagem",
+  "drogas",
+  "consumismo",
+  "medo",
+  "valores_positivos",
+  "modelos_positivos",
+  "fe",
+  "mensagem",
+];
+const WIKIMEDIA_RE = /^https:\/\/upload\.wikimedia\.org\//;
+const AMAZON_RE = /^https:\/\/(www\.)?amazon\.com\.br\//;
+const MEDIA_MIN_WORDS = 500;
+
+function validateMedia(m) {
+  const e = [],
+    w = [];
+  for (const k of ["slug", "title", "type", "summary"])
+    if (!m[k] || !String(m[k]).trim()) e.push(`campo obrigatório ausente: ${k}`);
+  if (m.slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(m.slug)) e.push("slug fora do kebab-case");
+  if (!MEDIA_TYPES.includes(m.type)) e.push(`type inválido: ${m.type}`);
+  if (m.type === "livro") {
+    if (m.classind != null) e.push("livro não recebe ClassInd (classind deve ser null)");
+  } else if (!CLASSIND.includes(m.classind)) {
+    e.push(`classind inválido ou ausente: ${m.classind} (L, 10, 12, 14, 16, 18)`);
+  }
+  const age = Number(m.pai_age_min);
+  if (!Number.isInteger(age) || age < 0 || age > 18) e.push("pai_age_min fora de 0-18");
+  const q = Number(m.score_quality);
+  if (!Number.isFinite(q) || q < 0 || q > 10) e.push("score_quality fora de 0-10");
+  const mo = Number(m.score_moral);
+  if (!Number.isInteger(mo) || mo < -4 || mo > 4) e.push("score_moral fora de -4..+4");
+  if (m.year != null && (Number(m.year) < 1900 || Number(m.year) > 2100))
+    e.push("year fora do intervalo");
+  const cs = m.content_scores;
+  if (!cs || typeof cs !== "object" || cs.__invalidJson)
+    e.push("content_scores ausente ou inválido");
+  else {
+    for (const k of CONTENT_KEYS) {
+      if (!(k in cs)) e.push(`content_scores sem a categoria "${k}"`);
+      else if (!Number.isInteger(Number(cs[k])) || cs[k] < 0 || cs[k] > 5)
+        e.push(`content_scores.${k} fora de 0-5`);
+    }
+    for (const k of Object.keys(cs))
+      if (!CONTENT_KEYS.includes(k)) e.push(`content_scores com chave desconhecida "${k}"`);
+  }
+  if (m.summary && (m.summary.length < 40 || m.summary.length > 300))
+    e.push("summary fora de 40-300 caracteres");
+  const body = m.body;
+  let words = 0;
+  if (!body || typeof body !== "object" || body.__invalidJson)
+    e.push("body ausente ou JSON inválido");
+  else {
+    words = wordsOf(textOf(body));
+    if (m.status === "published" && words < MEDIA_MIN_WORDS)
+      e.push(`body com ${words} palavras (mínimo ${MEDIA_MIN_WORDS})`);
+    for (const l of internalLinks(body))
+      if (!linkExists(l.href)) e.push(`link interno para destino inexistente: ${l.href}`);
+    const btn = [];
+    walk(body, (n) => {
+      if (n.type === "text" && Array.isArray(n.marks))
+        for (const mk of n.marks)
+          if (mk.type === "link" && mk.attrs?.class === "btn-comprar") btn.push(n.text || "");
+    });
+    for (const t of btn)
+      if (!/^Comprar (.+ )?agora na Amazon$/.test(t.trim()))
+        e.push(`botão com texto diferente de "Comprar agora na Amazon": "${t}"`);
+  }
+  if (m.status === "published") {
+    if (!m.what_parents_need_to_know || !String(m.what_parents_need_to_know).trim())
+      e.push("what_parents_need_to_know obrigatório em ficha publicada");
+    const talk = m.talk_with_your_kids || [];
+    if (talk.length < 3 || talk.length > 5)
+      e.push(`talk_with_your_kids com ${talk.length} itens (3 a 5)`);
+  }
+  if (m.poster_url != null && !WIKIMEDIA_RE.test(String(m.poster_url)))
+    e.push("poster_url só de upload.wikimedia.org (CC/PD) ou null");
+  if (m.poster_url && !m.poster_credit) e.push("poster_url sem poster_credit");
+  if (m.affiliate_url) {
+    if (!["livro", "jogo"].includes(m.type)) e.push("affiliate_url só para livro ou jogo");
+    else if (!AMAZON_RE.test(String(m.affiliate_url)))
+      e.push("affiliate_url fora de amazon.com.br");
+  }
+  if (m.seo_title && m.seo_title.length > 60) e.push("seo_title com mais de 60 caracteres");
+  if (m.seo_description && m.seo_description.length > 155)
+    e.push("seo_description com mais de 155 caracteres");
+  const blob = JSON.stringify([
+    m.title,
+    m.summary,
+    m.what_parents_need_to_know,
+    m.talk_with_your_kids,
+    m.pai_age_note,
+    body,
+  ]);
+  if (/R\$\s?\d/.test(blob)) e.push('"R$" na ficha (nunca preço exato)');
+  const corpus = fold(blob);
+  for (const [t, re] of PROIBIDOS_RE) if (re.test(corpus)) e.push(`termo proibido: "${t}"`);
+  for (const t of ["spoiler:", "final surpreendente", "no fim ele morre"])
+    if (corpus.includes(t)) w.push(`possível spoiler: "${t}"`);
+  if (
+    m.classind &&
+    m.type !== "livro" &&
+    /verificar no portal classind/i.test(String(m.pai_age_note || ""))
+  )
+    w.push("ClassInd marcado como 'verificar no portal' — conferir antes de divulgar como certo");
+  return { e, w, words };
+}
+
 // ---------------------------------------------------------------- execução
 for (const w of warnings) console.log(`! ${w}`);
 const dupes = new Map();
@@ -1465,11 +1620,26 @@ for (const pr of toCheck) {
   } else console.log(`✓ produto ${pr.slug}`);
   w.forEach((x) => console.log(`   ! ${x}`));
 }
-if (!posts.length && !toCheck.length)
+let mfailed = 0;
+const mediaDupes = new Map();
+for (const m of media) mediaDupes.set(m.slug, (mediaDupes.get(m.slug) || 0) + 1);
+for (const m of media) {
+  const { e, w, words } = validateMedia(m);
+  if (mediaDupes.get(m.slug) > 1) e.push("slug duplicado no conjunto validado");
+  if (e.length) {
+    mfailed++;
+    console.log(`✗ mídia ${m.type || "?"} ${m.slug || "?"} [${m.__origin || "banco"}]`);
+    e.forEach((x) => console.log(`   - ${x}`));
+  } else console.log(`✓ mídia ${m.type} ${m.slug} (${words} palavras)`);
+  w.forEach((x) => console.log(`   ! ${x}`));
+}
+if (!posts.length && !toCheck.length && !media.length)
   console.log(
-    FILES_MODE ? "Nenhum post ou produto encontrado nos arquivos." : "Nenhum post no período.",
+    FILES_MODE
+      ? "Nenhum post, produto ou ficha de mídia encontrado nos arquivos."
+      : "Nenhum post no período.",
   );
 console.log(
-  `\n${posts.length - failed}/${posts.length} posts válidos${toCheck.length ? `, ${toCheck.length - pfailed}/${toCheck.length} produtos válidos` : ""}`,
+  `\n${posts.length - failed}/${posts.length} posts válidos${toCheck.length ? `, ${toCheck.length - pfailed}/${toCheck.length} produtos válidos` : ""}${media.length ? `, ${media.length - mfailed}/${media.length} fichas de mídia válidas` : ""}`,
 );
-process.exit(failed || pfailed ? 1 : 0);
+process.exit(failed || pfailed || mfailed ? 1 : 0);
