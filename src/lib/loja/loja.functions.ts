@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createReadOnlySupabaseClient } from "@/lib/seo.functions";
 import { normalizeAffiliate } from "./affiliate";
+import { STORE_CATEGORIES, type StoreCategoryMeta } from "./categories";
 import {
   queryPostsForProduct,
   queryPriceChecks,
@@ -60,17 +61,40 @@ export interface StoreCategoryData {
   products: Product[];
 }
 
+/** Categoria sintética a partir do catálogo estático (id `static:<slug>`, sem consulta de produtos). */
+function staticCategory(meta: StoreCategoryMeta, index = 0): ProductCategory {
+  return {
+    id: `static:${meta.slug}`,
+    slug: meta.slug,
+    name: meta.name,
+    description: meta.description,
+    icon: null,
+    parent_id: null,
+    sort_order: index,
+  };
+}
+
 export const getStoreCategoryData = createServerFn({ method: "GET" })
   .inputValidator((d: { slug: string }) => ({ slug: String(d.slug ?? "") }))
   .handler(async ({ data }): Promise<StoreCategoryData | null> => {
     const db = await createReadOnlySupabaseClient();
-    const categories = await safe(queryProductCategories(db), [] as ProductCategory[]);
-    const category = categories.find((c) => c.slug === data.slug) ?? null;
+    const fromDb = await safe(queryProductCategories(db), [] as ProductCategory[]);
+    // Catálogo estático (as 10 categorias da 0003) como rede de segurança: com o banco
+    // fora do ar ou vazio, um slug oficial renderiza a página sem produtos em vez de 404.
+    // 404 só para slug que não existe em lugar nenhum.
+    const categories = fromDb.length > 0 ? fromDb : STORE_CATEGORIES.map(staticCategory);
+    const category =
+      categories.find((c) => c.slug === data.slug) ??
+      (STORE_CATEGORIES.some((c) => c.slug === data.slug)
+        ? staticCategory(STORE_CATEGORIES.find((c) => c.slug === data.slug)!)
+        : null);
     if (!category) return null;
-    const products = await safe(
-      queryStoreProducts(db, { light: true, categoryId: category.id }),
-      [] as Product[],
-    );
+    const products = category.id.startsWith("static:")
+      ? []
+      : await safe(
+          queryStoreProducts(db, { light: true, categoryId: category.id }),
+          [] as Product[],
+        );
     return { category, categories, products: products.map(withTag) };
   });
 

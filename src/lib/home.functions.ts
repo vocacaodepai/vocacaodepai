@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createReadOnlySupabaseClient } from "./seo.functions";
 import { readingTime } from "./content";
 import type { PostWire } from "./hub.functions";
+import { queryLatestJobs } from "./pai-indica-pai/queries";
+import type { JobPublic } from "./pai-indica-pai/types";
 import type { Category, PostWithRelations } from "./types";
 
 // Consultas extras da home (doc 03 §5.2): vitrine do Pai Indica (posts com
@@ -23,6 +25,8 @@ export interface PaiIndicaPost extends PostWithRelations {
 export interface HomeExtras {
   paiIndica: PostWire[];
   mainCategories: Category[];
+  /** Últimas 3 vagas aprovadas e ao vivo (view `jobs_public`, Fase 6) para o bloco da home. */
+  latestJobs: JobPublic[];
 }
 
 async function safe<T>(promise: Promise<T>, fallback: T): Promise<T> {
@@ -71,11 +75,12 @@ export const getHomeExtras = createServerFn({ method: "GET" }).handler(
   async (): Promise<HomeExtras> => {
     const db = await createReadOnlySupabaseClient();
     const untyped = db as unknown as SupabaseClient;
-    const [paiIndica, mainCategories] = await Promise.all([
+    const [paiIndica, mainCategories, latestJobs] = await Promise.all([
       safe(queryPaiIndica(untyped), [] as PostWire[]),
       safe(queryMainCategories(untyped), [] as Category[]),
+      safe(queryLatestJobs(untyped, 3), [] as JobPublic[]),
     ]);
-    return { paiIndica, mainCategories };
+    return { paiIndica, mainCategories, latestJobs };
   },
 );
 

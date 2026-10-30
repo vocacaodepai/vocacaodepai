@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  Award,
   Baby,
   Bookmark,
   Briefcase,
@@ -19,11 +18,19 @@ import { EMPTY_PAINEL, type PainelData } from "@/lib/area-do-pai/types";
 import { humanAge, phaseBySlug } from "@/lib/phases";
 import { AreaShell, Card, primaryBtn, secondaryBtn } from "@/components/area-do-pai/AreaShell";
 import { UpsellCard } from "@/components/area-do-pai/PremiumGate";
+import { BadgeGrid } from "@/components/formacao/BadgeGrid";
+import { StreakChip } from "@/components/formacao/StreakChip";
+import { MyPublications } from "@/components/pai-indica-pai/MyPublications";
+import { getMyFormacaoFn } from "@/lib/tracks.functions";
+import type { MyFormacao } from "@/lib/formacao/types";
 import { formatDateShort } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
-// Painel /area-do-pai (doc 07 §4.9): os 10 blocos em ordem. Tudo vem de
-// getPainelData em uma chamada; fases futuras (6 e 7) aparecem como placeholders.
+// Painel /area-do-pai (doc 07 §4.9): os 10 blocos em ordem. O grosso vem de
+// getPainelData em uma chamada. Trilhas, desafios, insígnias e streak (Fase 7)
+// vêm de getMyFormacaoFn (get_member_dashboard + grant_badges_for_me) e caem
+// nos dados do painel se a chamada falhar; "Minhas vagas/indicações" (Fase 6)
+// é o MyPublications do Pai Indica Pai. Tudo degrada para vazio sem banco.
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -43,6 +50,7 @@ const brl = (n: number) =>
 export default function PainelPage() {
   const { user, member } = useAuth();
   const [data, setData] = useState<PainelData | null>(null);
+  const [formacao, setFormacao] = useState<MyFormacao | null>(null);
   const [loading, setLoading] = useState(true);
   const [newsBusy, setNewsBusy] = useState(false);
 
@@ -66,6 +74,19 @@ export default function PainelPage() {
   useEffect(() => {
     if (user) void load();
   }, [user, load]);
+
+  // Formação (Fase 7): o bearer vai pelo middleware (attachSupabaseAuth); sem sessão
+  // ou sem banco a chamada falha e os cards usam o que getPainelData trouxe.
+  useEffect(() => {
+    if (!user) return setFormacao(null);
+    let alive = true;
+    getMyFormacaoFn()
+      .then((r) => alive && setFormacao(r))
+      .catch(() => alive && setFormacao(null));
+    return () => {
+      alive = false;
+    };
+  }, [user]);
 
   const toggleNewsletter = async (optIn: boolean) => {
     setNewsBusy(true);
@@ -91,6 +112,22 @@ export default function PainelPage() {
   const d = data ?? EMPTY_PAINEL;
   const name = d.profile?.display_name ?? member?.display_name ?? "pai";
   const first = name.split(/\s+/)[0];
+
+  // Fonte única para os cards da Formação: getMyFormacaoFn quando respondeu,
+  // senão o que o get_member_dashboard do painel já trouxe (mesma RPC, sem streak).
+  const tracks = formacao
+    ? formacao.formacao.tracks
+    : d.tracksInProgress.map((t) => ({ ...t, next_step: null }));
+  const challenges = formacao
+    ? formacao.formacao.challenges.map((c) => ({
+        slug: c.slug,
+        title: c.title,
+        day: c.current_day,
+        days: c.days,
+        today: c.today,
+      }))
+    : d.activeChallenges.map((c) => ({ ...c, today: null }));
+  const badges = formacao ? formacao.badges_all : d.badges;
 
   return (
     <AreaShell
@@ -262,24 +299,37 @@ export default function PainelPage() {
             )}
           </Card>
 
-          {/* 4. Trilhas */}
-          <Card title="Trilhas em andamento">
-            {d.tracksInProgress.length === 0 ? (
+          {/* 4. Trilhas (Fase 7) */}
+          <Card
+            title="Trilhas em andamento"
+            action={
+              <Link to="/formacao" className="text-sm font-bold text-primary hover:underline">
+                Ver Formação
+              </Link>
+            }
+          >
+            {tracks.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 <RouteIcon className="mr-1 inline h-4 w-4" aria-hidden />
-                As trilhas de formação chegam em breve.{" "}
+                Nenhuma trilha começada. Escolha uma na{" "}
                 <Link to="/formacao" className="font-bold text-primary">
-                  Ver Formação
-                </Link>
+                  Formação
+                </Link>{" "}
+                e avance no seu ritmo.
               </p>
             ) : (
               <ul className="space-y-3">
-                {d.tracksInProgress.map((t) => {
+                {tracks.map((t) => {
                   const pct = t.total ? Math.round((t.done / t.total) * 100) : 0;
+                  const next = t.next_step;
                   return (
                     <li key={t.slug}>
                       <Link
-                        to={`/formacao/${t.slug}`}
+                        to={
+                          next
+                            ? `/formacao/${t.slug}?passo=${next.position}`
+                            : `/formacao/${t.slug}`
+                        }
                         className="text-sm font-bold hover:text-primary"
                       >
                         {t.title}
@@ -289,6 +339,7 @@ export default function PainelPage() {
                       </div>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {t.done} de {t.total} passos
+                        {next ? ` · próximo: ${next.title}` : " · trilha concluída"}
                       </p>
                     </li>
                   );
@@ -297,19 +348,23 @@ export default function PainelPage() {
             )}
           </Card>
 
-          {/* 5. Desafios */}
-          <Card title="Desafios ativos">
-            {d.activeChallenges.length === 0 ? (
+          {/* 5. Desafios (Fase 7) */}
+          <Card
+            title="Desafios ativos"
+            action={
+              <Link to="/desafios" className="text-sm font-bold text-primary hover:underline">
+                Ver desafios
+              </Link>
+            }
+          >
+            {challenges.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 <Flag className="mr-1 inline h-4 w-4" aria-hidden />
-                Nenhum desafio em andamento.{" "}
-                <Link to="/desafios" className="font-bold text-primary">
-                  Ver desafios
-                </Link>
+                Nenhum desafio em andamento. São 30 dias, uma tarefa por dia, com recomeço suave.
               </p>
             ) : (
               <ul className="space-y-2">
-                {d.activeChallenges.map((c) => (
+                {challenges.map((c) => (
                   <li key={c.slug} className="text-sm">
                     <Link to={`/desafios/${c.slug}`} className="font-bold hover:text-primary">
                       {c.title}
@@ -317,42 +372,32 @@ export default function PainelPage() {
                     <span className="ml-2 text-xs text-muted-foreground">
                       Dia {c.day} de {c.days}
                     </span>
+                    {c.today && (
+                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                        Hoje: {c.today.title}
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
           </Card>
 
-          {/* 6. Insígnias */}
-          <Card title="Insígnias" className="lg:col-span-2">
-            {d.badges.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                <Award className="mr-1 inline h-4 w-4" aria-hidden />
-                As insígnias aparecem aqui conforme você avança.
-              </p>
-            ) : (
-              <ul className="flex flex-wrap gap-2">
-                {d.badges.map((b) => (
-                  <li
-                    key={b.slug}
-                    title={
-                      b.earned_at
-                        ? `Conquistada em ${formatDateShort(b.earned_at)}`
-                        : (b.description ?? "")
-                    }
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold",
-                      b.earned_at
-                        ? "border-accent/50 bg-accent/15 text-foreground"
-                        : "border-border bg-muted/40 text-muted-foreground",
-                    )}
-                  >
-                    <Award className="h-3.5 w-3.5" aria-hidden />
-                    {b.name}
-                  </li>
-                ))}
-              </ul>
-            )}
+          {/* 6. Insígnias + streak (Fase 7) */}
+          <Card
+            title="Insígnias"
+            className="lg:col-span-2"
+            action={
+              formacao ? (
+                <StreakChip
+                  streak={formacao.formacao.streak}
+                  points={formacao.formacao.points}
+                  title={formacao.formacao.title}
+                />
+              ) : undefined
+            }
+          >
+            <BadgeGrid badges={badges} compact />
           </Card>
 
           {/* 8. Newsletter */}
@@ -389,31 +434,35 @@ export default function PainelPage() {
             </div>
           </Card>
 
-          {/* 7. Minhas contribuições */}
+          {/* 7. Minhas contribuições: Pai Indica Pai (Fase 6, MyPublications) + histórias */}
           <Card title="Minhas contribuições" className="lg:col-span-2">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <ContribList
-                title="Minhas vagas"
-                items={d.myJobs.map((j) => ({
-                  key: j.slug,
-                  title: j.title,
-                  status: j.status,
-                  href: `/pai-indica-pai/vagas/${j.slug}`,
-                }))}
-                emptyHref="/pai-indica-pai/vagas/nova"
-                emptyLabel="Publicar vaga"
-              />
-              <ContribList
-                title="Minhas indicações"
-                items={d.myReferrals.map((r) => ({
-                  key: r.id,
-                  title: r.title,
-                  status: r.status,
-                  href: "/pai-indica-pai/profissionais",
-                }))}
-                emptyHref="/pai-indica-pai"
-                emptyLabel="Indicar um pai"
-              />
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <Briefcase className="h-3.5 w-3.5" aria-hidden /> Pai Indica Pai
+                </p>
+                <MyPublications />
+                <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  <Link
+                    to="/pai-indica-pai/vagas/nova"
+                    className="font-bold text-primary hover:underline"
+                  >
+                    Publicar vaga
+                  </Link>
+                  <Link
+                    to="/pai-indica-pai/indicacoes/nova"
+                    className="font-bold text-primary hover:underline"
+                  >
+                    Indicar um pai
+                  </Link>
+                  <Link
+                    to="/pai-indica-pai/profissionais/novo"
+                    className="font-bold text-primary hover:underline"
+                  >
+                    Meu perfil profissional
+                  </Link>
+                </p>
+              </div>
               <ContribList
                 title="Minhas histórias"
                 items={d.myStories.map((s) => ({

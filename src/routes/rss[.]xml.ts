@@ -72,9 +72,14 @@ export const Route = createFileRoute("/rss.xml")({
         } catch (error) {
           console.error("[rss.xml] failed to build:", error);
           const empty = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>${esc(SITE_NAME)}</title><link>${SITE_URL}</link><description>${esc(SITE_DESCRIPTION)}</description><language>pt-BR</language></channel></rss>`;
+          // Feed vazio, mas válido, com 200 e sem cache: banco fora do ar não vira 500
+          // para leitores/crawlers; a próxima requisição tenta de novo.
           return new Response(empty, {
-            status: 500,
-            headers: { "content-type": "application/rss+xml; charset=utf-8" },
+            status: 200,
+            headers: {
+              "content-type": "application/rss+xml; charset=utf-8",
+              "cache-control": "no-store",
+            },
           });
         }
       },
