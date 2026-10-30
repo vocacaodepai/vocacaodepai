@@ -61,17 +61,17 @@
 
 ## Fase 4 — Caixa de Ferramentas (`06-fase-4-ferramentas.md`)
 
-- [ ] 4.1 Registro de ferramentas em `src/lib/tools.ts` (slug, nome, descrição, ícone, categoria, componente) e rota `/ferramentas` (grade por categoria)
-- [ ] 4.2 Rota `/ferramentas/$slug` genérica (layout, SEO, "Como usar", artigos relacionados, `tool_usage` via `/api/tool-usage`)
-- [ ] 4.3 Camada `src/lib/market/` com cache em `market_cache` (get/set com TTL) e fallback "dados de <data>"
-- [ ] 4.4 `/ferramentas/conversor-de-moedas`: AwesomeAPI (USD, EUR, GBP, ARS, BTC → BRL e inverso), histórico 30 dias, TTL 15 min
-- [ ] 4.5 `/ferramentas/mercado-financeiro` ("Mercado do pai"): dólar, euro, Bitcoin, Ibovespa (BRAPI, token opcional), Selic, IPCA, poupança (BCB SGS); leitura "o que isso muda no seu bolso"; aviso "informação educativa"
-- [ ] 4.6 Sessão 4B — Dinheiro (doc 06 §0.6, §3.3 e §3.7–§3.10): `custo-do-filho`, `orcamento-familiar`, `juros-compostos`, `reserva-de-emergencia`, `pensao-alimenticia`
-- [ ] 4.7 Sessão 4C — Família e Saúde (doc 06 §0.6, §3.4 e §3.12–§3.17): `licenca-paternidade`, `nomes-de-filhos`, `calendario-de-vacinacao`, `marcos-do-desenvolvimento`, `imc-e-gasto-calorico`, `checklist-da-maternidade` (slug fixo do doc 02 §1.3; conteúdo = mala, documentos e tarefas **do pai** no dia do parto, doc 06 §0.2 item 15 — nada de conteúdo de maternidade do VDM)
-- [ ] 4.8 Sessão 4D — Churrasco/Cozinha/Oficina (doc 06 §0.6, §3.5, §3.6, §3.11 e §3.15): `calculadora-de-churrasco` (adultos/crianças/duração → carne por corte, carvão, bebidas; lista de compras; links para a Loja do Pai), `cortes-de-carne` (SVG do boi clicável; por corte: preparo, ponto, faixa de preço, artigos relacionados), `conversor-de-unidades`, `kit-de-ferramentas`. Os 17 slugs são os do doc 06 §0.2 / doc 02 §1.3; `decimo-terceiro`, `ferias`, `horas-extras`, `consumo-de-combustivel` **não existem nesta fase** (doc 06 §3.18, backlog pós-F8)
-- [ ] 4.9 Bloco "Mercado do pai hoje" na home (3 indicadores + link)
+- [x] 4.1 Registro de ferramentas em `src/lib/tools.ts` (slug, nome, descrição, ícone, categoria, componente) e rota `/ferramentas` (grade por categoria)
+- [x] 4.2 Rota `/ferramentas/$slug` genérica (layout, SEO, "Como usar", artigos relacionados, `tool_usage` via `/api/tool-usage`)
+- [x] 4.3 Camada `src/lib/market/` com cache em `market_cache` (get/set com TTL) e fallback "dados de <data>"
+- [x] 4.4 `/ferramentas/conversor-de-moedas`: AwesomeAPI (USD, EUR, GBP, ARS, BTC → BRL e inverso), histórico 30 dias, TTL 15 min
+- [x] 4.5 `/ferramentas/mercado-financeiro` ("Mercado do pai"): dólar, euro, Bitcoin, Ibovespa (BRAPI, token opcional), Selic, IPCA, poupança (BCB SGS); leitura "o que isso muda no seu bolso"; aviso "informação educativa"
+- [x] 4.6 Sessão 4B — Dinheiro (doc 06 §0.6, §3.3 e §3.7–§3.10): `custo-do-filho`, `orcamento-familiar`, `juros-compostos`, `reserva-de-emergencia`, `pensao-alimenticia`
+- [ ] 4.7 Sessão 4C — Família e Saúde *(parcial em 2026-10-30: `licenca-paternidade`, `imc-e-gasto-calorico` e `checklist-da-maternidade` prontos; faltam `nomes-de-filhos`, `calendario-de-vacinacao`, `marcos-do-desenvolvimento` — ver `progresso-fase-4.md`)* (doc 06 §0.6, §3.4 e §3.12–§3.17): `licenca-paternidade`, `nomes-de-filhos`, `calendario-de-vacinacao`, `marcos-do-desenvolvimento`, `imc-e-gasto-calorico`, `checklist-da-maternidade` (slug fixo do doc 02 §1.3; conteúdo = mala, documentos e tarefas **do pai** no dia do parto, doc 06 §0.2 item 15 — nada de conteúdo de maternidade do VDM)
+- [ ] 4.8 Sessão 4D — Churrasco/Cozinha/Oficina *(parcial em 2026-10-30: as 4 ferramentas prontas, só o boi no diagrama; porco e frango pendentes)* (doc 06 §0.6, §3.5, §3.6, §3.11 e §3.15): `calculadora-de-churrasco` (adultos/crianças/duração → carne por corte, carvão, bebidas; lista de compras; links para a Loja do Pai), `cortes-de-carne` (SVG do boi clicável; por corte: preparo, ponto, faixa de preço, artigos relacionados), `conversor-de-unidades`, `kit-de-ferramentas`. Os 17 slugs são os do doc 06 §0.2 / doc 02 §1.3; `decimo-terceiro`, `ferias`, `horas-extras`, `consumo-de-combustivel` **não existem nesta fase** (doc 06 §3.18, backlog pós-F8)
+- [x] 4.9 Bloco "Mercado do pai hoje" na home (3 indicadores + link)
 - [ ] 4.10 PWA: `manifest.webmanifest`, ícones, service worker com cache das calculadoras offline
-- [ ] 4.11 Botão "Salvar ferramenta" (desabilitado até a Fase 5)
+- [x] 4.11 Botão "Salvar ferramenta" (desabilitado até a Fase 5)
 - [ ] 4.12 Validar, abrir PR "Fase 4 — Caixa de Ferramentas", atualizar `PROGRESSO.md`
 
 ## Fase 5 — Área do Pai (`07-fase-5-area-do-pai-membros.md`)

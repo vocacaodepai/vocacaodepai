@@ -1,0 +1,92 @@
+{
+  "atualizado_em": "2026-10-30",
+  "fontes": [
+    {
+      "nome": "Senado — sanção da Lei 15.371/2026 (01/04/2026)",
+      "url": "https://www12.senado.leg.br/noticias/materias/2026/04/01/sancionado-o-aumento-gradual-da-licenca-paternidade"
+    },
+    {
+      "nome": "Câmara — Lei amplia licença-paternidade e cria salário-paternidade",
+      "url": "https://www.camara.leg.br/noticias/1259716-lei-amplia-licenca-paternidade-para-20-dias-e-cria-salario-paternidade"
+    },
+    {
+      "nome": "Agência Brasil — o que muda com a nova licença-paternidade",
+      "url": "https://agenciabrasil.ebc.com.br/direitos-humanos/noticia/2026-03/saiba-o-que-muda-com-nova-licenca-paternidade-no-brasil"
+    },
+    {
+      "nome": "Lei 11.770/2008 (Programa Empresa Cidadã)",
+      "url": "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2008/lei/l11770.htm"
+    }
+  ],
+  "regimes": [
+    {
+      "id": "clt",
+      "nome": "CLT (empresa comum)",
+      "dias": 5,
+      "contagem": "corridos",
+      "base": "ADCT art. 10, §1º; CLT art. 473, III (até 31/12/2026); Lei 15.371/2026 a partir de 2027",
+      "inicio": "primeiro dia útil após o nascimento",
+      "aviso": "Comunique o RH com a certidão de nascimento."
+    },
+    {
+      "id": "clt-empresa-cidada",
+      "nome": "CLT (empresa no Programa Empresa Cidadã)",
+      "dias": 20,
+      "contagem": "corridos",
+      "base": "Lei 11.770/2008, art. 1º, II (alterada pela Lei 13.257/2016): 5 dias + 15 de prorrogação",
+      "inicio": "primeiro dia útil após o nascimento",
+      "aviso": "Peça a prorrogação por escrito em até 2 dias úteis após o parto; a empresa precisa ter aderido ao programa."
+    },
+    {
+      "id": "servidor-federal",
+      "nome": "Servidor público federal",
+      "dias": 20,
+      "contagem": "corridos",
+      "base": "Lei 8.112/1990, art. 208 + Decreto 8.737/2016 (5 dias + prorrogação de 15)",
+      "inicio": "data do nascimento",
+      "aviso": "Requerimento no sistema de pessoal; prorrogação de 15 dias a pedido."
+    },
+    {
+      "id": "servidor-estadual-municipal",
+      "nome": "Servidor estadual ou municipal",
+      "dias": null,
+      "contagem": "corridos",
+      "base": "Estatuto do ente (varia de 5 a 30 dias)",
+      "inicio": "conforme o estatuto",
+      "aviso": "Consulte o estatuto do seu ente; informe os dias manualmente."
+    },
+    {
+      "id": "autonomo",
+      "nome": "Autônomo, MEI ou PJ",
+      "dias": 0,
+      "contagem": "corridos",
+      "base": "Sem licença remunerada em 2026; a Lei 15.371/2026 cria o salário-paternidade no INSS para contribuintes a partir de 2027",
+      "inicio": "—",
+      "aviso": "Planeje a pausa com a reserva de emergência; veja a ferramenta Reserva de emergência."
+    }
+  ],
+  "marcos_legais": [
+    {
+      "vigencia": "2027-01-01",
+      "dias_clt": 10,
+      "base": "Lei 15.371/2026, cronograma gradual (fonte: Senado, Câmara e Agência Brasil); texto consolidado no Planalto ainda a conferir"
+    },
+    { "vigencia": "2028-01-01", "dias_clt": 15, "base": "Lei 15.371/2026 — conferir no Planalto" },
+    {
+      "vigencia": "2029-01-01",
+      "dias_clt": 20,
+      "base": "Lei 15.371/2026 — última etapa condicionada a meta fiscal segundo análises jurídicas; conferir"
+    }
+  ],
+  "feriados_nacionais": [
+    "01-01",
+    "04-21",
+    "05-01",
+    "09-07",
+    "10-12",
+    "11-02",
+    "11-15",
+    "11-20",
+    "12-25"
+  ]
+}

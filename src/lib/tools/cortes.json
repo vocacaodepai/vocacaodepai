@@ -1,0 +1,423 @@
+{
+  "atualizado_em": "2026-10-30",
+  "nota": "Equivalências BR × EUA aproximadas (anexo res-ecossistema E.1; confirmar no Catálogo ABIEC). Faixas de preço só após pesquisa em 2 lojas (CLAUDE.md §5.2); null = ainda não pesquisada.",
+  "preparos": ["grelha", "espeto", "chapa", "panela", "forno", "moida"],
+  "cortes": [
+    {
+      "slug": "picanha",
+      "nome_br": "Picanha",
+      "nome_eua": "Top sirloin cap / Rump cap / Coulotte",
+      "regiao": "traseiro",
+      "textura": "Macia, com capa de gordura que derrete no fogo",
+      "maciez": 5,
+      "gordura": 4,
+      "preco_relativo": 5,
+      "preparo": ["grelha", "espeto", "chapa"],
+      "ponto": "Ao ponto para mal passado (55–58 °C), capa de gordura para cima primeiro",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: tirar a capa de gordura antes de assar seca a carne; corte só na hora de servir."
+      },
+      "dica_do_pai": "Peça peça de até 1,2 kg: acima disso costuma vir com coxão duro junto.",
+      "svg_id": "picanha",
+      "artigos": ["guia-dos-cortes-de-carne-para-churrasco"]
+    },
+    {
+      "slug": "contrafile",
+      "nome_br": "Contrafilé (bife ancho / chorizo)",
+      "nome_eua": "Striploin / New York strip; ancho = Ribeye",
+      "regiao": "traseiro",
+      "textura": "Macia e suculenta, com gordura entremeada",
+      "maciez": 4,
+      "gordura": 3,
+      "preco_relativo": 4,
+      "preparo": ["grelha", "chapa", "forno"],
+      "ponto": "Ao ponto para mal (55–58 °C); bife alto, 3 a 4 cm",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: bife fino em fogo fraco vira sola; corte alto e fogo forte."
+      },
+      "dica_do_pai": "Deixe a carne sair da geladeira 30 minutos antes de ir ao fogo.",
+      "svg_id": "contrafile",
+      "artigos": ["guia-dos-cortes-de-carne-para-churrasco"]
+    },
+    {
+      "slug": "alcatra",
+      "nome_br": "Alcatra",
+      "nome_eua": "Top sirloin",
+      "regiao": "traseiro",
+      "textura": "Macia, magra, sabor suave",
+      "maciez": 4,
+      "gordura": 2,
+      "preco_relativo": 3,
+      "preparo": ["grelha", "espeto", "chapa", "forno"],
+      "ponto": "Ao ponto (60–63 °C); não passar do ponto",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: por ser magra, passa do ponto rápido e fica seca; tire do fogo um minuto antes."
+      },
+      "dica_do_pai": "O miolo da alcatra é o melhor custo-benefício do churrasco de família.",
+      "svg_id": "alcatra",
+      "artigos": ["guia-dos-cortes-de-carne-para-churrasco"]
+    },
+    {
+      "slug": "maminha",
+      "nome_br": "Maminha",
+      "nome_eua": "Tri-tip",
+      "regiao": "traseiro",
+      "textura": "Macia, em formato de triângulo, suculenta",
+      "maciez": 4,
+      "gordura": 2,
+      "preco_relativo": 3,
+      "preparo": ["grelha", "espeto", "forno"],
+      "ponto": "Ao ponto (60 °C); peça inteira, fatiar contra as fibras",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: cortar a favor das fibras deixa a maminha dura na boca; fatie contra, em diagonal."
+      },
+      "dica_do_pai": "Asse inteira, com a gordura para cima, e só fatie na tábua.",
+      "svg_id": "maminha",
+      "artigos": ["fraldinha-ou-maminha-diferenca"]
+    },
+    {
+      "slug": "fraldinha",
+      "nome_br": "Fraldinha",
+      "nome_eua": "Flank steak (parecida; não é idêntica)",
+      "regiao": "traseiro",
+      "textura": "Fibras longas, muito sabor, pede ponto certo",
+      "maciez": 3,
+      "gordura": 3,
+      "preco_relativo": 3,
+      "preparo": ["grelha", "espeto", "chapa"],
+      "ponto": "Ao ponto para mal (55–58 °C); nunca bem passada",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: bem passada e cortada a favor das fibras vira borracha; ponto para mal e corte contra as fibras."
+      },
+      "dica_do_pai": "Peça inteira, grelha quente, 4 minutos de cada lado e descanso de 5 minutos.",
+      "svg_id": "fraldinha",
+      "artigos": ["fraldinha-ou-maminha-diferenca"]
+    },
+    {
+      "slug": "costela",
+      "nome_br": "Costela",
+      "nome_eua": "Short ribs / Beef ribs",
+      "regiao": "dianteiro",
+      "textura": "Muito colágeno e gordura; macia só com tempo",
+      "maciez": 2,
+      "gordura": 5,
+      "preco_relativo": 2,
+      "preparo": ["espeto", "forno", "panela"],
+      "ponto": "Bem passada, 4 a 6 horas em fogo baixo (bafo) até soltar do osso",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: fogo forte e pressa deixam a costela dura; é carne de paciência, longe da brasa."
+      },
+      "dica_do_pai": "Comece a costela antes de todo o resto: ela é a última a sair e a primeira a acabar.",
+      "svg_id": "costela",
+      "artigos": ["costela-no-bafo-quanto-tempo"]
+    },
+    {
+      "slug": "cupim",
+      "nome_br": "Cupim",
+      "nome_eua": "Hump (sem equivalente usual nos EUA)",
+      "regiao": "dianteiro",
+      "textura": "Gordura entremeada; derrete com cozimento longo",
+      "maciez": 2,
+      "gordura": 5,
+      "preco_relativo": 3,
+      "preparo": ["forno", "espeto", "panela"],
+      "ponto": "Bem passado, 5 a 7 horas embrulhado em papel-alumínio ou celofane",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: cupim direto na grelha por pouco tempo fica duro e cru por dentro; cozinhe embrulhado e longo."
+      },
+      "dica_do_pai": "Tempere na véspera com sal grosso e alho; o tempo faz o trabalho.",
+      "svg_id": "cupim",
+      "artigos": []
+    },
+    {
+      "slug": "acem",
+      "nome_br": "Acém",
+      "nome_eua": "Chuck",
+      "regiao": "dianteiro",
+      "textura": "Fibras com colágeno; amacia na panela",
+      "maciez": 2,
+      "gordura": 3,
+      "preco_relativo": 2,
+      "preparo": ["panela", "moida", "forno"],
+      "ponto": "Bem passado, 1h30 a 2h em panela de pressão ou cozido lento",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: acém na grelha rápida fica duro; é o rei do ensopado e da carne de panela."
+      },
+      "dica_do_pai": "Peça moído na hora para o hambúrguer dos filhos: tem a gordura certa.",
+      "svg_id": "acem",
+      "artigos": []
+    },
+    {
+      "slug": "peito",
+      "nome_br": "Peito",
+      "nome_eua": "Brisket",
+      "regiao": "dianteiro",
+      "textura": "Muito colágeno; o corte do defumado americano",
+      "maciez": 1,
+      "gordura": 4,
+      "preco_relativo": 2,
+      "preparo": ["forno", "panela"],
+      "ponto": "Bem passado, 8 a 12 horas em fogo baixo (defumado) ou 2 h na pressão",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: sem tempo e sem temperatura baixa o peito não amacia; não é corte de churrasco rápido."
+      },
+      "dica_do_pai": "Para começar no defumado, o peito ensina paciência: 95 °C internos é o alvo.",
+      "svg_id": "peito",
+      "artigos": []
+    },
+    {
+      "slug": "musculo",
+      "nome_br": "Músculo",
+      "nome_eua": "Shank",
+      "regiao": "dianteiro",
+      "textura": "Muito colágeno; vira caldo encorpado",
+      "maciez": 1,
+      "gordura": 2,
+      "preco_relativo": 1,
+      "preparo": ["panela"],
+      "ponto": "Bem passado, 40 a 60 minutos na pressão",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: músculo fora da panela de pressão fica duro; é o corte da sopa e do ossobuco."
+      },
+      "dica_do_pai": "Com osso, rende o melhor caldo para a sopa do inverno.",
+      "svg_id": "musculo",
+      "artigos": []
+    },
+    {
+      "slug": "paleta",
+      "nome_br": "Paleta",
+      "nome_eua": "Shoulder clod",
+      "regiao": "dianteiro",
+      "textura": "Magra com nervos; boa moída ou de panela",
+      "maciez": 2,
+      "gordura": 2,
+      "preco_relativo": 2,
+      "preparo": ["panela", "moida", "forno"],
+      "ponto": "Bem passada, cozido lento ou 1 h na pressão",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: os nervos da paleta não derretem na grelha; limpe bem ou use na panela."
+      },
+      "dica_do_pai": "O miolo da paleta vira um ótimo bife de panela com cebola.",
+      "svg_id": "paleta",
+      "artigos": []
+    },
+    {
+      "slug": "coxao-mole",
+      "nome_br": "Coxão mole",
+      "nome_eua": "Inside round / Top round",
+      "regiao": "traseiro",
+      "textura": "Magro, macio para bife fino",
+      "maciez": 3,
+      "gordura": 1,
+      "preco_relativo": 3,
+      "preparo": ["chapa", "panela", "forno"],
+      "ponto": "Bife fino ao ponto, rápido, 1 minuto de cada lado",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: bife grosso de coxão mole fica seco; corte fino e chapa bem quente."
+      },
+      "dica_do_pai": "É o bife do dia a dia: fino, rápido e com farofa.",
+      "svg_id": "coxao-mole",
+      "artigos": []
+    },
+    {
+      "slug": "coxao-duro",
+      "nome_br": "Coxão duro",
+      "nome_eua": "Outside round / Bottom round",
+      "regiao": "traseiro",
+      "textura": "Fibras longas e duras; pede umidade",
+      "maciez": 1,
+      "gordura": 1,
+      "preco_relativo": 2,
+      "preparo": ["panela", "forno"],
+      "ponto": "Bem passado, assado lento ou pressão; fatiar fino",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: já venderam coxão duro como picanha; a picanha tem capa de gordura e formato triangular, o coxão duro não."
+      },
+      "dica_do_pai": "Rosbife e carne louca: fatie bem fino depois de assar.",
+      "svg_id": "coxao-duro",
+      "artigos": []
+    },
+    {
+      "slug": "lagarto",
+      "nome_br": "Lagarto",
+      "nome_eua": "Eye of round",
+      "regiao": "traseiro",
+      "textura": "Muito magro, formato cilíndrico",
+      "maciez": 2,
+      "gordura": 1,
+      "preco_relativo": 2,
+      "preparo": ["panela", "forno"],
+      "ponto": "Bem passado, assado lento; ou carpaccio cru fatiado fino",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: lagarto na grelha fica seco e duro; é carne de panela recheada e de carpaccio."
+      },
+      "dica_do_pai": "Lagarto recheado com linguiça na panela de pressão: almoço de domingo garantido.",
+      "svg_id": "lagarto",
+      "artigos": []
+    },
+    {
+      "slug": "patinho",
+      "nome_br": "Patinho",
+      "nome_eua": "Knuckle / Sirloin tip",
+      "regiao": "traseiro",
+      "textura": "Magro e macio; a melhor carne moída",
+      "maciez": 3,
+      "gordura": 1,
+      "preco_relativo": 3,
+      "preparo": ["moida", "chapa", "panela"],
+      "ponto": "Moída sempre bem passada (74 °C); bife fino ao ponto",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "alerta",
+        "texto": "Sinal de alerta: carne moída mal passada é risco de intoxicação, principalmente para crianças; cozinhe até 74 °C e procure um médico se houver sintomas de intoxicação."
+      },
+      "dica_do_pai": "Peça para moer na sua frente: você vê o corte e evita mistura.",
+      "svg_id": "patinho",
+      "artigos": []
+    },
+    {
+      "slug": "file-mignon",
+      "nome_br": "Filé-mignon",
+      "nome_eua": "Tenderloin / Filet mignon",
+      "regiao": "traseiro",
+      "textura": "O mais macio do boi; pouca gordura e sabor delicado",
+      "maciez": 5,
+      "gordura": 1,
+      "preco_relativo": 5,
+      "preparo": ["chapa", "grelha", "forno"],
+      "ponto": "Mal passado a ao ponto (52–60 °C); medalhão alto",
+      "faixa_preco": {
+        "min": null,
+        "max": null,
+        "unidade": "kg",
+        "pesquisado_em": null,
+        "fontes": []
+      },
+      "erro_comum_semaforo": {
+        "sinal": "atencao",
+        "texto": "Sinal de atenção: bem passado, o filé perde a única vantagem que tem, a maciez; sele forte e tire cedo."
+      },
+      "dica_do_pai": "Para o jantar do aniversário de casamento: medalhão com manteiga e alecrim.",
+      "svg_id": "file-mignon",
+      "artigos": []
+    }
+  ]
+}

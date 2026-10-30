@@ -111,3 +111,4 @@
 | 2026-10-24 | Planejamento | — | Plano escrito: `PLANO-MESTRE.md`, `CLAUDE.md`, `README.md`, `docs/plano/00…13`, `PROGRESSO.md` |
 | 2026-10-29 | Planejamento | #1 | Docs 09 (Irmandade e Formação) e 12 (backlog) escritos; revisão cruzada de coerência (59 ajustes em 16 arquivos); pesquisas em `docs/plano/anexos/` |
 | 2026-10-30 | F1 etapas 2-9 | #2 | Base copiada e adaptada; migrations 0001-0010 escritas e validadas localmente; layout, home, blog, institucionais, admin e 10 artigos prontos; build/lint/validador verdes; detalhes em `progresso-etapa-{4,5-7,6,8}.md`. Pendente: projeto Supabase (limite do plano gratuito) e projeto Vercel (permissão) — etapas 1, 3 (aplicar), 10 |
+| 2026-10-30 | F4 (14 de 17 ferramentas) | — | Caixa de Ferramentas: registry, casca, rotas, camada de mercado + cron, 14 ferramentas, sitemap e ToolsTeaser; build/lint/tsc/testes verdes; detalhes e pendências em `progresso-fase-4.md` (faltam nomes, vacinas, marcos, PWA) |

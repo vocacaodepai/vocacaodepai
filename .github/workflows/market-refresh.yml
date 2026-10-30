@@ -1,0 +1,25 @@
+name: Market refresh (Caixa de Ferramentas)
+# Atualiza market_cache a cada 30 min chamando POST /api/market/refresh com o CRON_SECRET.
+# Sem auto-merge aqui: este workflow só faz a chamada HTTP (doc 06 §2.6).
+on:
+  schedule:
+    - cron: "*/30 * * * *" # UTC; atrasos do GitHub são cobertos pelo cache stale-while-error
+  workflow_dispatch: {}
+concurrency:
+  group: market-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Chamar /api/market/refresh
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET}" ]; then echo "CRON_SECRET não configurado"; exit 1; fi
+          code=$(curl -sS -o /tmp/out.json -w '%{http_code}' --max-time 60 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" "https://vocacaodepai.com.br/api/market/refresh")
+          echo "HTTP ${code}"; cat /tmp/out.json; echo
+          if [ "$code" != "200" ] && [ "$code" != "207" ]; then exit 1; fi
