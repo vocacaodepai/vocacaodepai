@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createReadOnlySupabaseClient } from "@/lib/seo.functions";
 import { PUBLISHED, nowIso } from "@/lib/queries";
 import { SITE_URL } from "@/lib/site";
+import { TOOLS } from "@/lib/tools/registry";
 
 // Sitemap (doc 03 §6.6 + doc 04 §5.3 + doc 05 §7): home, blog, Pai Indica, Loja do Pai
 // (/loja, /loja/categoria/<slug>, /loja/<slug> ativos), páginas institucionais, categorias
@@ -60,7 +61,7 @@ interface ProductCategoryRow {
 async function buildSitemap(): Promise<string> {
   const supabase = await createReadOnlySupabaseClient();
 
-  // TODO Fase 4 (Ferramentas), 6 (vagas) e 7 (histórias):
+  // TODO Fase 6 (vagas) e 7 (histórias):
   // acrescentar as rotas quando as páginas existirem.
   const [postsRes, categoriesRes, productCategoriesRes, productsRes] = await Promise.all([
     supabase
@@ -84,6 +85,20 @@ async function buildSitemap(): Promise<string> {
   const entries: string[] = STATIC_PAGES.map((p) =>
     urlEntry(`${SITE_URL}${p.path}`, today, p.changefreq, p.priority),
   );
+
+  // Fase 4 (doc 06 §4.1): índice + uma URL por ferramenta do registry.
+  entries.push(urlEntry(`${SITE_URL}/ferramentas`, today, "weekly", "0.8"));
+  for (const t of TOOLS) {
+    const live = Boolean(t.usesMarketData);
+    entries.push(
+      urlEntry(
+        `${SITE_URL}/ferramentas/${t.slug}`,
+        today,
+        live ? "hourly" : "monthly",
+        live ? "0.9" : "0.7",
+      ),
+    );
+  }
 
   // Categorias-mãe primeiro (prioridade maior), subcategorias depois.
   const categories = ((categoriesRes.data ?? []) as unknown as CategoryRow[]).filter(

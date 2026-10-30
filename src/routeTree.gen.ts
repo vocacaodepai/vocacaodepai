@@ -29,6 +29,7 @@ import { Route as ApiNewsletterRouteImport } from './routes/api/newsletter'
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
 import { Route as SiteCategoriaSlugRouteImport } from './routes/_site/categoria/$slug'
 import { Route as SiteFerramentasIndexRouteImport } from './routes/_site/ferramentas/index'
+import { Route as SiteFerramentasSlugRouteImport } from './routes/_site/ferramentas/$slug'
 import { Route as SiteFormacaoIndexRouteImport } from './routes/_site/formacao/index'
 import { Route as SiteLojaIndexRouteImport } from './routes/_site/loja/index'
 import { Route as SiteLojaSlugRouteImport } from './routes/_site/loja/$slug'
@@ -37,6 +38,7 @@ import { Route as SitePaiIndicaIndexRouteImport } from './routes/_site/pai-indic
 import { Route as SitePaiIndicaSlugRouteImport } from './routes/_site/pai-indica/$slug'
 import { Route as SitePostSlugRouteImport } from './routes/_site/post/$slug'
 import { Route as ApiImgSplatRouteImport } from './routes/api/img/$'
+import { Route as ApiMarketRefreshRouteImport } from './routes/api/market/refresh'
 import { Route as ApiNewsletterConfirmarRouteImport } from './routes/api/newsletter.confirmar'
 import { Route as AdminAdminEditorIndexRouteImport } from './routes/_admin/admin/editor/index'
 import { Route as AdminAdminEditorIdRouteImport } from './routes/_admin/admin/editor/$id'
@@ -146,6 +148,11 @@ const SiteFerramentasIndexRoute = SiteFerramentasIndexRouteImport.update({
   path: '/ferramentas/',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteFerramentasSlugRoute = SiteFerramentasSlugRouteImport.update({
+  id: '/ferramentas/$slug',
+  path: '/ferramentas/$slug',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteFormacaoIndexRoute = SiteFormacaoIndexRouteImport.update({
   id: '/formacao/',
   path: '/formacao/',
@@ -184,6 +191,11 @@ const SitePostSlugRoute = SitePostSlugRouteImport.update({
 const ApiImgSplatRoute = ApiImgSplatRouteImport.update({
   id: '/api/img/$',
   path: '/api/img/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMarketRefreshRoute = ApiMarketRefreshRouteImport.update({
+  id: '/api/market/refresh',
+  path: '/api/market/refresh',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiNewsletterConfirmarRoute = ApiNewsletterConfirmarRouteImport.update({
@@ -251,10 +263,12 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/ferramentas/$slug': typeof SiteFerramentasSlugRoute
   '/loja/$slug': typeof SiteLojaSlugRoute
   '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
+  '/api/market/refresh': typeof ApiMarketRefreshRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/admin/': typeof AdminAdminIndexRoute
   '/ferramentas/': typeof SiteFerramentasIndexRoute
@@ -288,10 +302,12 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/ferramentas/$slug': typeof SiteFerramentasSlugRoute
   '/loja/$slug': typeof SiteLojaSlugRoute
   '/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
+  '/api/market/refresh': typeof ApiMarketRefreshRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/admin': typeof AdminAdminIndexRoute
   '/ferramentas': typeof SiteFerramentasIndexRoute
@@ -328,10 +344,12 @@ export interface FileRoutesById {
   '/api/newsletter': typeof ApiNewsletterRouteWithChildren
   '/_site/': typeof SiteIndexRoute
   '/_site/categoria/$slug': typeof SiteCategoriaSlugRoute
+  '/_site/ferramentas/$slug': typeof SiteFerramentasSlugRoute
   '/_site/loja/$slug': typeof SiteLojaSlugRoute
   '/_site/pai-indica/$slug': typeof SitePaiIndicaSlugRoute
   '/_site/post/$slug': typeof SitePostSlugRoute
   '/api/img/$': typeof ApiImgSplatRoute
+  '/api/market/refresh': typeof ApiMarketRefreshRoute
   '/api/newsletter/confirmar': typeof ApiNewsletterConfirmarRoute
   '/_admin/admin/': typeof AdminAdminIndexRoute
   '/_site/ferramentas/': typeof SiteFerramentasIndexRoute
@@ -367,10 +385,12 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/newsletter'
     | '/categoria/$slug'
+    | '/ferramentas/$slug'
     | '/loja/$slug'
     | '/pai-indica/$slug'
     | '/post/$slug'
     | '/api/img/$'
+    | '/api/market/refresh'
     | '/api/newsletter/confirmar'
     | '/admin/'
     | '/ferramentas/'
@@ -404,10 +424,12 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/newsletter'
     | '/categoria/$slug'
+    | '/ferramentas/$slug'
     | '/loja/$slug'
     | '/pai-indica/$slug'
     | '/post/$slug'
     | '/api/img/$'
+    | '/api/market/refresh'
     | '/api/newsletter/confirmar'
     | '/admin'
     | '/ferramentas'
@@ -443,10 +465,12 @@ export interface FileRouteTypes {
     | '/api/newsletter'
     | '/_site/'
     | '/_site/categoria/$slug'
+    | '/_site/ferramentas/$slug'
     | '/_site/loja/$slug'
     | '/_site/pai-indica/$slug'
     | '/_site/post/$slug'
     | '/api/img/$'
+    | '/api/market/refresh'
     | '/api/newsletter/confirmar'
     | '/_admin/admin/'
     | '/_site/ferramentas/'
@@ -472,6 +496,7 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   ApiNewsletterRoute: typeof ApiNewsletterRouteWithChildren
   ApiImgSplatRoute: typeof ApiImgSplatRoute
+  ApiMarketRefreshRoute: typeof ApiMarketRefreshRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -616,6 +641,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteFerramentasIndexRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/ferramentas/$slug': {
+      id: '/_site/ferramentas/$slug'
+      path: '/ferramentas/$slug'
+      fullPath: '/ferramentas/$slug'
+      preLoaderRoute: typeof SiteFerramentasSlugRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/formacao/': {
       id: '/_site/formacao/'
       path: '/formacao'
@@ -670,6 +702,13 @@ declare module '@tanstack/react-router' {
       path: '/api/img/$'
       fullPath: '/api/img/$'
       preLoaderRoute: typeof ApiImgSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/market/refresh': {
+      id: '/api/market/refresh'
+      path: '/api/market/refresh'
+      fullPath: '/api/market/refresh'
+      preLoaderRoute: typeof ApiMarketRefreshRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/newsletter/confirmar': {
@@ -775,6 +814,7 @@ interface SiteRouteChildren {
   SiteTermosDeUsoRoute: typeof SiteTermosDeUsoRoute
   SiteIndexRoute: typeof SiteIndexRoute
   SiteCategoriaSlugRoute: typeof SiteCategoriaSlugRoute
+  SiteFerramentasSlugRoute: typeof SiteFerramentasSlugRoute
   SiteLojaSlugRoute: typeof SiteLojaSlugRoute
   SitePaiIndicaSlugRoute: typeof SitePaiIndicaSlugRoute
   SitePostSlugRoute: typeof SitePostSlugRoute
@@ -799,6 +839,7 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteTermosDeUsoRoute: SiteTermosDeUsoRoute,
   SiteIndexRoute: SiteIndexRoute,
   SiteCategoriaSlugRoute: SiteCategoriaSlugRoute,
+  SiteFerramentasSlugRoute: SiteFerramentasSlugRoute,
   SiteLojaSlugRoute: SiteLojaSlugRoute,
   SitePaiIndicaSlugRoute: SitePaiIndicaSlugRoute,
   SitePostSlugRoute: SitePostSlugRoute,
@@ -832,6 +873,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   ApiNewsletterRoute: ApiNewsletterRouteWithChildren,
   ApiImgSplatRoute: ApiImgSplatRoute,
+  ApiMarketRefreshRoute: ApiMarketRefreshRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
