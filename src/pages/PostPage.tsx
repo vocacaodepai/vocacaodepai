@@ -1,27 +1,28 @@
-import { isProductCover } from "@/lib/cover";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "@/lib/router-compat";
-import { ToolEmbedHost } from "@/components/blog/ToolEmbedHost";
-import { Bookmark, CalendarDays, ChevronLeft, ChevronRight, Clock, Heart } from "lucide-react";
+import { getRouteApi } from "@tanstack/react-router";
+import { Link } from "@/lib/router-compat";
+import {
+  Bookmark,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Heart,
+  Star,
+} from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  fetchPostBySlug,
-  fetchRelatedPosts,
-  fetchReactions,
-  registerView,
-  toggleReaction,
-} from "@/lib/db";
-import type { PostWithRelations } from "@/lib/types";
-import { addHeadingIds, extractHeadings, readingTime } from "@/lib/content";
-import { tiptapToHtml } from "@/lib/tiptap-html";
-import { enhanceReviewBody, reviewModelos } from "@/lib/review-body";
-import { StickyBuyBar } from "@/components/blog/StickyBuyBar";
-import { formatDate } from "@/lib/site";
+import { fetchRelatedPosts, fetchReactions, registerView, toggleReaction } from "@/lib/db";
+import type { BlogPost } from "@/lib/queries";
+import { unwirePosts } from "@/lib/hub.functions";
+import { addHeadingIds, extractHeadings, readingTime, type TipTapNode } from "@/lib/content";
+import { findParaAEsposa, tiptapToHtml } from "@/lib/tiptap-html";
+import { isProductCover } from "@/lib/cover";
+import { formatDate, DEFAULT_AUTHOR } from "@/lib/site";
 import { Breadcrumbs } from "@/components/blog/Breadcrumbs";
 import { ReadingProgress } from "@/components/blog/ReadingProgress";
 import { TableOfContents } from "@/components/blog/TableOfContents";
@@ -32,56 +33,49 @@ import { Comments } from "@/components/blog/Comments";
 import { PostCard } from "@/components/blog/PostCard";
 import { NewsletterSignup } from "@/components/blog/NewsletterSignup";
 import { AdSlot } from "@/components/blog/AdSlot";
+import { ContentNotice } from "@/components/blog/ContentNotice";
+import { ParaAEsposa } from "@/components/blog/ParaAEsposa";
+import { CategoryIcon } from "@/components/blog/category-icon";
+import { ToolEmbedHost } from "@/components/blog/ToolEmbedHost";
 import { useAuth } from "@/lib/auth-context";
-import { getRouteApi } from "@tanstack/react-router";
 
 const postRouteApi = getRouteApi("/_site/post/$slug");
 
-export default function PostPage() {
-  const { slug = "" } = useParams();
-  // The route loader already fetched the full post server-side (so
-  // Googlebot's first crawl sees real content, not a loading skeleton).
-  // Use it as the initial render and only fall back to a client fetch if
-  // it's somehow missing.
-  const loaderFull = postRouteApi.useLoaderData({
-    select: (d) => (d?.full as unknown as PostWithRelations | null) ?? null,
-  });
+const PRODUCT_KINDS = new Set(["review", "comparativo", "lista"]);
 
-  const [post, setPost] = useState<PostWithRelations | null>(loaderFull);
-  const [notFound, setNotFound] = useState(false);
-  const [loading, setLoading] = useState(!loaderFull);
-
-  useEffect(() => {
-    if (loaderFull) {
-      setPost(loaderFull);
-      setNotFound(false);
-      setLoading(false);
-      return;
+/**
+ * Divide o corpo em duas partes para o AdSlot entrar depois do 2º H2
+ * (doc 03 §6.2: um anúncio após o 2º H2 e outro no fim).
+ */
+function splitAtSecondHeading(doc: TipTapNode | null): [TipTapNode | null, TipTapNode | null] {
+  if (!doc || !Array.isArray(doc.content)) return [doc, null];
+  let seen = 0;
+  let cut = -1;
+  for (let i = 0; i < doc.content.length; i++) {
+    const node = doc.content[i];
+    if (node.type === "heading" && ((node.attrs?.level as number) ?? 2) === 2) {
+      seen++;
+      if (seen === 3) {
+        cut = i;
+        break;
+      }
     }
-    setLoading(true);
-    setNotFound(false);
-    fetchPostBySlug(slug)
-      .then((p) => {
-        if (!p) setNotFound(true);
-        else setPost(p);
-      })
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false));
-  }, [slug, loaderFull]);
-
-  if (loading) {
-    return (
-      <div className="container py-10">
-        <div className="mx-auto max-w-3xl space-y-4">
-          <div className="h-8 w-2/3 animate-pulse rounded bg-muted" />
-          <div className="h-6 w-1/3 animate-pulse rounded bg-muted" />
-          <div className="aspect-video w-full animate-pulse rounded-2xl bg-muted" />
-        </div>
-      </div>
-    );
   }
+  if (cut <= 0) return [doc, null];
+  return [
+    { ...doc, content: doc.content.slice(0, cut) },
+    { ...doc, content: doc.content.slice(cut) },
+  ];
+}
 
-  if (notFound || !post) {
+export default function PostPage() {
+  // O loader da rota já traz o post completo (SSR): o Google e o leitor
+  // recebem o texto no primeiro HTML, sem esqueleto de carregamento.
+  const { full, related: relatedWire } = postRouteApi.useLoaderData();
+  const post = full as unknown as BlogPost | null;
+  const related = unwirePosts(relatedWire);
+
+  if (!post) {
     return (
       <div className="container py-20 text-center">
         <h1 className="font-display text-3xl font-bold">404</h1>
@@ -89,24 +83,24 @@ export default function PostPage() {
           Este artigo não existe ou ainda não foi publicado.
         </p>
         <Link
-          to="/"
+          to="/blog"
           className="mt-6 inline-flex h-11 items-center rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground"
         >
-          Voltar para o início
+          Ver todos os artigos
         </Link>
       </div>
     );
   }
 
-  return <ArticleView key={post.id} post={post} />;
+  return <ArticleView key={post.id} post={post} initialRelated={related} />;
 }
 
-function ArticleView({ post }: { post: PostWithRelations }) {
+function ArticleView({ post, initialRelated }: { post: BlogPost; initialRelated: BlogPost[] }) {
   const { user, openLogin } = useAuth();
   const registered = useRef(false);
-  const [related, setRelated] = useState<PostWithRelations[]>([]);
+  const [related, setRelated] = useState<BlogPost[]>(initialRelated);
   const [reactions, setReactions] = useState({
-    likes: 0,
+    likes: post.like_count ?? 0,
     saves: 0,
     likedByMe: false,
     savedByMe: false,
@@ -114,18 +108,18 @@ function ArticleView({ post }: { post: PostWithRelations }) {
   const [toggling, setToggling] = useState<null | "like" | "save">(null);
 
   const headings = useMemo(() => extractHeadings(post.body), [post]);
-  // O corpo vira HTML estático (renderizado também no servidor, então o
-  // Google e o leitor recebem o texto no primeiro HTML). O editor TipTap
-  // fica só no admin.
-  const isReview = post.category?.slug === "review-de-mae";
-  const bodyHtml = useMemo(
-    () => tiptapToHtml(addHeadingIds(isReview ? enhanceReviewBody(post.body) : post.body)),
-    [post, isReview],
-  );
-  const singleReviewProduct = useMemo(() => {
-    const modelos = isReview ? reviewModelos(post.body) : [];
-    return modelos.length === 1 ? modelos[0]! : null;
-  }, [post, isReview]);
+  const isProduct = PRODUCT_KINDS.has(post.kind);
+  // O corpo vira HTML estático (renderizado também no servidor). O editor
+  // TipTap fica só no admin. Padrão A: callout (semáforo), table, taskList,
+  // image e os demais nós são tratados em tiptap-html.ts.
+  const [bodyHtmlA, bodyHtmlB] = useMemo(() => {
+    const [a, b] = splitAtSecondHeading(addHeadingIds(post.body));
+    return [tiptapToHtml(a), b ? tiptapToHtml(b) : ""];
+  }, [post]);
+  const paraAEsposa = useMemo(() => findParaAEsposa(post.body), [post]);
+  const category = post.category ?? null;
+  const parentCategory = (category as { parent?: { slug?: string; name?: string } | null } | null)
+    ?.parent;
 
   // Checklist clicável: permite marcar/desmarcar os itens de tarefa no modo leitura.
   const articleRef = useRef<HTMLDivElement>(null);
@@ -141,15 +135,17 @@ function ArticleView({ post }: { post: PostWithRelations }) {
       e.preventDefault();
       input.disabled = false;
       input.checked = !input.checked;
+      li.setAttribute("data-checked", String(input.checked));
     };
     root.addEventListener("click", onCheck);
     return () => root.removeEventListener("click", onCheck);
   }, []);
 
+  // `increment_post_views(p_post_id, p_user_key)`: 1 contagem por leitor por dia.
   useEffect(() => {
     if (!registered.current) {
       registered.current = true;
-      registerView(post.id);
+      registerView(post.id).catch(() => {});
     }
   }, [post.id]);
 
@@ -157,10 +153,12 @@ function ArticleView({ post }: { post: PostWithRelations }) {
     fetchReactions(post.id)
       .then(setReactions)
       .catch(() => {});
-    fetchRelatedPosts(post)
-      .then(setRelated)
-      .catch(() => {});
-  }, [post]);
+    if (initialRelated.length === 0) {
+      fetchRelatedPosts(post)
+        .then(setRelated)
+        .catch(() => {});
+    }
+  }, [post, initialRelated.length]);
 
   const handleToggle = async (type: "like" | "save") => {
     if (toggling) return;
@@ -185,8 +183,9 @@ function ArticleView({ post }: { post: PostWithRelations }) {
     }
   };
 
-  const minutes = readingTime(post.body);
+  const minutes = post.reading_time ?? readingTime(post.body);
   const hasToc = headings.length >= 3;
+  const authorName = post.author?.full_name || DEFAULT_AUTHOR;
 
   return (
     <div className="pb-8">
@@ -195,26 +194,38 @@ function ArticleView({ post }: { post: PostWithRelations }) {
       <div className="container py-6">
         <Breadcrumbs
           items={[
-            ...(post.category
-              ? [{ name: post.category.name, path: `/categoria/${post.category.slug}` }]
-              : []),
+            { name: "Blog", path: "/blog" },
+            ...(category ? [{ name: category.name, path: `/categoria/${category.slug}` }] : []),
             { name: post.title, path: `/post/${post.slug}` },
           ]}
         />
       </div>
 
       <article>
-        {/* Header */}
+        {/* Cabeçalho */}
         <header className="container">
           <div className="mx-auto max-w-3xl text-center">
-            {post.category && (
-              <Link
-                to={`/categoria/${post.category.slug}`}
-                className="inline-block rounded-full bg-secondary/70 px-4 py-1.5 text-xs font-bold text-secondary-foreground transition-colors hover:bg-secondary"
-              >
-                {post.category.name}
-              </Link>
-            )}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {category && (
+                <Link
+                  to={`/categoria/${category.slug}`}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-secondary/70 px-4 py-1.5 text-xs font-bold text-secondary-foreground transition-colors hover:bg-secondary"
+                >
+                  <CategoryIcon name={category.icon} slug={category.slug} className="h-3.5 w-3.5" />
+                  {category.name}
+                </Link>
+              )}
+              {isProduct && typeof post.product_score === "number" && (
+                // ReviewBadge (Fase 2 detalha): nota editorial do Pai Indica.
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-accent-foreground"
+                  title="Nota editorial do Pai Indica (0 a 10)"
+                >
+                  <Star className="h-3.5 w-3.5 fill-current" />
+                  Nota {post.product_score.toFixed(1).replace(".", ",")}
+                </span>
+              )}
+            </div>
             <h1 className="mt-4 font-display text-3xl font-bold leading-tight md:text-5xl">
               {post.title}
             </h1>
@@ -223,22 +234,20 @@ function ArticleView({ post }: { post: PostWithRelations }) {
             )}
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-              {post.author && (
-                <span className="font-bold text-foreground">{post.author.full_name}</span>
-              )}
+              <span className="font-bold text-foreground">{authorName}</span>
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays className="h-4 w-4" />
                 <time dateTime={post.publish_at ?? undefined}>{formatDate(post.publish_at)}</time>
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="h-4 w-4" />
-                {minutes} {"min de leitura"}
+                {minutes} min de leitura
               </span>
             </div>
           </div>
         </header>
 
-        {/* Cover */}
+        {/* Capa */}
         <div className="container mt-8">
           <div className="mx-auto max-w-4xl">
             {post.cover_image_url && (
@@ -246,7 +255,6 @@ function ArticleView({ post }: { post: PostWithRelations }) {
                 <img
                   src={post.cover_image_url}
                   alt={post.cover_image_alt ?? post.title}
-                  crossOrigin="anonymous"
                   decoding="async"
                   fetchPriority="high"
                   width={1280}
@@ -255,42 +263,55 @@ function ArticleView({ post }: { post: PostWithRelations }) {
                     isProductCover(post) ? "bg-white object-contain p-6" : "object-cover"
                   }`}
                 />
-                <p className="mt-2 text-center text-[11px] italic leading-tight text-muted-foreground/60">
-                  {`${post.cover_image_alt ?? post.title}`}
-                </p>
+                {post.cover_image_alt && (
+                  <p className="mt-2 text-center text-[11px] italic leading-tight text-muted-foreground/60">
+                    {post.cover_image_alt}
+                  </p>
+                )}
               </>
             )}
           </div>
         </div>
 
-        {/* Body */}
+        {/* Corpo */}
         <div className="container mt-10">
           <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_280px]">
             <div className="min-w-0">
-              <AdSlot format="leaderboard" className="mb-8" />
+              <ContentNotice
+                category={category?.slug}
+                parentCategory={parentCategory?.slug}
+                kind={post.kind}
+                className="mb-8"
+              />
 
               <div
                 id="post-body"
-                className={isReview ? "article-content review-article" : "article-content"}
+                className={isProduct ? "article-content review-article" : "article-content"}
                 ref={articleRef}
               >
-                <div className="tiptap" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+                <div className="tiptap" dangerouslySetInnerHTML={{ __html: bodyHtmlA }} />
+                {bodyHtmlB && (
+                  <>
+                    <AdSlot format="rect" className="my-8" />
+                    <div className="tiptap" dangerouslySetInnerHTML={{ __html: bodyHtmlB }} />
+                  </>
+                )}
               </div>
 
               {/* Ferramentas embutidas dentro do artigo */}
               <ToolEmbedHost scope="#post-body" />
-              {singleReviewProduct && <StickyBuyBar modelo={singleReviewProduct} />}
 
-              {/* Quiz + ranking: o convite do quiz vem primeiro; o ranking
-                  aparece abaixo, depois que o pai vê o desafio. */}
+              <AdSlot format="rect" className="mt-8" />
+
+              {/* Quiz + ranking */}
               {post.quiz && post.quiz.length > 0 && (
-                <section className="mt-10" aria-label={"Teste o que você aprendeu"}>
-                  <QuizWidget quiz={post.quiz ?? []} postId={post.id} />
+                <section className="mt-10" aria-label="Teste o que você aprendeu">
+                  <QuizWidget quiz={post.quiz} postId={post.id} />
                   <QuizRanking />
                 </section>
               )}
 
-              {/* Reactions + share */}
+              {/* Reações + compartilhar */}
               <div className="mt-10 flex flex-wrap items-center gap-3 border-y border-border py-5">
                 <button
                   onClick={() => handleToggle("like")}
@@ -303,7 +324,7 @@ function ArticleView({ post }: { post: PostWithRelations }) {
                   }`}
                 >
                   <Heart className={`h-4 w-4 ${reactions.likedByMe ? "fill-current" : ""}`} />
-                  {"Curtir"} · {reactions.likes}
+                  Curtir · {reactions.likes}
                 </button>
                 <button
                   onClick={() => handleToggle("save")}
@@ -316,7 +337,7 @@ function ArticleView({ post }: { post: PostWithRelations }) {
                   }`}
                 >
                   <Bookmark className={`h-4 w-4 ${reactions.savedByMe ? "fill-current" : ""}`} />
-                  {reactions.savedByMe ? "Salvo" : "Salvar"} · {reactions.saves}
+                  {reactions.savedByMe ? "Salvo" : "Salvar"}
                 </button>
                 <div className="ml-auto">
                   <ShareButtons title={post.title} slug={post.slug} />
@@ -325,16 +346,16 @@ function ArticleView({ post }: { post: PostWithRelations }) {
 
               {/* FAQ */}
               {post.faq && post.faq.length > 0 && (
-                <section className="mt-10" aria-label={"Perguntas frequentes"}>
-                  <h2 className="font-display text-2xl font-bold">{"Perguntas frequentes"}</h2>
+                <section className="mt-10" aria-label="Perguntas frequentes">
+                  <h2 className="font-display text-2xl font-bold">Perguntas frequentes</h2>
                   <Accordion type="single" collapsible className="mt-4">
                     {post.faq.map((item, i) => (
                       <AccordionItem key={i} value={`faq-${i}`}>
                         <AccordionTrigger className="text-left font-semibold">
-                          {item.question ?? (item as unknown as { q?: string }).q}
+                          {item.question}
                         </AccordionTrigger>
                         <AccordionContent className="leading-relaxed text-muted-foreground">
-                          {item.answer ?? (item as unknown as { a?: string }).a}
+                          {item.answer}
                         </AccordionContent>
                       </AccordionItem>
                     ))}
@@ -342,75 +363,75 @@ function ArticleView({ post }: { post: PostWithRelations }) {
                 </section>
               )}
 
-              {/* Comments */}
+              {/* Para a sua esposa: Vocação de Mãe (antes do "Continue lendo") */}
+              {paraAEsposa && <ParaAEsposa slug={paraAEsposa.slug} title={paraAEsposa.title} />}
+
+              {/* Comentários */}
               <Comments postId={post.id} />
 
-              {/* Author bio */}
-              {post.author && (
-                <section className="mt-12 flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-6 shadow-soft sm:flex-row sm:items-center">
-                  <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-secondary font-display text-2xl font-bold text-secondary-foreground">
-                    {post.author.full_name.charAt(0)}
-                  </span>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-primary">
-                      {"Sobre a autora"}
+              {/* Autor */}
+              <section className="mt-12 flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-6 shadow-soft sm:flex-row sm:items-center">
+                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-secondary font-display text-2xl font-bold text-secondary-foreground">
+                  {authorName.charAt(0)}
+                </span>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                    Sobre o autor
+                  </p>
+                  <p className="mt-1 font-display text-lg font-bold">{authorName}</p>
+                  {post.author?.bio && (
+                    <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                      {post.author.bio}
                     </p>
-                    <p className="mt-1 font-display text-lg font-bold">{post.author.full_name}</p>
-                    {post.author.bio && (
-                      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                        {post.author.bio}
-                      </p>
-                    )}
-                  </div>
-                </section>
-              )}
+                  )}
+                </div>
+              </section>
             </div>
 
-            {/* Sidebar */}
+            {/* Barra lateral */}
             <aside className="hidden lg:block">
               <div className="sticky top-24 space-y-6">
                 {hasToc && <TableOfContents headings={headings} />}
                 <div className="rounded-2xl bg-gradient-soft p-5 shadow-soft">
-                  <p className="mb-3 text-sm font-bold">{"Gostou deste artigo?"}</p>
+                  <p className="mb-3 text-sm font-bold">Gostou deste artigo?</p>
                   <NewsletterSignup compact source="artigo" />
                 </div>
-                <AdSlot format="skyscraper" />
               </div>
             </aside>
           </div>
         </div>
 
-        {/* Mobile TOC */}
+        {/* Sumário no celular */}
         {hasToc && (
           <div className="container mt-8 lg:hidden">
             <TableOfContents headings={headings} />
           </div>
         )}
 
-        {/* Mobile newsletter */}
+        {/* Newsletter no celular */}
         <div className="container mt-8 lg:hidden">
           <div className="rounded-2xl bg-gradient-soft p-5 shadow-soft">
-            <p className="mb-3 text-sm font-bold">{"Gostou deste artigo?"}</p>
+            <p className="mb-3 text-sm font-bold">Gostou deste artigo?</p>
             <NewsletterSignup compact source="artigo" />
           </div>
         </div>
       </article>
 
-      {/* Related */}
+      {/* Continue lendo: 3 posts da mesma categoria */}
       {related.length > 0 && (
         <section className="container mt-14" aria-labelledby="related-title">
           <h2 id="related-title" className="font-display text-2xl font-bold md:text-3xl">
-            {"Você também pode gostar"}
+            Continue lendo
           </h2>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {related.slice(0, 4).map((p) => (
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {related.slice(0, 3).map((p) => (
               <PostCard key={p.id} post={p} />
             ))}
           </div>
         </section>
       )}
 
-      {/* Next / prev */}
+      {/* Anterior / próximo */}
       {related.length >= 2 && (
         <div className="container mt-12 flex flex-col justify-between gap-3 sm:flex-row">
           <Link

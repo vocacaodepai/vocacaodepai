@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createReadOnlySupabaseClient } from "@/lib/seo.functions";
+import { PUBLISHED, nowIso } from "@/lib/queries";
 import { SITE_URL } from "@/lib/site";
 
+// Sitemap da Fase 1 (doc 03 §6.6): home, páginas institucionais, categorias e
+// posts publicados. SEM os placeholders das seções futuras (/pai-indica, /loja,
+// /ferramentas, /area-do-pai, /pai-indica-pai, /irmandade, /formacao): cada
+// fase acrescenta as suas rotas quando elas existirem de verdade.
 const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }> = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/blog", changefreq: "daily", priority: "0.9" },
@@ -8,6 +14,7 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: "/contato", changefreq: "monthly", priority: "0.4" },
   { path: "/politica-de-privacidade", changefreq: "yearly", priority: "0.2" },
   { path: "/termos-de-uso", changefreq: "yearly", priority: "0.2" },
+  { path: "/politica-de-afiliados", changefreq: "yearly", priority: "0.2" },
 ];
 
 function escapeXml(value: string): string {
@@ -23,66 +30,61 @@ function urlEntry(loc: string, lastmod: string, changefreq: string, priority: st
   return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
 }
 
-// Fallback to the same public URL/publishable key baked into the client bundle
-// (src/integrations/supabase/client.ts) when the VITE_SUPABASE_URL/
-// VITE_SUPABASE_ANON_KEY env vars aren't configured on the server.
-// Placeholders substituídos pelos valores reais no fim da Etapa 1 (doc 03 §1.3).
-const FALLBACK_SUPABASE_URL = "<SUPABASE_URL>";
-const FALLBACK_SUPABASE_PUBLISHABLE_KEY = "<SUPABASE_PUBLISHABLE_KEY>";
+interface PostRow {
+  slug: string;
+  updated_at: string | null;
+  publish_at: string | null;
+}
 
-// Public, read-only client — same pattern as src/lib/seo.functions.ts. Works
-// during SSR without a session and only needs the publishable key, since the
-// sitemap only ever lists content that's already publicly readable via RLS.
-async function createReadOnlyClient() {
-  const { createClient } = await import("@supabase/supabase-js");
-  const url = process.env["VITE_SUPABASE_URL"] || FALLBACK_SUPABASE_URL;
-  const key = process.env["VITE_SUPABASE_ANON_KEY"] || FALLBACK_SUPABASE_PUBLISHABLE_KEY;
-  return createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: {
-      fetch: (input, init) => {
-        const headers = new Headers(init?.headers);
-        if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) {
-          headers.delete("Authorization");
-        }
-        headers.set("apikey", key);
-        return fetch(input, { ...init, headers });
-      },
-    },
-  });
+interface CategoryRow {
+  slug: string;
+  parent_id: string | null;
+  sort_order: number;
 }
 
 async function buildSitemap(): Promise<string> {
-  const supabase = await createReadOnlyClient();
+  const supabase = await createReadOnlySupabaseClient();
 
-  // TODO Fase 3 (loja) e Fase 7 (histórias): voltar a listar /loja/<slug> e /historias/<id>.
+  // TODO Fase 2 (Pai Indica), 3 (Loja), 4 (Ferramentas), 6 (vagas) e 7 (histórias):
+  // acrescentar as rotas quando as páginas existirem.
   const [postsRes, categoriesRes] = await Promise.all([
     supabase
       .from("posts")
       .select("slug, updated_at, publish_at")
-      .eq("status", "published")
-      .lte("publish_at", new Date().toISOString()),
-    supabase.from("categories").select("slug"),
+      .eq("status", PUBLISHED)
+      .lte("publish_at", nowIso())
+      .order("publish_at", { ascending: false }),
+    supabase.from("categories").select("slug, parent_id, sort_order").order("sort_order"),
   ]);
 
+  const today = toLastmod(null);
   const entries: string[] = STATIC_PAGES.map((p) =>
-    urlEntry(`${SITE_URL}${p.path}`, toLastmod(null), p.changefreq, p.priority),
+    urlEntry(`${SITE_URL}${p.path}`, today, p.changefreq, p.priority),
   );
 
-  for (const post of postsRes.data ?? []) {
+  // Categorias-mãe primeiro (prioridade maior), subcategorias depois.
+  const categories = ((categoriesRes.data ?? []) as unknown as CategoryRow[]).filter(
+    (c) => c.sort_order < 900,
+  );
+  for (const category of categories) {
     entries.push(
       urlEntry(
-        `${SITE_URL}/post/${post.slug as string}`,
-        toLastmod((post.updated_at as string) ?? (post.publish_at as string)),
-        "weekly",
-        "0.8",
+        `${SITE_URL}/categoria/${category.slug}`,
+        today,
+        "daily",
+        category.parent_id ? "0.6" : "0.7",
       ),
     );
   }
 
-  for (const category of categoriesRes.data ?? []) {
+  for (const post of (postsRes.data ?? []) as unknown as PostRow[]) {
     entries.push(
-      urlEntry(`${SITE_URL}/categoria/${category.slug as string}`, toLastmod(null), "daily", "0.7"),
+      urlEntry(
+        `${SITE_URL}/post/${post.slug}`,
+        toLastmod(post.updated_at ?? post.publish_at),
+        "weekly",
+        "0.8",
+      ),
     );
   }
 

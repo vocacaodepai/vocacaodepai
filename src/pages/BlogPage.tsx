@@ -1,10 +1,11 @@
 import { getRouteApi } from "@tanstack/react-router";
-import { useSearchParams, Link } from "@/lib/router-compat";
+import { useSearchParams } from "@/lib/router-compat";
 import { Flame, Heart, Clock } from "lucide-react";
 import { PostCard } from "@/components/blog/PostCard";
 import { Breadcrumbs } from "@/components/blog/Breadcrumbs";
 import { Pagination } from "@/components/blog/Pagination";
 import { AdSlot } from "@/components/blog/AdSlot";
+import { CategoryIcon } from "@/components/blog/category-icon";
 import { cn } from "@/lib/utils";
 import { unwirePosts } from "@/lib/hub.functions";
 
@@ -18,18 +19,35 @@ const SORT_OPTIONS: { key: SortKey; label: string; icon: typeof Clock }[] = [
   { key: "likes", label: "Mais curtidos", icon: Heart },
 ];
 
+const chipClass = (active: boolean) =>
+  cn(
+    "inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+    active
+      ? "border-primary bg-primary text-primary-foreground"
+      : "border-border bg-card text-muted-foreground hover:text-foreground",
+  );
+
 export default function BlogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeCategory = searchParams.get("categoria") ?? "";
+  const activeSlug = searchParams.get("categoria") ?? "";
   const sort = (searchParams.get("ordem") ?? "recent") as SortKey;
   const page = Math.max(1, Number(searchParams.get("page") ?? "1") || 1);
 
   // Lista, categorias e total vêm do loader da rota (SSR); qualquer troca de
   // filtro/página muda a URL e o loader roda de novo.
-  const { categories, posts: wirePosts, total, perPage } = blogRouteApi.useLoaderData();
+  const {
+    categories,
+    subcategories,
+    active,
+    posts: wirePosts,
+    total,
+    perPage,
+  } = blogRouteApi.useLoaderData();
   const posts = unwirePosts(wirePosts);
 
   const totalPages = Math.max(1, Math.ceil(total / perPage));
+  // Chip-mãe aceso tanto para a mãe quanto para uma subcategoria dela.
+  const activeMotherId = active ? (active.parent_id ?? active.id) : null;
 
   const pickCategory = (slug: string) => {
     const params = new URLSearchParams(searchParams);
@@ -54,42 +72,29 @@ export default function BlogPage() {
       <AdSlot format="leaderboard" className="mt-6" />
 
       <header className="mt-6">
-        <h1 className="font-display text-3xl font-bold md:text-4xl">
-          Artigos para o pai, o marido e o provedor
-        </h1>
+        <h1 className="font-display text-3xl font-bold md:text-4xl">Blog do Vocação de Pai</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
-          Todos os artigos do blog, organizados por categoria.
+          {active?.description ??
+            "Artigos para o pai, o marido e o provedor, organizados por categoria. Direto, prático e de homem para homem."}
         </p>
         <p className="mt-2 text-xs font-semibold text-primary">
-          {total} {"artigos"}
+          {total} {total === 1 ? "artigo" : "artigos"}
         </p>
       </header>
 
-      {/* Filters: categoria + ordenação */}
+      {/* Filtros: categorias-mãe + ordenação */}
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => pickCategory("")}
-            className={cn(
-              "rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
-              !activeCategory
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card text-muted-foreground hover:text-foreground",
-            )}
-          >
+          <button onClick={() => pickCategory("")} className={chipClass(!active)}>
             Todos
           </button>
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => pickCategory(cat.slug)}
-              className={cn(
-                "rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
-                activeCategory === cat.slug
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground",
-              )}
+              className={chipClass(activeMotherId === cat.id)}
             >
+              <CategoryIcon name={cat.icon} slug={cat.slug} className="h-3.5 w-3.5" />
               {cat.name}
             </button>
           ))}
@@ -119,11 +124,33 @@ export default function BlogPage() {
         </span>
       </div>
 
-      <h2 className="mt-10 font-display text-2xl font-bold">{"Artigos recentes"}</h2>
+      {/* Subcategorias da categoria ativa (chips menores) */}
+      {subcategories.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2" aria-label="Subcategorias">
+          {subcategories.map((sub) => (
+            <button
+              key={sub.id}
+              onClick={() => pickCategory(sub.slug)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+                activeSlug === sub.slug
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {sub.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <h2 className="mt-10 font-display text-2xl font-bold">
+        {active ? active.name : "Artigos recentes"}
+      </h2>
 
       {posts.length === 0 ? (
         <p className="mt-10 text-center text-muted-foreground">
-          {"Ainda não há artigos publicados nesta categoria."}
+          Ainda não há artigos publicados nesta categoria.
         </p>
       ) : (
         <>
@@ -138,7 +165,6 @@ export default function BlogPage() {
         </>
       )}
 
-      {/* Tools banner (após a paginação) */}
       {/* TODO Fase 4 (Caixa de Ferramentas): banner de ferramentas */}
     </div>
   );

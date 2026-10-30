@@ -4,8 +4,8 @@
 // (o Google vê o texto do artigo) e o leitor não baixa o ProseMirror. A saída
 // espelha o renderHTML das extensões usadas no editor (StarterKit, Image,
 // Link, Table, TaskList e os blocos customizados Callout/ToolEmbed/
-// DecisorRapido/FotosModelos), para que o CSS de .article-content .tiptap e o
-// ToolEmbedHost continuem funcionando sem mudanças.
+// DecisorRapido/FotosModelos/ParaAEsposa), para que o CSS de .article-content
+// .tiptap e o ToolEmbedHost continuem funcionando sem mudanças.
 
 import type { TipTapNode } from "@/lib/content";
 
@@ -94,11 +94,29 @@ function renderMarks(text: string, marks: Mark[] | undefined): string {
   }, text);
 }
 
+// Rótulos do Semáforo do Pai (CLAUDE.md §6 e Callout.tsx):
+// ok → "Sinal verde", warn → "Sinal de atenção", bad → "Sinal de alerta".
 function calloutLabel(tone: string): string {
-  if (tone === "ok") return "Certo";
-  if (tone === "bad") return "Alerta";
+  if (tone === "ok") return "Sinal verde";
+  if (tone === "bad") return "Sinal de alerta";
   if (tone === "tip") return "Dica";
-  return "Atenção";
+  return "Sinal de atenção";
+}
+
+// No Padrão A o texto do callout já começa com "Sinal verde: " etc. Como o
+// rótulo aparece no box, o prefixo repetido é retirado do primeiro texto.
+function stripCalloutPrefix(node: RichNode, label: string): RichNode {
+  const prefix = `${label}: `;
+  const first = node.content?.[0] as RichNode | undefined;
+  const text = first?.content?.[0] as RichNode | undefined;
+  if (!first || !text || typeof text.text !== "string") return node;
+  if (!text.text.toLowerCase().startsWith(prefix.toLowerCase())) return node;
+  const trimmedText: RichNode = { ...text, text: text.text.slice(prefix.length) };
+  const trimmedFirst: RichNode = {
+    ...first,
+    content: [trimmedText, ...(first.content ?? []).slice(1)],
+  };
+  return { ...node, content: [trimmedFirst, ...(node.content ?? []).slice(1)] };
 }
 
 function jsonAttr(value: unknown): string {
@@ -175,8 +193,13 @@ function renderNode(node: RichNode): string {
     }
     case "callout": {
       const tone = typeof a.tone === "string" ? a.tone : "warn";
-      return `<div data-callout="" data-tone="${escapeHtml(tone)}" class="callout-box callout-${escapeHtml(tone)}"><div class="callout-label-wrap"><span class="callout-label">${calloutLabel(tone)}</span></div><div class="callout-body">${renderChildren(node)}</div></div>`;
+      const label = calloutLabel(tone);
+      return `<div data-callout="" data-tone="${escapeHtml(tone)}" class="callout-box callout-${escapeHtml(tone)}"><div class="callout-label-wrap"><span class="callout-label">${label}</span></div><div class="callout-body">${renderChildren(stripCalloutPrefix(node, label))}</div></div>`;
     }
+    case "paraAEsposa":
+      // "Para a sua esposa: Vocação de Mãe" é renderizado em React (ParaAEsposa.tsx)
+      // antes do "Continue lendo"; no HTML do corpo o nó não aparece.
+      return "";
     case "toolEmbed": {
       const slug = typeof a.slug === "string" ? a.slug : "";
       return `<div data-tool-embed="" data-tool-slug="${escapeHtml(slug)}" class="tool-embed-placeholder">Ferramenta embutida: ${escapeHtml(slug)}</div>`;
@@ -198,4 +221,20 @@ function renderNode(node: RichNode): string {
 export function tiptapToHtml(doc: TipTapNode | null | undefined): string {
   if (!doc || typeof doc !== "object") return "";
   return renderNode(doc as RichNode);
+}
+
+export interface ParaAEsposaData {
+  slug: string;
+  title: string;
+}
+
+/** Nó `paraAEsposa {slug, title}` do body (preenchido pela rotina, doc 03 §6.2). */
+export function findParaAEsposa(doc: TipTapNode | null | undefined): ParaAEsposaData | null {
+  const node = doc?.content?.find((n) => n.type === "paraAEsposa");
+  const slug = node?.attrs?.["slug"];
+  const title = node?.attrs?.["title"];
+  if (typeof slug !== "string" || !slug.trim() || typeof title !== "string" || !title.trim()) {
+    return null;
+  }
+  return { slug: slug.trim(), title: title.trim() };
 }

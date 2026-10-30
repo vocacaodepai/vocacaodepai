@@ -12,7 +12,12 @@ export function PostCard({
   post: PostWithRelations;
   featured?: boolean;
 }) {
-  const minutes = post.reading_minutes ?? readingTime(post.body);
+  // Listas viajam sem o body (hub.functions.ts); sem minutos calculados e sem
+  // corpo (ex.: resultado da busca) o tempo de leitura fica de fora.
+  const minutes =
+    post.reading_minutes ??
+    (post.body?.content && post.body.content.length > 0 ? readingTime(post.body) : null);
+  const score = (post as { product_score?: number | null }).product_score;
   return (
     <article
       className={`group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant ${
@@ -47,6 +52,14 @@ export function PostCard({
             {post.category.name}
           </span>
         )}
+        {typeof score === "number" && (
+          <span
+            className="absolute right-3 top-3 rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground shadow-sm"
+            title="Nota editorial do Pai Indica (0 a 10)"
+          >
+            {score.toFixed(1).replace(".", ",")}
+          </span>
+        )}
       </Link>
 
       {!featured && post.cover_image_url && (
@@ -78,10 +91,14 @@ export function PostCard({
           )}
           <span aria-hidden>·</span>
           <time dateTime={post.publish_at ?? undefined}>{formatDate(post.publish_at)}</time>
-          <span aria-hidden>·</span>
-          <span className="inline-flex items-center gap-1">
-            <Clock className="h-3 w-3" /> {minutes} min
-          </span>
+          {minutes != null && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" /> {minutes} min
+              </span>
+            </>
+          )}
         </div>
       </div>
     </article>

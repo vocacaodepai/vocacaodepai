@@ -8,7 +8,11 @@ import {
   queryCategories,
   queryPostsByCategorySlug,
   queryPublishedPosts,
+  querySearchPosts,
+  searchResultToPost,
   toPostWithRelations,
+  type BlogPost,
+  type DbClient,
   type PublishedPostsOpts,
 } from "./queries";
 import type { Comment, Post, PostWithRelations } from "./types";
@@ -16,13 +20,17 @@ import type { Comment, Post, PostWithRelations } from "./types";
 // TODO Fase 3 (Loja do Pai: products, saved_items), Fase 5 (Área do Pai: children,
 // saved_items) e Fase 7 (Irmandade: stories): funções de leitura/escrita voltam aqui.
 
-export const fetchCategories = () => queryCategories(supabase);
+// Os tipos gerados (src/integrations/supabase/types.ts) ainda são os do VDM e
+// serão regenerados; as consultas do blog usam o client "solto" e os tipos
+// locais de src/lib/queries.ts (colunas e funções da 0002_blog.sql).
+const db = supabase as unknown as DbClient;
 
-export const fetchPublishedPosts = (opts: PublishedPostsOpts) =>
-  queryPublishedPosts(supabase, opts);
+export const fetchCategories = () => queryCategories(db);
 
-export async function fetchPostBySlug(slug: string): Promise<PostWithRelations | null> {
-  const { data, error } = await supabase
+export const fetchPublishedPosts = (opts: PublishedPostsOpts) => queryPublishedPosts(db, opts);
+
+export async function fetchPostBySlug(slug: string): Promise<BlogPost | null> {
+  const { data, error } = await db
     .from("posts")
     .select(POST_SELECT)
     .eq("slug", slug)
@@ -30,49 +38,38 @@ export async function fetchPostBySlug(slug: string): Promise<PostWithRelations |
     .lte("publish_at", nowIso())
     .maybeSingle();
   if (error) throw error;
-  return data ? toPostWithRelations(data) : null;
+  return data ? toPostWithRelations(data as Record<string, unknown>) : null;
 }
 
-export async function fetchRelatedPosts(post: Post): Promise<PostWithRelations[]> {
-  const tags = Array.isArray(post.tags) && post.tags.length > 0 ? post.tags.join(",") : null;
-
-  let query = supabase
+/** 3 posts da mesma categoria (ou os mais recentes) para o "Continue lendo". */
+export async function fetchRelatedPosts(post: Post, limit = 3): Promise<BlogPost[]> {
+  let query = db
     .from("posts")
     .select(POST_SELECT)
     .eq("status", PUBLISHED)
     .lte("publish_at", nowIso())
     .neq("id", post.id);
 
-  if (post.category_id && tags) {
-    query = query.or(`category_id.eq.${post.category_id},tags.cs.{${tags}}`);
-  } else if (post.category_id) {
+  if (post.category_id) {
     query = query.eq("category_id", post.category_id);
-  } else if (tags) {
-    query = query.or(`tags.cs.{${tags}}`);
   }
 
-  const { data, error } = await query.order("publish_at", { ascending: false }).limit(4);
+  const { data, error } = await query.order("publish_at", { ascending: false }).limit(limit);
   if (error) throw error;
-  return (data ?? []).map(toPostWithRelations);
+  return ((data ?? []) as Record<string, unknown>[]).map(toPostWithRelations);
 }
 
-export async function searchPosts(query: string): Promise<PostWithRelations[]> {
-  const { data, error } = await supabase
-    .from("posts")
-    .select(POST_SELECT)
-    .eq("status", PUBLISHED)
-    .lte("publish_at", nowIso())
-    .textSearch("search_content", query, { type: "websearch", config: "portuguese" })
-    .order("publish_at", { ascending: false })
-    .limit(20);
-  if (error) throw error;
-  return (data ?? []).map(toPostWithRelations);
+/** Busca via `search_posts(p_query, p_limit, p_offset)` (doc 02 §4.2). */
+export async function searchPosts(query: string, limit = 20, offset = 0): Promise<BlogPost[]> {
+  const rows = await querySearchPosts(db, query, limit, offset);
+  return rows.map(searchResultToPost);
 }
 
 export async function registerView(postId: string) {
-  // A função no banco conta uma visualização por leitor (logado ou id anônimo)
-  // por post por dia, em vez de somar a cada carregamento.
-  await supabase.rpc("register_view", { p_post_id: postId, p_user_key: getAnonId() });
+  // `increment_post_views(p_post_id, p_user_key)`: conta uma visualização por
+  // leitor (logado ou id anônimo) por post por dia, em vez de somar a cada
+  // carregamento.
+  await db.rpc("increment_post_views", { p_post_id: postId, p_user_key: getAnonId() });
 }
 
 /* ---------------- Comments ---------------- */
@@ -88,52 +85,71 @@ export async function fetchApprovedComments(postId: string): Promise<Comment[]> 
   return (data ?? []) as Comment[];
 }
 
+/**
+ * Comentário de membro logado (RLS da 0002: `auth.uid() = user_id` e nasce
+ * `pending`; aparece só depois de aprovado no admin).
+ */
 export async function submitComment(input: {
   post_id: string;
+  user_id: string;
   author_name: string;
-  author_email: string;
   content: string;
 }) {
-  const { error } = await supabase.from("comments").insert(input as never);
+  const { error } = await db.from("comments").insert({ ...input, status: "pending" });
   if (error) throw error;
 }
 
 /* ---------------- Reactions (likes / saves) ---------------- */
 
+// `reactions.type` na 0002 é 'like' | 'useful' | 'saved'; a UI fala em "save".
+const REACTION_TYPE: Record<"like" | "save", "like" | "saved"> = { like: "like", save: "saved" };
+
+/**
+ * Estado das reações: o total de curtidas vem de `posts.like_count` (público);
+ * "curti/salvei" só é lido para usuário logado (RLS `reactions: own read`).
+ * Anônimo começa sem marcação e o `toggle_reaction` devolve o estado real.
+ */
 export async function fetchReactions(postId: string) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const anonId = user?.id ?? localStorage.getItem("vocacao-de-pai-anon-id") ?? "";
 
-  const { data, error } = await supabase.rpc("post_reaction_state", {
-    p_post_id: postId,
-    p_user_key: anonId || undefined,
-  });
-  if (error) throw error;
-  const row = (Array.isArray(data) ? data[0] : data) as
-    { likes: number; saves: number; liked: boolean; saved: boolean } | undefined;
-  return {
-    likes: Number(row?.likes ?? 0),
-    saves: Number(row?.saves ?? 0),
-    likedByMe: Boolean(row?.liked),
-    savedByMe: Boolean(row?.saved),
-  };
+  const { data: postRow } = await db
+    .from("posts")
+    .select("like_count")
+    .eq("id", postId)
+    .maybeSingle();
+  const likes = Number((postRow as { like_count?: number } | null)?.like_count ?? 0);
+
+  let likedByMe = false;
+  let savedByMe = false;
+  if (user) {
+    const { data } = await db
+      .from("reactions")
+      .select("type")
+      .eq("post_id", postId)
+      .eq("user_key", user.id);
+    const types = new Set(((data ?? []) as { type: string }[]).map((r) => r.type));
+    likedByMe = types.has("like");
+    savedByMe = types.has("saved");
+  }
+  return { likes, saves: 0, likedByMe, savedByMe };
 }
 
 export async function toggleReaction(postId: string, type: "like" | "save") {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { getAnonId } = await import("./anon-id");
   const userKey = user?.id ?? getAnonId();
-  const { data, error } = await supabase.rpc("toggle_reaction", {
+  const { data, error } = await db.rpc("toggle_reaction", {
     p_post_id: postId,
-    p_type: type,
+    p_type: REACTION_TYPE[type],
     p_user_key: userKey,
   });
   if (error) throw error;
-  return data as unknown as { active: boolean; count: number };
+  const row = (Array.isArray(data) ? data[0] : data) as
+    { active: boolean; count: number } | undefined;
+  return { active: Boolean(row?.active), count: Number(row?.count ?? 0) };
 }
 
 /** Artigos que o usuário logado curtiu ou salvou (para a área de membros). */
@@ -144,20 +160,24 @@ export async function fetchMyArticleActivity(): Promise<
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return [];
-  const { data, error } = await supabase
-    .from("post_reactions")
+  const { data, error } = await db
+    .from("reactions")
     .select("post_id, type")
-    .eq("user_key", user.id);
+    .eq("user_key", user.id)
+    .in("type", ["like", "saved"]);
   if (error) throw error;
-  return (data ?? []) as { post_id: string; type: "like" | "save" }[];
+  return ((data ?? []) as { post_id: string; type: string }[]).map((r) => ({
+    post_id: r.post_id,
+    type: r.type === "saved" ? "save" : "like",
+  }));
 }
 
 /** Busca vários artigos pelo id (título e slug, para listar na conta). */
 export async function fetchPostsByIds(ids: string[]): Promise<PostWithRelations[]> {
   if (ids.length === 0) return [];
-  const { data, error } = await supabase.from("posts").select(POST_SELECT).in("id", ids);
+  const { data, error } = await db.from("posts").select(POST_SELECT).in("id", ids);
   if (error) throw error;
-  return (data ?? []).map(toPostWithRelations);
+  return ((data ?? []) as Record<string, unknown>[]).map(toPostWithRelations);
 }
 
 /* ---------------- Newsletter & contact ---------------- */
@@ -181,7 +201,7 @@ export async function sendContactMessage(input: {
 
 /** Posts de uma categoria do blog (por slug), para seções cruzadas. */
 export const fetchPostsByCategorySlug = (slug: string, limit = 3) =>
-  queryPostsByCategorySlug(supabase, slug, limit);
+  queryPostsByCategorySlug(db, slug, limit);
 
 /* ---------------- Quiz gamification ---------------- */
 
@@ -317,7 +337,7 @@ export async function fetchAllPosts(): Promise<PostWithRelations[]> {
     .select(POST_SELECT)
     .order("updated_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map(toPostWithRelations);
+  return ((data ?? []) as Record<string, unknown>[]).map(toPostWithRelations);
 }
 
 export async function fetchPostById(id: string): Promise<PostWithRelations | null> {
@@ -327,7 +347,7 @@ export async function fetchPostById(id: string): Promise<PostWithRelations | nul
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
-  return data ? toPostWithRelations(data) : null;
+  return data ? toPostWithRelations(data as Record<string, unknown>) : null;
 }
 
 export async function createPost(input: Partial<Post>): Promise<Post> {
@@ -349,7 +369,7 @@ export async function updatePost(id: string, input: Partial<Post>) {
 }
 
 export async function deletePost(id: string) {
-  const { error } = await supabase.from("posts").delete().eq("id", id);
+  const { error } = await db.from("posts").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -406,7 +426,7 @@ export async function uploadImage(
 /* ---------------- Existing slugs (for unique slug generation) ---------------- */
 
 export async function fetchAllSlugs(): Promise<string[]> {
-  const { data, error } = await supabase.from("posts").select("slug");
+  const { data, error } = await db.from("posts").select("slug");
   if (error) throw error;
   return (data ?? []).map((r) => r.slug as string);
 }

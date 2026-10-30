@@ -137,11 +137,13 @@ export function articleJsonLd(input: {
   };
 }
 
+/** BreadcrumbList sempre começa em "Início" (Início → Blog → Categoria → Post). */
 export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
+  const all = [{ name: "Início", path: "" }, ...items.filter((i) => i.path !== "/")];
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: items.map((item, i) => ({
+    itemListElement: all.map((item, i) => ({
       "@type": "ListItem",
       position: i + 1,
       name: item.name,
