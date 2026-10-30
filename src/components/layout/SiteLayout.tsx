@@ -1,40 +1,50 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "@/lib/router-compat";
 import {
-  BadgeCheck,
   ChevronDown,
-  CreditCard,
-  Lock,
   LogIn,
   LogOut,
   Menu,
   Search,
   ShieldCheck,
+  Tag,
+  User,
+  UserRound,
   X,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import { reopenCookieConsent } from "./CookieConsent";
-import { NewsletterSignup } from "@/components/blog/NewsletterSignup";
+import { Footer } from "./Footer";
+import { Logo } from "./Logo";
+import { MobileMenu } from "./MobileMenu";
+import { NAV_END, NAV_MAIN } from "./nav";
 import { fetchCategories } from "@/lib/db";
 import { trackPageView } from "@/lib/ga4";
 import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
 import { useAuth } from "@/lib/auth-context";
 
-// Menu principal da Fase 1: Início → Blog (com categorias) → Sobre/Contato.
-// TODO Fase 1 (etapa 4) e Fases 2-7: itens Pai Indica, Loja do Pai, Caixa de
-// Ferramentas, Área do Pai, Pai Indica Pai, Irmandade e Formação (CLAUDE.md §1).
-const NAV_MAIN = [{ to: "/", label: "Início", end: true }];
-const NAV_END = [
-  { to: "/sobre", label: "Sobre", end: false },
-  { to: "/contato", label: "Contato", end: false },
-];
+// Layout do site (doc 03 §4.3): faixa fina "O pai também quer desconto", header
+// com logo (Bússola do Pai), as 7 seções em uma linha a partir de xl (Blog com
+// dropdown de categorias), Sobre/Contato a partir de 2xl, busca, tema, conta e
+// menu móvel; rodapé em 4 colunas (Footer.tsx).
+
+const MOBILE_MENU_ID = "menu-movel";
+
+const navItemClass = (isActive: boolean, store?: boolean) =>
+  cn(
+    "rounded-md px-3 py-2 text-[15px] font-semibold transition-colors",
+    isActive
+      ? "text-primary"
+      : store
+        ? "text-accent hover:text-accent/80"
+        : "text-muted-foreground hover:text-foreground",
+  );
 
 export function SiteLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, profile, ready, openLogin, logout } = useAuth();
+  const { user, profile, ready, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -42,10 +52,20 @@ export function SiteLayout() {
   const [blogOpen, setBlogOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  // Google Analytics: registra cada visualização de página da SPA.
+  const isStaff = profile?.role === "admin" || profile?.role === "editor";
+  const closeMobile = useCallback(() => setOpen(false), []);
+
+  // Google Analytics: page_view a cada navegação da SPA (só conta após consentimento).
   useEffect(() => {
     trackPageView(location.pathname + location.search);
   }, [location.pathname, location.search]);
+
+  // Fecha menus ao navegar.
+  useEffect(() => {
+    setOpen(false);
+    setBlogOpen(false);
+    setUserMenuOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     fetchCategories()
@@ -61,116 +81,123 @@ export function SiteLayout() {
     navigate(`/busca?q=${encodeURIComponent(q.trim())}`);
   };
 
+  const blogActive =
+    location.pathname.startsWith("/blog") || location.pathname.startsWith("/categoria");
+
   return (
     <div className="relative flex min-h-screen flex-col">
       {/* Atalho de teclado/leitor de tela para pular o cabeçalho e o menu */}
       <a
         href="#conteudo"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-primary-foreground focus:shadow-elegant"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-primary-foreground focus:shadow-elegant"
       >
         Pular para o conteúdo
       </a>
       <div className="site-texture" aria-hidden />
 
-      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-lg">
-        <div className="container flex h-16 items-center justify-between gap-4">
-          {/* TODO Fase 1 (etapa 6.6): logo em imagem (public/logo-web.png). */}
-          <Link
-            to="/"
-            className="shrink-0 font-display text-2xl font-bold tracking-tight text-primary sm:text-3xl"
-            aria-label={SITE_NAME}
-          >
-            {SITE_NAME}
+      {/* Faixa fina acima do header (doc 03 §4.3) */}
+      <div className="relative z-40 bg-secondary text-secondary-foreground">
+        <div className="container flex h-8 items-center justify-center gap-2 text-xs">
+          <Tag className="h-3.5 w-3.5 text-accent" aria-hidden />
+          <span className="truncate">O pai também quer desconto</span>
+          <Link to="/loja" className="shrink-0 font-bold text-accent hover:underline">
+            Loja do Pai →
+          </Link>
+        </div>
+      </div>
+
+      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-lg">
+        <div className="container flex h-16 items-center justify-between gap-3">
+          <Link to="/" className="shrink-0 text-primary" aria-label={`${SITE_NAME} — início`}>
+            <Logo symbolClassName="h-8 w-8 sm:h-9 sm:w-9" />
           </Link>
 
           <nav
             className="hidden items-center gap-0.5 whitespace-nowrap xl:flex"
             aria-label="Principal"
           >
-            {NAV_MAIN.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  cn(
-                    "rounded-full px-3 py-2 text-sm font-semibold transition-colors",
-                    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
-                  )
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-
-            {/* Blog com dropdown de categorias */}
-            <div
-              className="relative"
-              onMouseEnter={() => setBlogOpen(true)}
-              onMouseLeave={() => setBlogOpen(false)}
-            >
-              <button
-                onClick={() => setBlogOpen((v) => !v)}
-                aria-expanded={blogOpen}
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold transition-colors",
-                  location.pathname.startsWith("/blog") ||
-                    location.pathname.startsWith("/categoria")
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                Blog
-                <ChevronDown
-                  className={cn("h-4 w-4 transition-transform", blogOpen && "rotate-180")}
-                />
-              </button>
-              {blogOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setBlogOpen(false)}
-                    aria-hidden
-                  />
-                  <div className="absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 rounded-2xl border border-border bg-card p-2 shadow-elegant">
-                    <Link
-                      to="/blog"
-                      onClick={() => setBlogOpen(false)}
-                      className="flex items-center justify-between rounded-xl bg-secondary/50 px-3 py-2 text-sm font-bold text-foreground transition-colors hover:bg-secondary"
-                    >
-                      Blog
-                      <span className="text-xs font-bold text-primary">→</span>
-                    </Link>
-                    <div className="my-2 h-px bg-border" />
-                    <p className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Categorias
-                    </p>
-                    {categories.map((cat) => (
-                      <Link
-                        key={cat.id}
-                        to={`/categoria/${cat.slug}`}
+            {NAV_MAIN.map((item) =>
+              item.to === "/blog" ? (
+                /* Blog com dropdown de categorias */
+                <div
+                  key={item.to}
+                  className="relative"
+                  onMouseEnter={() => setBlogOpen(true)}
+                  onMouseLeave={() => setBlogOpen(false)}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setBlogOpen((v) => !v)}
+                    aria-expanded={blogOpen}
+                    aria-haspopup="menu"
+                    className={cn("inline-flex items-center gap-1", navItemClass(blogActive))}
+                  >
+                    {item.label}
+                    <ChevronDown
+                      className={cn("h-4 w-4 transition-transform", blogOpen && "rotate-180")}
+                      aria-hidden
+                    />
+                  </button>
+                  {blogOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
                         onClick={() => setBlogOpen(false)}
-                        className="block rounded-xl px-3 py-1.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-secondary/60 hover:text-foreground"
+                        aria-hidden
+                      />
+                      <div
+                        role="menu"
+                        className="absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 rounded-lg border border-border bg-card p-2 shadow-elegant"
                       >
-                        {cat.name}
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+                        <Link
+                          to="/blog"
+                          role="menuitem"
+                          onClick={() => setBlogOpen(false)}
+                          className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm font-bold text-foreground transition-colors hover:bg-primary/10"
+                        >
+                          Todos os artigos
+                          <span className="text-xs font-bold text-primary">→</span>
+                        </Link>
+                        <div className="my-2 h-px bg-border" />
+                        <p className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Categorias
+                        </p>
+                        {categories.length === 0 && (
+                          <p className="px-3 py-1.5 text-sm text-muted-foreground">Carregando…</p>
+                        )}
+                        {categories.map((cat) => (
+                          <Link
+                            key={cat.id}
+                            to={`/categoria/${cat.slug}`}
+                            role="menuitem"
+                            onClick={() => setBlogOpen(false)}
+                            className="block rounded-md px-3 py-1.5 text-sm font-semibold text-foreground/80 transition-colors hover:bg-primary/10 hover:text-primary"
+                          >
+                            {cat.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => navItemClass(isActive, item.store)}
+                >
+                  {item.label}
+                </NavLink>
+              ),
+            )}
 
             {NAV_END.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                className={({ isActive }) =>
-                  cn(
-                    "hidden rounded-full px-3 py-2 text-sm font-semibold transition-colors 2xl:inline-block",
-                    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
-                  )
-                }
+                className={({ isActive }) => cn("hidden 2xl:inline-block", navItemClass(isActive))}
               >
                 {item.label}
               </NavLink>
@@ -179,30 +206,32 @@ export function SiteLayout() {
 
           <div className="flex items-center gap-2">
             {showSearch ? (
-              <form onSubmit={submitSearch} className="flex items-center gap-1">
+              <form onSubmit={submitSearch} className="flex items-center gap-1" role="search">
                 <input
                   autoFocus
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Buscar artigos..."
-                  className="h-9 w-40 rounded-full border border-border bg-card px-4 text-sm outline-none focus:border-primary sm:w-56"
+                  placeholder="Buscar no site…"
+                  aria-label="Buscar no site"
+                  className="h-9 w-40 rounded-md border border-border bg-card px-3 text-sm outline-none focus:border-primary sm:w-56"
                 />
                 <button
                   type="button"
                   onClick={() => setShowSearch(false)}
                   aria-label="Fechar busca"
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4" aria-hidden />
                 </button>
               </form>
             ) : (
               <button
+                type="button"
                 onClick={() => setShowSearch(true)}
                 aria-label="Buscar"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:border-primary hover:text-primary"
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-4 w-4" aria-hidden />
               </button>
             )}
             <ThemeToggle />
@@ -210,20 +239,22 @@ export function SiteLayout() {
               (user ? (
                 <div className="relative">
                   <button
+                    type="button"
                     onClick={() => setUserMenuOpen((v) => !v)}
                     aria-expanded={userMenuOpen}
+                    aria-haspopup="menu"
                     aria-label="Minha conta"
-                    className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-secondary text-sm font-bold text-secondary-foreground transition-colors hover:bg-secondary/80"
+                    className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     {profile?.avatar_url ? (
                       <img
                         src={profile.avatar_url}
-                        alt={profile.full_name}
+                        alt=""
                         crossOrigin="anonymous"
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      (profile?.full_name ?? "P").charAt(0).toUpperCase()
+                      (profile?.full_name ?? user.email ?? "P").charAt(0).toUpperCase()
                     )}
                   </button>
                   {userMenuOpen && (
@@ -233,30 +264,52 @@ export function SiteLayout() {
                         onClick={() => setUserMenuOpen(false)}
                         aria-hidden
                       />
-                      <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl border border-border bg-card p-2 shadow-elegant">
+                      <div
+                        role="menu"
+                        className="absolute right-0 top-full z-50 mt-2 w-56 rounded-lg border border-border bg-card p-2 shadow-elegant"
+                      >
                         <p className="truncate px-3 py-2 text-sm font-bold text-foreground">
                           {profile?.full_name ?? user.email ?? "Minha conta"}
                         </p>
-                        {(profile?.role === "admin" || profile?.role === "editor") && (
+                        <Link
+                          to="/area-do-pai"
+                          role="menuitem"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-primary/10"
+                        >
+                          <UserRound className="h-4 w-4" aria-hidden />
+                          Área do Pai
+                        </Link>
+                        <Link
+                          to="/minha-conta"
+                          role="menuitem"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-foreground/80 transition-colors hover:bg-primary/10"
+                        >
+                          <User className="h-4 w-4" aria-hidden />
+                          Minha conta
+                        </Link>
+                        {isStaff && (
                           <Link
                             to="/admin"
+                            role="menuitem"
                             onClick={() => setUserMenuOpen(false)}
-                            className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-secondary/60"
+                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-foreground/80 transition-colors hover:bg-primary/10"
                           >
-                            <ShieldCheck className="h-4 w-4" />
-                            Painel Admin
+                            <ShieldCheck className="h-4 w-4" aria-hidden />
+                            Admin
                           </Link>
                         )}
-                        {/* TODO Fase 5 (Área do Pai): links /area-do-pai e /minha-conta. */}
-                        {/* TODO Fase 7 (Irmandade): link /historias/nova. */}
                         <button
+                          type="button"
+                          role="menuitem"
                           onClick={() => {
                             setUserMenuOpen(false);
-                            logout();
+                            void logout();
                           }}
-                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-foreground/80 transition-colors hover:bg-secondary/60"
+                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-foreground/80 transition-colors hover:bg-primary/10"
                         >
-                          <LogOut className="h-4 w-4" />
+                          <LogOut className="h-4 w-4" aria-hidden />
                           Sair
                         </button>
                       </div>
@@ -264,246 +317,48 @@ export function SiteLayout() {
                   )}
                 </div>
               ) : (
-                <button
-                  onClick={openLogin}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 text-sm font-bold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                <Link
+                  to="/entrar"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-md border border-primary px-3.5 text-sm font-bold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
                 >
-                  <LogIn className="h-4 w-4" />
+                  <LogIn className="h-4 w-4" aria-hidden />
                   <span className="hidden sm:inline">Entrar</span>
-                </button>
+                </Link>
               ))}
             <button
-              onClick={() => setOpen(!open)}
-              aria-label="Abrir menu"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground xl:hidden"
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? "Fechar menu" : "Abrir menu"}
+              aria-expanded={open}
+              aria-controls={MOBILE_MENU_ID}
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card text-muted-foreground xl:hidden"
             >
-              {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              {open ? (
+                <X className="h-4 w-4" aria-hidden />
+              ) : (
+                <Menu className="h-4 w-4" aria-hidden />
+              )}
             </button>
           </div>
         </div>
 
-        {open && (
-          <nav aria-label="Menu móvel" className="border-t border-border bg-background xl:hidden">
-            <div className="container flex flex-col gap-1 py-3">
-              {NAV_MAIN.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      "rounded-xl px-4 py-3 text-sm font-semibold",
-                      isActive ? "text-primary" : "text-foreground/80",
-                    )
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-              <NavLink
-                to="/blog"
-                onClick={() => setOpen(false)}
-                className={({ isActive }) =>
-                  cn(
-                    "rounded-xl px-4 py-3 text-sm font-semibold",
-                    isActive ? "text-primary" : "text-foreground/80",
-                  )
-                }
-              >
-                Blog
-              </NavLink>
-              <p className="px-4 pb-1 pt-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Categorias
-              </p>
-              <div className="flex flex-wrap gap-2 px-4 pb-2">
-                {categories.map((cat) => (
-                  <Link
-                    key={cat.id}
-                    to={`/categoria/${cat.slug}`}
-                    onClick={() => setOpen(false)}
-                    className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground/80"
-                  >
-                    {cat.name}
-                  </Link>
-                ))}
-              </div>
-              {NAV_END.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      "rounded-xl px-4 py-3 text-sm font-semibold",
-                      isActive ? "text-primary" : "text-foreground/80",
-                    )
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-              {ready &&
-                (user ? (
-                  <>
-                    {(profile?.role === "admin" || profile?.role === "editor") && (
-                      <Link
-                        to="/admin"
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-primary"
-                      >
-                        <ShieldCheck className="h-4 w-4" />
-                        Painel Admin
-                      </Link>
-                    )}
-                    <button
-                      onClick={() => {
-                        setOpen(false);
-                        logout();
-                      }}
-                      className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-foreground/80"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Sair
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setOpen(false);
-                      openLogin();
-                    }}
-                    className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-primary"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    Entrar
-                  </button>
-                ))}
-            </div>
-          </nav>
-        )}
+        <MobileMenu
+          id={MOBILE_MENU_ID}
+          open={open}
+          onClose={closeMobile}
+          categories={categories}
+          ready={ready}
+          user={user}
+          isStaff={isStaff}
+          onLogout={() => void logout()}
+        />
       </header>
 
       <main id="conteudo" tabIndex={-1} className="relative z-10 flex-1 outline-none">
         <Outlet />
       </main>
 
-      <footer className="relative z-10 mt-16 border-t border-border bg-card/60">
-        <div className="container grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
-          <div>
-            <p className="font-display text-2xl font-bold text-primary">{SITE_NAME}</p>
-            <p className="mt-3 max-w-sm text-sm text-muted-foreground">{SITE_DESCRIPTION}</p>
-            <p className="mt-3 max-w-sm rounded-xl bg-secondary/40 p-3 text-xs leading-relaxed text-secondary-foreground">
-              Aviso: o conteúdo deste site é informativo e educacional e não substitui a orientação
-              de médicos, psicólogos, advogados, contadores ou outros profissionais. Em caso de
-              dúvida sobre a sua saúde, a da sua família, finanças ou questões legais, procure
-              sempre um profissional qualificado.
-            </p>
-            <div className="mt-5 max-w-sm">
-              <p className="mb-2 text-sm font-bold">Newsletter</p>
-              <NewsletterSignup compact source="rodape" />
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Institucional
-            </p>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  to="/sobre"
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                >
-                  Sobre
-                </Link>
-              </li>
-              {/* TODO Fase 3 (Loja do Pai): link /loja "O pai também quer desconto". */}
-              <li>
-                <Link
-                  to="/contato"
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                >
-                  Contato
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/politica-de-privacidade"
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                >
-                  Política de Privacidade
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/termos-de-uso"
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                >
-                  Termos de Uso
-                </Link>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => reopenCookieConsent()}
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                >
-                  Preferências de cookies
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Categorias
-            </p>
-            <ul className="space-y-2 text-sm">
-              {categories.map((c) => (
-                <li key={c.slug}>
-                  <Link
-                    to={`/categoria/${c.slug}`}
-                    className="text-muted-foreground transition-colors hover:text-primary"
-                  >
-                    {c.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        {/* Selos de confiança */}
-        <div className="border-t border-border bg-card/40">
-          <div className="container flex flex-wrap items-center justify-center gap-x-8 gap-y-3 py-6">
-            <span className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              Site 100% seguro (HTTPS)
-            </span>
-            <span className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <Lock className="h-5 w-5 text-primary" />
-              Privacidade e proteção de dados
-            </span>
-            <span className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <CreditCard className="h-5 w-5 text-primary" />
-              Compra processada pela Amazon
-            </span>
-            <span className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <BadgeCheck className="h-5 w-5 text-primary" />
-              Conteúdo revisado e confiável
-            </span>
-          </div>
-        </div>
-        <div className="border-t border-border">
-          <div className="container flex flex-col items-center justify-between gap-2 py-5 text-xs text-muted-foreground sm:flex-row">
-            <p>
-              © {new Date().getFullYear()} {SITE_NAME}. Todos os direitos reservados.
-            </p>
-            <p>{SITE_TAGLINE}</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

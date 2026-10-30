@@ -16,8 +16,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { CookieConsent } from "@/components/layout/CookieConsent";
-import { GA_MEASUREMENT_ID } from "@/lib/ga4";
-import { ADSENSE_PUBLISHER_ID } from "@/lib/adsense";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_OG_IMAGE, SITE_TAGLINE } from "@/lib/site";
 
 const ROOT_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
@@ -104,10 +102,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
-        // Fontes do Vocação de Pai (doc 03 §2): títulos Barlow Condensed, texto Inter.
+        // Fontes do Vocação de Pai (doc 03 §4.2): títulos Barlow Condensed 500/600/700, texto Inter.
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,600&family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap",
       },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
@@ -115,36 +114,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
     ],
     scripts: [
-      // Google Consent Mode v2 — PRECISA rodar antes de qualquer script do
-      // gtag.js ou do AdSense carregar, senão cookies de anúncio/analytics
-      // seriam setados antes do usuário decidir. Começa tudo "denied"; o
-      // banner de cookies (CookieConsent, renderizado em RootComponent)
-      // chama gtag('consent','update', ...) quando a pessoa aceita.
+      // Google Consent Mode v2 (doc 03 §4.6 item 1 / doc 11 §2.7) — PRECISA rodar
+      // antes de qualquer script do Google. Tudo nasce "denied"; o CookieConsent
+      // chama gtag('consent','update', …) com a escolha do visitante e só então
+      // injeta o gtag.js (src/lib/ga4.ts → loadGa4). Sem aceite, nenhuma
+      // requisição a googletagmanager.com acontece.
+      //
+      // O script do AdSense NÃO entra aqui até o dono ter a conta do Vocação de
+      // Pai (o ID em src/lib/adsense.ts e o public/ads.txt ainda são os herdados
+      // do Vocação de Mãe) — ver docs/plano/progresso-etapa-4.md.
       {
         children: `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+window.gtag = gtag;
 gtag('consent', 'default', {
   'ad_storage': 'denied',
   'ad_user_data': 'denied',
   'ad_personalization': 'denied',
-  'analytics_storage': 'denied'
+  'analytics_storage': 'denied',
+  'wait_for_update': 500
 });`,
-      },
-      {
-        src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`,
-        async: true,
-      },
-      {
-        children: `gtag('js', new Date());
-gtag('config', '${GA_MEASUREMENT_ID}');`,
-      },
-      // Google AdSense — exibição de anúncios (auto ads). O site precisa
-      // deste script carregado publicamente para o Google revisar e
-      // aprovar a conta.
-      {
-        src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-${ADSENSE_PUBLISHER_ID}`,
-        async: true,
-        crossOrigin: "anonymous",
       },
     ],
   }),

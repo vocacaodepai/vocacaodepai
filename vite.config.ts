@@ -5,6 +5,8 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Prefixos que chegam ao cliente (doc 02 §8): VITE_*, PUBLIC_* e a site key do Turnstile.
+  vite: { envPrefix: ["VITE_", "PUBLIC_", "TURNSTILE_SITE_KEY"] },
   tanstackStart: {
     // Entrada SSR em src/server.ts (wrapper de erro); nitro/vite buildam a partir dela.
     server: { entry: "server" },

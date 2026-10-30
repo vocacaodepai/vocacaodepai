@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-display: Fraunces, Georgia, serif;
-  --font-sans: "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -36,6 +36,10 @@
   --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
   --color-sidebar-border: hsl(var(--sidebar-border));
   --color-sidebar-ring: hsl(var(--sidebar-ring));
+  /* Semáforo do Pai: Sinal verde / Sinal de atenção / Sinal de alerta */
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-danger: hsl(var(--danger));
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -120,106 +124,115 @@
 
 @layer base {
   :root {
-    /* Warm cream + dusty rose + lilac — light theme */
-    --background: 33 100% 97%;
-    --foreground: 320 16% 24%;
+    /* Vocação de Pai — areia + petróleo + couro (doc 03 §4.1 / doc 00 §7.5) */
+    --background: 39 39% 93%; /* #F4EFE6 */
+    --foreground: 210 13% 12%; /* #1B1F23 */
 
-    --card: 40 100% 99%;
-    --card-foreground: 320 16% 24%;
+    --card: 40 40% 97%;
+    --card-foreground: 210 13% 12%;
 
-    --popover: 40 100% 99%;
-    --popover-foreground: 320 16% 24%;
+    --popover: 40 40% 97%;
+    --popover-foreground: 210 13% 12%;
 
-    --primary: 348 58% 62%;
+    --primary: 190 64% 22%; /* #14505C */
     --primary-foreground: 0 0% 100%;
 
-    --primary-glow: 348 100% 78%;
+    --primary-glow: 190 50% 36%;
 
-    --secondary: 265 42% 88%;
-    --secondary-foreground: 268 32% 30%;
+    --secondary: 210 14% 14%; /* #1F2429 */
+    --secondary-foreground: 39 39% 93%;
 
-    --muted: 40 32% 93%;
-    --muted-foreground: 320 10% 44%;
+    --muted: 39 25% 88%;
+    --muted-foreground: 210 10% 38%;
 
-    --accent: 28 86% 88%;
-    --accent-foreground: 22 48% 28%;
+    --accent: 30 70% 51%; /* #D9822B */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 55%;
+    --destructive: 0 51% 46%; /* #B23A3A */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 38 34% 88%;
-    --input: 38 34% 86%;
-    --ring: 348 58% 62%;
+    /* Semáforo do Pai */
+    --success: 145 45% 34%; /* #2F7D4F */
+    --warning: 43 78% 48%; /* #D9A21B */
+    --danger: 0 51% 46%; /* #B23A3A */
 
-    --radius: 1rem;
+    --border: 39 20% 82%;
+    --input: 39 20% 80%;
+    --ring: 190 64% 22%;
 
-    --sidebar-background: 40 100% 98%;
-    --sidebar-foreground: 320 16% 30%;
-    --sidebar-primary: 348 58% 62%;
+    --radius: 0.5rem; /* mais reto, masculino */
+
+    --sidebar-background: 40 40% 96%;
+    --sidebar-foreground: 210 13% 18%;
+    --sidebar-primary: 190 64% 22%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 265 42% 92%;
-    --sidebar-accent-foreground: 268 32% 30%;
-    --sidebar-border: 38 34% 88%;
-    --sidebar-ring: 348 58% 62%;
+    --sidebar-accent: 39 25% 90%;
+    --sidebar-accent-foreground: 210 13% 12%;
+    --sidebar-border: 39 20% 82%;
+    --sidebar-ring: 190 64% 22%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(348 58% 62%), hsl(352 82% 72%));
-    --gradient-soft: linear-gradient(160deg, hsl(40 100% 98%) 0%, hsl(265 42% 94%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(190 64% 22%), hsl(190 50% 32%));
+    --gradient-soft: linear-gradient(160deg, hsl(40 40% 97%) 0%, hsl(39 30% 90%) 100%);
     --gradient-hero: linear-gradient(
       135deg,
-      hsl(348 58% 96%) 0%,
-      hsl(265 42% 92%) 50%,
-      hsl(28 86% 92%) 100%
+      hsl(190 30% 90%) 0%,
+      hsl(39 39% 93%) 55%,
+      hsl(30 60% 90%) 100%
     );
   }
 
   .dark {
-    /* Warm plum + muted lilac — dark theme */
-    --background: 320 20% 11%;
-    --foreground: 40 28% 92%;
+    /* Vocação de Pai — modo escuro: fundo #14181C, cartões #1F2429 */
+    --background: 210 17% 9%; /* #14181C */
+    --foreground: 39 30% 92%;
 
-    --card: 320 18% 14%;
-    --card-foreground: 40 28% 92%;
+    --card: 210 14% 14%; /* #1F2429 */
+    --card-foreground: 39 30% 92%;
 
-    --popover: 320 18% 14%;
-    --popover-foreground: 40 28% 92%;
+    --popover: 210 14% 14%;
+    --popover-foreground: 39 30% 92%;
 
-    --primary: 348 58% 66%;
-    --primary-foreground: 320 30% 12%;
+    --primary: 190 45% 40%;
+    --primary-foreground: 0 0% 100%;
 
-    --primary-glow: 348 80% 60%;
+    --primary-glow: 190 50% 50%;
 
-    --secondary: 265 26% 26%;
-    --secondary-foreground: 265 45% 88%;
+    --secondary: 210 12% 20%;
+    --secondary-foreground: 39 30% 92%;
 
-    --muted: 320 16% 19%;
-    --muted-foreground: 40 14% 65%;
+    --muted: 210 12% 18%;
+    --muted-foreground: 39 12% 68%;
 
-    --accent: 28 30% 24%;
-    --accent-foreground: 28 70% 86%;
+    --accent: 30 70% 55%;
+    --accent-foreground: 210 17% 9%;
 
-    --destructive: 0 62% 45%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 51% 52%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 320 15% 22%;
-    --input: 320 15% 24%;
-    --ring: 348 58% 66%;
+    --success: 145 40% 42%;
+    --warning: 43 70% 55%;
+    --danger: 0 51% 52%;
 
-    --sidebar-background: 320 20% 13%;
-    --sidebar-foreground: 40 28% 88%;
-    --sidebar-primary: 348 58% 66%;
-    --sidebar-primary-foreground: 320 30% 12%;
-    --sidebar-accent: 320 16% 20%;
-    --sidebar-accent-foreground: 265 45% 88%;
-    --sidebar-border: 320 15% 22%;
-    --sidebar-ring: 348 58% 66%;
+    --border: 210 12% 22%;
+    --input: 210 12% 24%;
+    --ring: 190 45% 40%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(348 58% 66%), hsl(352 82% 62%));
-    --gradient-soft: linear-gradient(160deg, hsl(320 18% 12%) 0%, hsl(268 26% 16%) 100%);
+    --sidebar-background: 210 15% 11%;
+    --sidebar-foreground: 39 30% 88%;
+    --sidebar-primary: 190 45% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 12% 18%;
+    --sidebar-accent-foreground: 39 30% 92%;
+    --sidebar-border: 210 12% 22%;
+    --sidebar-ring: 190 45% 40%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(190 45% 34%), hsl(190 45% 44%));
+    --gradient-soft: linear-gradient(160deg, hsl(210 17% 10%) 0%, hsl(210 14% 14%) 100%);
     --gradient-hero: linear-gradient(
       135deg,
-      hsl(348 30% 16%) 0%,
-      hsl(268 30% 15%) 50%,
-      hsl(28 30% 15%) 100%
+      hsl(190 30% 14%) 0%,
+      hsl(210 17% 10%) 55%,
+      hsl(30 30% 14%) 100%
     );
   }
 }
@@ -232,14 +245,27 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
+    line-height: 1.6;
   }
 
+  /* Títulos em Barlow Condensed (peso 600/700, tracking-tight, caixa normal);
+     texto em Inter. Caixa alta só em rótulos pequenos de seção (doc 00 §7.6). */
   h1,
   h2,
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h1,
+  h2 {
+    font-weight: 700;
+  }
+
+  table,
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 
   ::selection {
@@ -413,20 +439,25 @@ html {
   gap: 0.5rem;
   min-height: 3rem;
   padding: 0.75rem 1.5rem;
-  border-radius: 1rem;
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  font-weight: 700;
-  font-size: 0.9375rem;
+  border-radius: var(--radius);
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  letter-spacing: 0.01em;
   text-decoration: none;
-  box-shadow: var(--shadow-elegant, 0 8px 24px -8px rgb(0 0 0 / 0.25));
-  transition: transform 0.15s ease;
+  box-shadow: var(--shadow-soft, 0 8px 24px -8px rgb(0 0 0 / 0.25));
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .article-content a.btn-comprar:hover,
 .article-content .tiptap a.btn-comprar:hover {
   transform: scale(1.02);
-  color: hsl(var(--primary-foreground));
+  background-color: hsl(var(--accent) / 0.9);
+  color: hsl(var(--accent-foreground));
   text-decoration: none;
 }
 
@@ -685,21 +716,30 @@ html {
 .article-content .callout-box .callout-body > p {
   margin: 0;
 }
+/* Semáforo do Pai: borda esquerda de 6 px nas cores sucesso/atenção/alerta (doc 00 §7.7) */
 .article-content .callout-box.callout-ok {
-  border-left-color: #10b981;
-  background: rgb(16 185 129 / 0.12);
+  border-left-width: 6px;
+  border-left-color: hsl(var(--success));
+  background: hsl(var(--success) / 0.1);
 }
 .article-content .callout-box.callout-warn {
-  border-left-color: #f59e0b;
-  background: rgb(245 158 11 / 0.14);
+  border-left-width: 6px;
+  border-left-color: hsl(var(--warning));
+  background: hsl(var(--warning) / 0.14);
 }
 .article-content .callout-box.callout-bad {
-  border-left-color: #ef4444;
-  background: rgb(239 68 68 / 0.1);
+  border-left-width: 6px;
+  border-left-color: hsl(var(--danger));
+  background: hsl(var(--danger) / 0.1);
 }
 .article-content .callout-box.callout-tip {
-  border-left-color: #9a5f66;
-  background: rgb(154 95 102 / 0.1);
+  border-left-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+}
+.article-content .callout-box .callout-label {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
 }
 
 /* Animações da manobra de engasgo (setas de direção) */
@@ -759,7 +799,6 @@ html {
     display: none !important;
   }
 }
-
 
 /* ---------- Pai Indica: cartão "Onde comprar", galeria e fotos em tamanho padrão ---------- */
 .article-content .tiptap .buy-card a.buy-card-btn,
